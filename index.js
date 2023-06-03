@@ -2,7 +2,7 @@ import { Server } from 'bittorrent-tracker';
 import express  from "express"
 
 const app = express();
-const trackerPort = 8080;
+const trackerPort = 3030;
 const expressPort = 3000;
 
 app.all("/", (req, res) => {
