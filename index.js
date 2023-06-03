@@ -21,6 +21,7 @@ const server = new Server({
 const onHttpRequest = server.onHttpRequest.bind(server)
 app.get('/announce', onHttpRequest)
 app.get('/scrape', onHttpRequest)
+app.get('/stats', onHttpRequest)
 
 app.listen(3000,  () => {
     console.log(`Servidor Express.js en ejecución en el puerto 8080`);
