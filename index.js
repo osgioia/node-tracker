@@ -18,10 +18,10 @@ const server = new Server({
   filter: (infoHash, params, callback) => {},
 });
 
-app.listen(expressPort, () => {
-    console.log(`Servidor Express.js en ejecución en el puerto ${expressPort}`);
-  });
+const onHttpRequest = server.onHttpRequest.bind(server)
+app.get('/announce', onHttpRequest)
+app.get('/scrape', onHttpRequest)
 
-server.listen(trackerPort, () => {
-  console.log('Tracker en ejecución en el puerto 8080');
-});
+app.listen(3000,  () => {
+    console.log(`Servidor Express.js en ejecución en el puerto 8080`);
+  })
