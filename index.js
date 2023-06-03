@@ -5,9 +5,9 @@ const app = express();
 const trackerPort = 3030;
 const expressPort = 3000;
 
-app.all("/", (req, res) => {
+app.get("/hello", (req, res) => {
   console.log("Just got a request!");
-  res.send("Yo!");
+  res.send("Hola!");
 });
 
 const server = new Server({
