@@ -1,13 +1,19 @@
-import { Server } from 'bittorrent-tracker';
-import express  from "express"
+import { Server } from "bittorrent-tracker";
+import express from "express";
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
 const app = express();
-const trackerPort = 3030;
-const expressPort = 3000;
+app.use(express.json());
+const expressPort = 3000 || process.env.PORT;
 
-app.get("/hello", (req, res) => {
-  console.log("Just got a request!");
-  res.send("Hola!");
+// Ruta POST para agregar torrents
+app.post("/torrents", (req, res) => {
+  const { infoHash } = req.body;
+
+  // Agregar lógica para registrar el torrent en la base de datos utilizando Prisma
+
+  res.send("Torrent agregado correctamente");
 });
 
 const server = new Server({
@@ -15,14 +21,15 @@ const server = new Server({
   http: true,
   ws: true,
   stats: true,
-  filter: (infoHash, params, callback) => {},
+  filter: (infoHash, params, callback) => {
+    callback(null);
+  },
 });
 
-const onHttpRequest = server.onHttpRequest.bind(server)
-app.get('/announce', onHttpRequest)
-app.get('/scrape', onHttpRequest)
-app.get('/stats', onHttpRequest)
+const onHttpRequest = server.onHttpRequest.bind(server);
+app.get("/announce", onHttpRequest);
+app.get("/scrape", onHttpRequest);
 
-app.listen(3000,  () => {
-    console.log(`Servidor Express.js en ejecución en el puerto 8080`);
-  })
+app.listen(expressPort, () => {
+  console.log(`Torrent Tracker running at ${expressPort}`);
+});

@@ -1,0 +1,32 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Torrent {
+  id       Int      @id @default(autoincrement())
+  infoHash String   @unique
+  completed Int      @default(0)
+  peers    Peer[]
+}
+
+model Peer {
+  id         Int      @id @default(autoincrement())
+  torrentId  Int
+  ip         String
+  port       Int
+  uploaded   Int
+  downloaded Int
+  left       Int
+  event      String
+  createdAt  DateTime @default(now())
+
+  torrent    Torrent  @relation(fields: [torrentId], references: [id])
+}
