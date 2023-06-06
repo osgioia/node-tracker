@@ -1,11 +1,16 @@
 import { Server } from "bittorrent-tracker";
 import express from "express";
 import { PrismaClient } from "@prisma/client";
+import fs  from 'fs';
+import path  from 'path';
+import dotenv  from 'dotenv';
+
+dotenv.config();
 const prisma = new PrismaClient();
 
 const app = express();
 app.use(express.json());
-const expressPort = 3000 || process.env.PORT;
+const expressPort = process.env.PORT || 3000  ;
 
 async function addTorrent(infoHash) {
   try {
@@ -46,6 +51,51 @@ async function checkTorrent(infoHash, callback) {
     }
   } catch (error) {
     callback(error);
+  } finally {
+    await prisma.$disconnect();
+  }
+  
+}
+
+async function createDatabase(){
+  const dbPath = path.join('/tmp', 'tracker.db');
+
+  // Verificar si el archivo de la base de datos ya existe
+  const dbExists = fs.existsSync(dbPath);
+
+  // Crear la base de datos solo si no existe
+  if (!dbExists && process.env.DATABASE_URL.startsWith('file:')) {
+    fs.writeFileSync(dbPath, '');
+
+    try {
+      await prisma.$connect();
+      await prisma.$queryRaw('PRAGMA foreign_keys=OFF');
+      await prisma.$queryRaw('CREATE DATABASE IF NOT EXISTS prisma');
+      await prisma.$queryRaw('PRAGMA foreign_keys=ON');
+      
+      // Obtener la ruta del directorio de migraciones
+      const migrationsDir = path.join(__dirname, 'prisma', 'migrations');
+
+      // Leer y aplicar todas las migraciones
+      const migrationFiles = fs.readdirSync(migrationsDir);
+      for (const migrationFile of migrationFiles) {
+        const migrationPath = path.join(migrationsDir, migrationFile);
+        const migrationSql = fs.readFileSync(migrationPath, 'utf-8');
+        await prisma.$queryRaw(migrationSql);
+        console.log(`Migración aplicada: ${migrationFile}`);
+      }
+
+      await prisma.$disconnect();
+
+      console.log('Base de datos creada en /tmp y migraciones aplicadas');
+
+    } catch (error) {
+      console.error(error);
+      return 'Error';
+    } finally {
+      await prisma.$disconnect();
+    }
+  
   }
   
 }
@@ -60,6 +110,8 @@ app.post("/torrents", async (req, res) => {
 
   res.send("Torrent agregado correctamente");
 });
+
+await createDatabase()
 
 const server = new Server({
   udp: true,
