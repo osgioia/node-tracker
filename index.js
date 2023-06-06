@@ -22,7 +22,7 @@ async function addTorrent(infoHash) {
   }
 }
 
-async function checkTorrent(infoHash) {
+async function checkTorrent(infoHash, callback) {
   try {
     const torrent = await prisma.torrent.findUnique({
       where: { infoHash },
@@ -67,8 +67,7 @@ const server = new Server({
   ws: true,
   stats: true,
   filter: async (infoHash, params, callback) => {
-    const cb = await checkTorrent(infoHash)
-    callback(cb);
+    await checkTorrent(infoHash, callback);
   },
 });
 
