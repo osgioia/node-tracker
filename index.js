@@ -71,7 +71,7 @@ async function createDatabase(){
       await prisma.$connect();
       
       // Obtener la ruta del directorio de migraciones
-      const migrationsDir = path.join('.', 'prisma', 'migrations');
+      const migrationsDir = path.join('prisma', 'migrations');
 
       // Leer y aplicar todas las migraciones
       const migrationFiles = fs.readdirSync(migrationsDir);
