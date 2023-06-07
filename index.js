@@ -69,9 +69,9 @@ async function createDatabase(){
 
     try {
       await prisma.$connect();
-      await prisma.$queryRaw('PRAGMA foreign_keys=OFF');
-      await prisma.$queryRaw('CREATE DATABASE IF NOT EXISTS prisma');
-      await prisma.$queryRaw('PRAGMA foreign_keys=ON');
+      await prisma.$queryRaw`PRAGMA foreign_keys=OFF`;
+      await prisma.$queryRaw`CREATE DATABASE IF NOT EXISTS tracker`;
+      await prisma.$queryRaw`PRAGMA foreign_keys=ON`;
       
       // Obtener la ruta del directorio de migraciones
       const migrationsDir = path.join(__dirname, 'prisma', 'migrations');
@@ -81,7 +81,7 @@ async function createDatabase(){
       for (const migrationFile of migrationFiles) {
         const migrationPath = path.join(migrationsDir, migrationFile);
         const migrationSql = fs.readFileSync(migrationPath, 'utf-8');
-        await prisma.$queryRaw(migrationSql);
+        await prisma.$queryRaw`${migrationSql}`;
         console.log(`Migración aplicada: ${migrationFile}`);
       }
 
@@ -111,7 +111,6 @@ app.post("/torrents", async (req, res) => {
   res.send("Torrent agregado correctamente");
 });
 
-await createDatabase()
 
 const server = new Server({
   udp: true,
@@ -127,6 +126,8 @@ const onHttpRequest = server.onHttpRequest.bind(server);
 app.get("/announce", onHttpRequest);
 app.get("/scrape", onHttpRequest);
 
-app.listen(expressPort, () => {
+app.listen(expressPort, async () => {
+  // Ejecutar tu función personalizada antes de levantar el servidor
+  await createDatabase();
   console.log(`Torrent Tracker running at ${expressPort}`);
 });
