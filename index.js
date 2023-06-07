@@ -4,13 +4,9 @@ import { PrismaClient } from "@prisma/client";
 import fs  from 'fs';
 import path  from 'path';
 import dotenv  from 'dotenv';
-import { fileURLToPath } from 'url';
 
 dotenv.config();
 const prisma = new PrismaClient();
-const __filename = fileURLToPath(import.meta.url);
-
-const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
@@ -75,7 +71,7 @@ async function createDatabase(){
       await prisma.$connect();
       
       // Obtener la ruta del directorio de migraciones
-      const migrationsDir = path.join(__dirname, 'prisma', 'migrations');
+      const migrationsDir = path.join('.', 'prisma', 'migrations');
 
       // Leer y aplicar todas las migraciones
       const migrationFiles = fs.readdirSync(migrationsDir);
