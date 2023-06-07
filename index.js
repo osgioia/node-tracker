@@ -69,9 +69,6 @@ async function createDatabase(){
 
     try {
       await prisma.$connect();
-      await prisma.$executeRaw`PRAGMA foreign_keys=OFF`;
-      await prisma.$executeRaw`CREATE DATABASE IF NOT EXISTS tracker`;
-      await prisma.$executeRaw`PRAGMA foreign_keys=ON`;
       
       // Obtener la ruta del directorio de migraciones
       const migrationsDir = path.join(__dirname, 'prisma', 'migrations');
