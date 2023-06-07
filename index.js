@@ -1,8 +1,6 @@
 import { Server } from "bittorrent-tracker";
 import express from "express";
 import { PrismaClient } from "@prisma/client";
-import fs  from 'fs';
-import path  from 'path';
 import dotenv  from 'dotenv';
 
 dotenv.config();
@@ -57,45 +55,6 @@ async function checkTorrent(infoHash, callback) {
   
 }
 
-async function createDatabase(){
-  const dbPath = path.join('/tmp', 'tracker.db');
-
-  // Verificar si el archivo de la base de datos ya existe
-  const dbExists = fs.existsSync(dbPath);
-
-  // Crear la base de datos solo si no existe
-  if (!dbExists && process.env.DATABASE_URL.startsWith('file:')) {
-    fs.writeFileSync(dbPath, '');
-
-    try {
-      await prisma.$connect();
-      
-      // Obtener la ruta del directorio de migraciones
-      const migrationsDir = './prisma/migrations';
-
-      // Leer y aplicar todas las migraciones
-      const migrationFiles = fs.readdirSync(migrationsDir);
-      for (const migrationFile of migrationFiles) {
-        const migrationPath = path.join(migrationsDir, migrationFile);
-        const migrationSql = fs.readFileSync(migrationPath, 'utf-8');
-        await prisma.$executeRaw`${migrationSql}`;
-        console.log(`Migración aplicada: ${migrationFile}`);
-      }
-
-      await prisma.$disconnect();
-
-      console.log('Base de datos creada en /tmp y migraciones aplicadas');
-
-    } catch (error) {
-      console.error(error);
-      return 'Error';
-    } finally {
-      await prisma.$disconnect();
-    }
-  
-  }
-  
-}
 
 // Ruta POST para agregar torrents
 app.post("/torrents", async (req, res) => {
@@ -123,8 +82,7 @@ const onHttpRequest = server.onHttpRequest.bind(server);
 app.get("/announce", onHttpRequest);
 app.get("/scrape", onHttpRequest);
 
-app.listen(expressPort, async () => {
+app.listen(expressPort, () => {
   // Ejecutar tu función personalizada antes de levantar el servidor
-  await createDatabase();
   console.log(`Torrent Tracker running at ${expressPort}`);
 });
