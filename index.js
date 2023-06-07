@@ -69,9 +69,9 @@ async function createDatabase(){
 
     try {
       await prisma.$connect();
-      await prisma.$queryRaw`PRAGMA foreign_keys=OFF`;
-      await prisma.$queryRaw`CREATE DATABASE IF NOT EXISTS tracker`;
-      await prisma.$queryRaw`PRAGMA foreign_keys=ON`;
+      await prisma.$executeRaw`PRAGMA foreign_keys=OFF`;
+      await prisma.$executeRaw`CREATE DATABASE IF NOT EXISTS tracker`;
+      await prisma.$executeRaw`PRAGMA foreign_keys=ON`;
       
       // Obtener la ruta del directorio de migraciones
       const migrationsDir = path.join(__dirname, 'prisma', 'migrations');
@@ -81,7 +81,7 @@ async function createDatabase(){
       for (const migrationFile of migrationFiles) {
         const migrationPath = path.join(migrationsDir, migrationFile);
         const migrationSql = fs.readFileSync(migrationPath, 'utf-8');
-        await prisma.$queryRaw`${migrationSql}`;
+        await prisma.$executeRaw`${migrationSql}`;
         console.log(`Migración aplicada: ${migrationFile}`);
       }
 
