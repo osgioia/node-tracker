@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "build": "npx prisma generate  --schema=./prisma/schema.prisma && node seed.js"
+    "build": "npx prisma generate  --schema=./prisma/schema.prisma && npx prisma migrate dev"
   },
   "repository": {
     "type": "git",
