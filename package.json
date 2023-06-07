@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "npx prisma migrate dev && node index.js",
-    "build": "npx prisma generate  --schema=./prisma/schema.prisma"
+    "start": "node index.js",
+    "build": "npx prisma generate  --schema=./prisma/schema.prisma && npx prisma migrate dev"
   },
   "repository": {
     "type": "git",
