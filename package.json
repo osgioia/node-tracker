@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "build": "npx prisma generate  --schema=./prisma/schema.prisma && npx prisma migrate dev"
+    "build:dev": "npx prisma generate  --schema=./prisma/schema.prisma && npx prisma migrate dev",
+    "build": "npx prisma generate  --schema=./prisma/schema.prisma && npx prisma db push"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
     "bittorrent-tracker": "^10.0.6",
     "dotenv": "^16.1.4",
     "express": "^4.18.2",
+    "morgan": "^1.10.0",
     "prisma": "^4.15.0"
   }
 }

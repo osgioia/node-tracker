@@ -2,12 +2,24 @@ import { Server } from "bittorrent-tracker";
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import dotenv from "dotenv";
+import morgan from "morgan";
 
 dotenv.config();
 const prisma = new PrismaClient();
 
 const app = express();
 app.use(express.json());
+
+
+// create a write stream (in append mode) for production logging
+let accessLogStream
+if (process.env.NODE_ENV === 'production') {
+  accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
+}
+
+// setup the logger
+app.use(morgan('combined', { stream: accessLogStream }))
+
 const expressPort = process.env.PORT || 3000;
 
 async function addTorrent(infoHash, name, category, tags) {
