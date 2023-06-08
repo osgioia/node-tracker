@@ -2,20 +2,36 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model Torrent {
-  id       Int      @id @default(autoincrement())
-  infoHash String   @unique
-  completed Int      @default(0)
-  peers    Peer[]
+  id         Int       @id @default(autoincrement())
+  name       String
+  infoHash   String    @unique
+  completed  Int       @default(0)
+  category   Category? @relation(fields: [categoryId], references: [id])
+  tags       Tag[]
+  peers      Peer[]
+  categoryId Int?
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String
+  torrents Torrent[]
+}
+
+model Tag {
+  id       Int       @id @default(autoincrement())
+  name     String
+  torrents Torrent[]
 }
 
 model Peer {
@@ -29,5 +45,5 @@ model Peer {
   event      String
   createdAt  DateTime @default(now())
 
-  torrent    Torrent  @relation(fields: [torrentId], references: [id])
+  torrent Torrent @relation(fields: [torrentId], references: [id])
 }
