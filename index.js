@@ -17,7 +17,7 @@ async function addTorrent(infoHash, name, category, tags) {
         infoHash: infoHash,
         name: name,
         category: { create: { name: category } },
-        tags: { create: tags.map(tag => ({ name: tag })) },
+        tags: { create: tags.map((tag) => ({ name: tag })) },
       },
     });
     console.log("Torrent agregado correctamente");
@@ -57,13 +57,11 @@ async function checkTorrent(infoHash, callback) {
   }
 }
 
-app.get('/torrents/search', async (req, res) => {
-  const { name, category } = req.query;
-
+async function searchTorrent(name, category) {
   try {
     const torrents = await prisma.torrent.findMany({
       where: {
-        name: { contains: name || '' },
+        name: { contains: name || "" },
         category: { name: category || undefined },
       },
       include: {
@@ -72,27 +70,74 @@ app.get('/torrents/search', async (req, res) => {
       },
     });
 
-    res.json(torrents);
+    return torrents;
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Error en la búsqueda de torrents' });
+    res.status(500).json({ error: "Error en la búsqueda de torrents" });
+  } finally {
+    await prisma.$disconnect();
   }
- finally {
-  await prisma.$disconnect();
 }
-});
 
+async function updateTorrent(id, data) {
+  try {
+    const updatedTorrent = await prisma.torrent.update({
+      where: { id },
+      data,
+    });
+    console.log("Torrent actualizado correctamente:", updatedTorrent);
+  } catch (error) {
+    console.error("Error al actualizar el torrent:", error);
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+async function deleteTorrent(id) {
+  try {
+    await prisma.torrent.delete({
+      where: { id },
+    });
+    console.log("Torrent eliminado correctamente");
+  } catch (error) {
+    console.error("Error al eliminar el torrent:", error);
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+
+app.get("/torrents/search", async (req, res) => {
+  const { name, category } = req.query;
+  const torrents = await searchTorrent(name, category);
+  res.json(torrents);
+});
 
 // Ruta POST para agregar torrents
 app.post("/torrents", async (req, res) => {
   const { infoHash, name, category, tags } = req.body;
-   
+
   // Agregar lógica para registrar el torrent en la base de datos utilizando Prisma
   // Llama a la función agregarTorrent y pasa el infoHash correspondiente
   await addTorrent(infoHash, name, category, tags);
 
   res.send("Torrent agregado correctamente");
 });
+
+app.put("/torrents", async (req, res) => {
+  const { id } = req.query; 
+  const { data } = req.body;
+
+  await updateTorrent(id, data);
+  res.send("Torrent actualizado correctamente")
+})
+
+app.delete("/torrents", async(req, res) => {
+  const { id } = req.query;
+
+  await deleteTorrent(id);
+  res.send("Torrent eliminado correctamente")
+})
 
 const server = new Server({
   udp: true,
