@@ -29,7 +29,7 @@ const server = new Server({
   ws: true,
   stats: true,
   filter: async (infoHash, params, callback) => {
-    await checkTorrent(infoHash, callback);
+    await checkTorrent(infoHash, params, callback);
   },
 });
 

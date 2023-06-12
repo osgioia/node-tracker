@@ -1,6 +1,6 @@
 import { db } from "./db.server.js";
 
-async function checkTorrent(infoHash, callback) {
+async function checkTorrent(infoHash, params, callback) {
   try {
     const torrent = await db.torrent.findUnique({
       where: { infoHash },
