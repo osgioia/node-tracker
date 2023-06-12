@@ -12,8 +12,8 @@ async function checkTorrent(infoHash, params, callback) {
           torrent: { connect: { id: torrent.id } }, // Conectar al torrent existente por su ID
           ip: params.ip,
           port: params.port,
-          uploaded: params.uploaded,
-          downloaded: params.downloaded,
+          uploaded: parseInt(params.uploaded),
+          downloaded: parseInt(params.downloaded),
           left: params.left,
           event: params.event,
         },
