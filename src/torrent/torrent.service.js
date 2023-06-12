@@ -7,7 +7,7 @@ async function addTorrent(infoHash, name, category, tags) {
         infoHash: infoHash,
         name: name,
         category: { create: { name: category } },
-        tags: { create: tags.map((tag) => ({ name: tag })) },
+        tags: { create: tags.split(",").map((tag) => ({ name: tag })) },
       },
     });
     console.log("Torrent agregado correctamente");
