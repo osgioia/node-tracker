@@ -9,11 +9,11 @@ async function checkTorrent(infoHash, params, callback) {
     if (torrent) {
       await db.peer.create({
         data: {
-          torrentId: torrent.id,
+          torrent: { connect: { id: torrent.id } }, // Conectar al torrent existente por su ID
           ip: params.ip,
           port: params.port,
-          uploaded: parseInt(params.uploaded),
-          downloaded: parseInt(params.downloaded),
+          uploaded: params.uploaded,
+          downloaded: params.downloaded,
           left: params.left,
           event: params.event,
         },
