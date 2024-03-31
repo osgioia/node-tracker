@@ -5,7 +5,6 @@ async function checkTorrent(infoHash, params, callback) {
     const torrent = await db.torrent.findUnique({
       where: { infoHash },
     });
-    console.log(params.event)
     if (torrent) {
       await db.peer.create({
         data: {

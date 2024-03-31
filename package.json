@@ -20,11 +20,11 @@
   },
   "homepage": "https://github.com/cyclic-software/starter-express-api#readme",
   "dependencies": {
-    "@prisma/client": "^4.15.0",
-    "bittorrent-tracker": "^10.0.6",
+    "@prisma/client": "^5.11.0",
+    "bittorrent-tracker": "^11.0.2",
     "dotenv": "^16.1.4",
     "express": "^4.18.2",
     "morgan": "^1.10.0",
-    "prisma": "^4.15.0"
+    "prisma": "^5.11.0"
   }
 }
