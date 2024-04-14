@@ -17,10 +17,10 @@ model Torrent {
   category     Category? @relation(fields: [categoryId], references: [id])
   uploadedBy   User      @relation(fields: [uploadedById], references: [id])
   uploadedById Int
-  downloads    Int
-  anonymous    Boolean
-  freeleech    Boolean
-  size         Int
+  downloads    Int       @default(0)
+  anonymous    Boolean   @default(false)
+  freeleech    Boolean   @default(false)
+  size         Int       @default(0)
   tags         Tag[]
   categoryId   Int?
 }
