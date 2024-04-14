@@ -15,8 +15,8 @@ model Torrent {
   infoHash     String    @unique
   completed    Int       @default(0)
   category     Category? @relation(fields: [categoryId], references: [id])
-  uploadedBy   User      @relation(fields: [uploadedById], references: [id])
-  uploadedById Int
+  uploadedBy   User?     @relation(fields: [uploadedById], references: [id]) // Hacer la relación opcional
+  uploadedById Int?
   downloads    Int       @default(0)
   anonymous    Boolean   @default(false)
   freeleech    Boolean   @default(false)
