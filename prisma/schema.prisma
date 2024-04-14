@@ -1,25 +1,28 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgres"
   url      = env("DATABASE_URL")
 }
 
 model Torrent {
-  id         Int       @id @default(autoincrement())
-  name       String
-  infoHash   String    @unique
-  completed  Int       @default(0)
-  category   Category? @relation(fields: [categoryId], references: [id])
-  tags       Tag[]
-  peers      Peer[]
-  categoryId Int?
+  id           Int       @id @default(autoincrement())
+  name         String
+  description  String?   @db.VarChar(255)
+  infoHash     String    @unique
+  completed    Int       @default(0)
+  category     Category? @relation(fields: [categoryId], references: [id])
+  uploadedBy   User      @relation(fields: [uploadedById], references: [id])
+  uploadedById Int
+  downloads    Int
+  anonymous    Boolean
+  freeleech    Boolean
+  size         Int
+  tags         Tag[]
+  categoryId   Int?
 }
 
 model Category {
@@ -34,16 +37,85 @@ model Tag {
   torrents Torrent[]
 }
 
-model Peer {
-  id         Int      @id @default(autoincrement())
-  torrentId  Int
-  ip         String
-  port       Int
-  uploaded   Int
-  downloaded Int
-  left       Int
-  event      String
-  createdAt  DateTime @default(now())
+model Bookmarks {
+  id     Int      @id @default(autoincrement())
+  user   User     @relation(fields: [userId], references: [id])
+  userId Int
+  time   DateTime
+  sort   Int      @default(0)
 
-  torrent Torrent @relation(fields: [torrentId], references: [id])
+  @@unique([userId, id], name: "unique_user_bookmark")
+}
+
+model User {
+  id               Int          @id @default(autoincrement())
+  username         String
+  email            String
+  password         String
+  uid              String
+  torrents         Torrent[]
+  bookmarks        Bookmarks[]
+  created          DateTime
+  banned           Boolean
+  role             String
+  invitedBy        Invite?      @relation(fields: [inviteId], references: [id])
+  invitedById      Int?
+  remainingInvites Int
+  emailVerified    Boolean
+  inviteId         Int?
+  Progress         Progress[]
+  InviteTree       InviteTree[]
+
+  @@unique([invitedById], name: "unique_invitedBy_user")
+}
+
+model Progress {
+  infoHash String
+  user     User   @relation(fields: [userId], references: [id])
+  userId   Int
+  uploaded Int
+  download Int
+  left     Int
+
+  @@id([infoHash, userId])
+}
+
+model GeoIPCountry {
+  startIP Int
+  endIP   Int
+  code    String @db.VarChar(2)
+
+  @@id([startIP, endIP])
+}
+
+model InviteTree {
+  userID    Int  @id
+  inviter   User @relation(fields: [inviterId], references: [id])
+  inviterId Int
+
+  @@index([inviterId], name: "InviterIdIndex")
+  @@index([userID], name: "UserIDIndex")
+}
+
+model Invite {
+  id        Int      @id @default(autoincrement())
+  inviter   User[]
+  inviterId Int
+  inviteKey String   @unique
+  email     String
+  expires   DateTime
+  reason    String
+
+  @@index([expires], name: "ExpiresIndex")
+  @@index([inviterId], name: "InviterIdInviteIndex")
+}
+
+model IPBan {
+  id     Int     @id @default(autoincrement())
+  fromIP Int
+  toIP   Int
+  reason String? @db.VarChar(255)
+
+  @@unique([fromIP, toIP], name: "FromIP_ToIP")
+  @@index([toIP], name: "ToIPIndex")
 }

@@ -2,7 +2,8 @@ import { Server } from "bittorrent-tracker";
 import express from "express";
 import dotenv from "dotenv";
 import morgan from "morgan";
-import { checkTorrent } from "./src/utils/utils.js";
+import { register } from 'prom-client';
+import { checkTorrent, bannedIPs } from "./src/utils/utils.js";
 import { torrentRouter } from "./src/torrent/torrent.router.js";
 
 dotenv.config();
@@ -10,26 +11,30 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-
-// create a write stream (in append mode) for production logging
 let accessLogStream
 if (process.env.NODE_ENV === 'production') {
   accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
 }
 
-// setup the logger
 app.use(morgan('combined', { stream: accessLogStream }))
 app.use("/api/torrent", torrentRouter);
+app.get("/metrics", async (req,res) => {
+  res.set("Content-Type", register.contentType)
+  res.end(await register.metrics())
+})
 
 const expressPort = process.env.PORT || 3000;
 
 const server = new Server({
-  udp: true,
-  http: true,
-  ws: true,
-  stats: true,
+  udp: process.env.UDP,
+  http: process.env.HTTP,
+  interval: process.env.ANNOUNCE_INTERVAL,
+  ws: process.env.WS,
+  stats: process.env.STATS,
+  trustProxy: process.env.TRUST_PROXY,
   filter: async (infoHash, params, callback) => {
-    await checkTorrent(infoHash, params, callback);
+    await checkTorrent(infoHash, callback);
+    await bannedIPs(params, callback)
   },
 });
 
@@ -44,6 +49,5 @@ process.on('SIGINT', () => {
 
 
 app.listen(expressPort, () => {
-  // Ejecutar tu función personalizada antes de levantar el servidor
   console.log(`Torrent Tracker running at ${expressPort}`);
 });

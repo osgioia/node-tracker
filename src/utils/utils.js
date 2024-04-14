@@ -1,25 +1,30 @@
 import { db } from "./db.server.js";
 
-async function checkTorrent(infoHash, params, callback) {
+async function checkTorrent(infoHash, callback) {
   try {
     const torrent = await db.torrent.findUnique({
       where: { infoHash },
     });
-    if (torrent) {
-      await db.peer.create({
-        data: {
-          torrent: { connect: { id: torrent.id } }, // Conectar al torrent existente por su ID
-          ip: params.ip,
-          port: params.port,
-          uploaded: parseInt(params.uploaded),
-          downloaded: parseInt(params.downloaded),
-          left: params.left,
-          event: params.event || "",
-        },
-      });
-      callback(null);
+    if (!torrent) {
+      throw new Error("Torrent not found");
+    }
+    callback(null)
+  } catch (error) {
+    callback(error);
+  } finally {
+    await db.$disconnect();
+  }
+}
+
+async function bannedIPs(params, callback) {
+  try {
+    const bannedIPs = await db.iPBan.findMany();
+    const ip = params.ipv6 || params.ip;
+    const isBanned = bannedIPs.some(ipBan => ip >= ipBan.fromIP && ip <= ipBan.toIP);
+    if (isBanned) {
+      callback(new Error('IP Banned'));
     } else {
-      throw new Error("Torrent no encontrado");
+      callback(null);
     }
   } catch (error) {
     callback(error);
@@ -28,4 +33,4 @@ async function checkTorrent(infoHash, params, callback) {
   }
 }
 
-export { checkTorrent };
+export { checkTorrent, bannedIPs };

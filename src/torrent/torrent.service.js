@@ -1,4 +1,5 @@
 import { db } from "../utils/db.server.js";
+import magnet from 'magnet-uri';
 
 async function addTorrent(infoHash, name, category, tags) {
   try {
@@ -10,31 +11,30 @@ async function addTorrent(infoHash, name, category, tags) {
         tags: { create: tags.split(",").map((tag) => ({ name: tag })) },
       },
     });
-    console.log("Torrent agregado correctamente");
+    console.log("Torrent added");
   } catch (error) {
-    console.error("Error al agregar el torrent:", error);
+    console.error("Error to add torrent:", error);
   } finally {
     await db.$disconnect();
   }
 }
 
-async function searchTorrent(name, category) {
+async function getTorrent(infoHash, hostname) {
   try {
-    const torrents = await db.torrent.findMany({
+    const torrent = await db.torrent.findFirst({
       where: {
-        name: { contains: name || "" },
-        category: { name: category || undefined },
-      },
-      include: {
-        category: true,
-        tags: true,
-      },
-    });
+        infoHash: infoHash
+    }});
 
-    return torrents;
+    const uri = magnet.encode({
+      xt: `urn:btih:${torrent.infoHash}`,
+      dn: torrent.name,
+      tr: `${hostname}:${process.env.PORT}/announce`
+    })
+    return uri
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error en la búsqueda de torrents" });
+    res.status(500).json({ error: "Error in get Torrent" });
   } finally {
     await db.$disconnect();
   }
@@ -46,9 +46,9 @@ async function updateTorrent(id, data) {
       where: { id },
       data,
     });
-    console.log("Torrent actualizado correctamente:", updatedTorrent);
+    console.log("Torrent updated:", updatedTorrent);
   } catch (error) {
-    console.error("Error al actualizar el torrent:", error);
+    console.error("Error to update torrent:", error);
   } finally {
     await db.$disconnect();
   }
@@ -59,12 +59,12 @@ async function deleteTorrent(id) {
     await db.torrent.delete({
       where: { id },
     });
-    console.log("Torrent eliminado correctamente");
+    console.log("Torrent deleted");
   } catch (error) {
-    console.error("Error al eliminar el torrent:", error);
+    console.error("Error to delete torrent:", error);
   } finally {
     await db.$disconnect();
   }
 }
 
-export { addTorrent, deleteTorrent, searchTorrent, updateTorrent };
+export { addTorrent, deleteTorrent, getTorrent as searchTorrent, updateTorrent };
