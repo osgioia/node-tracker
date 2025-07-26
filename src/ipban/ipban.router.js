@@ -5,7 +5,7 @@ import {
   updateIPBan,
   deleteIPBan,
   bulkCreateIPBan
-} from "./ipban.service";
+} from "./ipban.service.js";
 
 import { Counter } from "prom-client";
 

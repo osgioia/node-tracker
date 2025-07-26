@@ -8,6 +8,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// Modelo para representar un torrent.
 model Torrent {
   id           Int       @id @default(autoincrement())
   name         String
@@ -15,8 +16,8 @@ model Torrent {
   infoHash     String    @unique
   completed    Int       @default(0)
   category     Category? @relation(fields: [categoryId], references: [id])
-  uploadedBy   User?     @relation(fields: [uploadedById], references: [id]) // Hacer la relación opcional
-  uploadedById Int?
+  uploadedBy   User      @relation(fields: [uploadedById], references: [id])
+  uploadedById Int
   downloads    Int       @default(0)
   anonymous    Boolean   @default(false)
   freeleech    Boolean   @default(false)
@@ -25,19 +26,22 @@ model Torrent {
   categoryId   Int?
 }
 
+/// Modelo para representar una categoría de torrents.
 model Category {
   id       Int       @id @default(autoincrement())
   name     String
   torrents Torrent[]
 }
 
+/// Modelo para representar una etiqueta de torrents.
 model Tag {
   id       Int       @id @default(autoincrement())
   name     String
   torrents Torrent[]
 }
 
-model Bookmarks {
+/// Modelo para representar un marcador de usuario.
+model Bookmark {
   id     Int      @id @default(autoincrement())
   user   User     @relation(fields: [userId], references: [id])
   userId Int
@@ -47,75 +51,87 @@ model Bookmarks {
   @@unique([userId, id], name: "unique_user_bookmark")
 }
 
+/// Modelo para representar un usuario.
 model User {
-  id               Int          @id @default(autoincrement())
+  id               Int              @id @default(autoincrement())
   username         String
   email            String
   password         String
-  uid              String
+  uid              String           @unique @default(uuid())
   torrents         Torrent[]
-  bookmarks        Bookmarks[]
+  bookmarks        Bookmark[]
   created          DateTime
   banned           Boolean
-  role             String
-  invitedBy        Invite?      @relation(fields: [inviteId], references: [id])
-  invitedById      Int?
+  role             Role             @default(USER)
+  invitedBy        Invite?          @relation("UserInvitedBy")
+  invitedById      Int?             @unique
   remainingInvites Int
   emailVerified    Boolean
   inviteId         Int?
   Progress         Progress[]
-  InviteTree       InviteTree[]
-
-  @@unique([invitedById], name: "unique_invitedBy_user")
+  InviteTreeNode   InviteTreeNode[]
 }
 
+/// Modelo para representar el progreso de descarga de un usuario.
 model Progress {
   infoHash String
   user     User   @relation(fields: [userId], references: [id])
   userId   Int
-  uploaded Int
-  download Int
-  left     Int
+  uploaded BigInt
+  download BigInt
+  left     BigInt
 
   @@id([infoHash, userId])
 }
 
-model GeoIPCountry {
-  startIP Int
-  endIP   Int
+/// Modelo para representar un rango de IPs geolocalizadas.
+model GeoIP {
+  startIP BigInt
+  endIP   BigInt
   code    String @db.VarChar(2)
 
   @@id([startIP, endIP])
 }
 
-model InviteTree {
-  userID    Int  @id
+/// Modelo para representar un nodo en el árbol de invitaciones.
+model InviteTreeNode {
+  userId    Int  @unique @map("userID")
   inviter   User @relation(fields: [inviterId], references: [id])
   inviterId Int
 
   @@index([inviterId], name: "InviterIdIndex")
-  @@index([userID], name: "UserIDIndex")
+  @@index([userId], name: "UserIDIndex")
 }
 
+/// Modelo para representar una invitación.
 model Invite {
   id        Int      @id @default(autoincrement())
-  inviter   User[]
-  inviterId Int
+  inviter   User     @relation("UserInvitedBy", fields: [inviterId], references: [id])
+  inviterId Int      @unique
   inviteKey String   @unique
   email     String
   expires   DateTime
   reason    String
+  used      Boolean  @default(false)
 
   @@index([expires], name: "ExpiresIndex")
   @@index([inviterId], name: "InviterIdInviteIndex")
 }
 
+/// Modelo para representar un rango de IPs baneadas.
 model IPBan {
   id     Int     @id @default(autoincrement())
-  fromIP Int
-  toIP   Int
+  fromIP BigInt
+  toIP   BigInt
   reason String? @db.VarChar(255)
 
   @@unique([fromIP, toIP], name: "FromIP_ToIP")
   @@index([toIP], name: "ToIPIndex")
+}
+
+/// Roles de usuario.
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
 }

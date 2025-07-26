@@ -24,34 +24,58 @@ const deleteRequestCounter = new Counter({
   help: 'Count deleted torrents'
 })
 
-torrentRouter.get("/", async (req, res) => {
-  const { infoHash } = req.query;
-  const torrent = await getTorrent(infoHash, req.hostname);
-  getRequestCounter.inc();
-  res.download(torrent);
+torrentRouter.get("/:infoHash", async (req, res) => {
+  try {
+    const { infoHash } = req.params;
+    const torrent = await getTorrent(infoHash, req.hostname);
+    getRequestCounter.inc();
+    res.json({ magnetUri: torrent });
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
 });
 
 torrentRouter.post("/", async (req, res) => {
-  const { infoHash, name, category, tags } = req.body;
-  
-  await addTorrent(infoHash, name, category, tags);
-  postRequestCounter.inc();
-  res.send("Torrent added.");
+  try {
+    const { infoHash, name, category, tags } = req.body;
+    
+    // Validar campos requeridos
+    if (!infoHash || !name) {
+      return res.status(400).json({ error: "infoHash and name are required" });
+    }
+    
+    const torrent = await addTorrent(infoHash, name, category, tags, req.user.id);
+    postRequestCounter.inc();
+    res.status(201).json({ 
+      message: "Torrent added successfully",
+      torrent 
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
-torrentRouter.put("/", async (req, res) => {
-  const { id } = req.query;
-  const { data } = req.body;
+torrentRouter.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
 
-  await updateTorrent(id, data);
-  putRequestCounter.inc()
-  res.send("Torrent updated.");
+    await updateTorrent(parseInt(id), updateData);
+    putRequestCounter.inc();
+    res.json({ message: "Torrent updated successfully" });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
-torrentRouter.delete("/", async (req, res) => {
-  const { id } = req.query;
+torrentRouter.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
 
-  await deleteTorrent(id);
-  deleteRequestCounter.inc();
-  res.send("Torrent deleted.");
+    await deleteTorrent(parseInt(id));
+    deleteRequestCounter.inc();
+    res.json({ message: "Torrent deleted successfully" });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });

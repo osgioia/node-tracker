@@ -6,8 +6,6 @@ async function listAllIPBan() {
     return await db.iPBan.findMany();
   } catch (error) {
     logMessage("error", `Error to get data:${error.message}`);
-  } finally {
-    await db.$disconnect();
   }
 }
 
@@ -18,8 +16,6 @@ async function createIPBan(data) {
     });
   } catch (error) {
     logMessage("error", `Error to add ip:${error.message}`);
-  } finally {
-    await db.$disconnect();
   }
 }
 
@@ -31,8 +27,6 @@ async function updateIPBan(id, data) {
     });
   } catch (error) {
     logMessage("error", `Error to update ip:${error.message}`);
-  } finally {
-    await db.$disconnect();
   }
 }
 
@@ -43,8 +37,6 @@ async function deleteIPBan(id) {
     });
   } catch (error) {
     logMessage("error", `Error to delete ip:${error.message}`);
-  } finally {
-    await db.$disconnect();
   }
 }
 
@@ -56,8 +48,6 @@ async function bulkCreateIPBan(dataArray) {
     });
   } catch (error) {
     logMessage("error", `Error to load bulk ips:${error.message}`);
-  } finally {
-    await db.$disconnect();
   }
 }
 

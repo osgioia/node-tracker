@@ -1,5 +1,5 @@
 import { db } from "../utils/db.server.js";
-import { logMessage, generateToken } from "../utils/utils.js";
+import { logMessage } from "../utils/utils.js";
 import bcrypt from "bcrypt";
 
 // Create new user (admin only)
@@ -46,7 +46,7 @@ async function createUser(userData) {
   }
 }
 
-// Obtener usuario por ID
+// Get user by ID
 async function getUserById(id) {
   try {
     const user = await db.user.findUnique({
@@ -87,12 +87,12 @@ async function getUserById(id) {
 
     return user;
   } catch (error) {
-    logMessage("error", `Error al obtener usuario: ${error.message}`);
+    logMessage("error", `Error getting user: ${error.message}`);
     throw error;
   }
 }
 
-// Listar todos los usuarios (admin)
+// List all users with pagination (admin only)
 async function getAllUsers(page = 1, limit = 20) {
   try {
     const skip = (page - 1) * limit;
@@ -133,19 +133,19 @@ async function getAllUsers(page = 1, limit = 20) {
       }
     };
   } catch (error) {
-    logMessage("error", `Error al listar usuarios: ${error.message}`);
+    logMessage("error", `Error listing users: ${error.message}`);
     throw error;
   }
 }
 
-// Actualizar usuario
+// Update user
 async function updateUser(id, updateData) {
   try {
     const { password, ...otherData } = updateData;
     
     let dataToUpdate = { ...otherData };
     
-    // Hash nueva contraseña si se proporciona
+    // Hash new password if provided
     if (password) {
       dataToUpdate.password = await bcrypt.hash(password, 10);
     }
@@ -164,15 +164,15 @@ async function updateUser(id, updateData) {
       }
     });
 
-    logMessage("info", `Usuario actualizado: ${updatedUser.username}`);
+    logMessage("info", `User updated: ${updatedUser.username}`);
     return updatedUser;
   } catch (error) {
-    logMessage("error", `Error al actualizar usuario: ${error.message}`);
+    logMessage("error", `Error updating user: ${error.message}`);
     throw error;
   }
 }
 
-// Banear/desbanear usuario
+// Ban/unban user
 async function toggleUserBan(id, banned, reason = null) {
   try {
     const updatedUser = await db.user.update({
@@ -185,66 +185,17 @@ async function toggleUserBan(id, banned, reason = null) {
       }
     });
 
-    const action = banned ? "baneado" : "desbaneado";
-    logMessage("info", `Usuario ${action}: ${updatedUser.username}${reason ? ` - Razón: ${reason}` : ''}`);
+    const action = banned ? "banned" : "unbanned";
+    logMessage("info", `User ${action}: ${updatedUser.username}${reason ? ` - Reason: ${reason}` : ''}`);
     
     return updatedUser;
   } catch (error) {
-    logMessage("error", `Error al cambiar estado de ban: ${error.message}`);
+    logMessage("error", `Error changing ban status: ${error.message}`);
     throw error;
   }
 }
 
-// Crear invitación
-async function createInvite(inviterId, email, reason, expiresInDays = 7) {
-  try {
-    const inviter = await db.user.findUnique({
-      where: { id: parseInt(inviterId) }
-    });
-
-    if (!inviter) {
-      throw new Error("Usuario invitador no encontrado");
-    }
-
-    if (inviter.remainingInvites <= 0) {
-      throw new Error("No invitations remaining");
-    }
-
-    // Generar clave de invitación única
-    const inviteKey = `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + expiresInDays);
-
-    const invite = await db.invite.create({
-      data: {
-        inviterId: parseInt(inviterId),
-        inviteKey,
-        email,
-        reason,
-        expires: expiresAt
-      }
-    });
-
-    // Decrementar invitaciones restantes
-    await db.user.update({
-      where: { id: parseInt(inviterId) },
-      data: {
-        remainingInvites: {
-          decrement: 1
-        }
-      }
-    });
-
-    logMessage("info", `Invitación creada por ${inviter.username} para ${email}`);
-    return invite;
-  } catch (error) {
-    logMessage("error", `Error al crear invitación: ${error.message}`);
-    throw error;
-  }
-}
-
-// Obtener estadísticas del usuario
+// Get user statistics
 async function getUserStats(userId) {
   try {
     const stats = await db.user.findUnique({
@@ -266,10 +217,10 @@ async function getUserStats(userId) {
     });
 
     if (!stats) {
-      throw new Error("Usuario no encontrado");
+      throw new Error("User not found");
     }
 
-    // Calcular totales de upload/download
+    // Calculate upload/download totals
     const totalUploaded = stats.Progress.reduce((sum, p) => sum + Number(p.uploaded), 0);
     const totalDownloaded = stats.Progress.reduce((sum, p) => sum + Number(p.download), 0);
     const ratio = totalDownloaded > 0 ? totalUploaded / totalDownloaded : 0;
@@ -282,60 +233,16 @@ async function getUserStats(userId) {
       ratio: parseFloat(ratio.toFixed(2))
     };
   } catch (error) {
-    logMessage("error", `Error al obtener estadísticas: ${error.message}`);
-    throw error;
-  }
-}
-
-// Authenticate user (for login)
-async function authenticateUser(username, password) {
-  try {
-    const user = await db.user.findFirst({
-      where: {
-        OR: [
-          { username },
-          { email: username }
-        ]
-      }
-    });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    if (user.banned) {
-      throw new Error("User is banned");
-    }
-
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      throw new Error("Incorrect password");
-    }
-
-    const token = generateToken(user);
-    
-    return {
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role
-      },
-      token
-    };
-  } catch (error) {
-    logMessage("error", `Error authenticating user: ${error.message}`);
+    logMessage("error", `Error getting user statistics: ${error.message}`);
     throw error;
   }
 }
 
 export {
   createUser,
-  authenticateUser,
   getUserById,
   getAllUsers,
   updateUser,
   toggleUserBan,
-  createInvite,
   getUserStats
 };

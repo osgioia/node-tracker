@@ -1,9 +1,29 @@
 import { createLogger, format, transports } from "winston";
+import { Address6, Address4 } from "ip-address";
 import { db } from "./db.server.js";
 import fs from "fs";
 import path from "path";
 import morgan from "morgan";
+import jwt from "jsonwebtoken";
 
+// Validar JWT_SECRET
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined in environment variables");
+}
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
+
+// Convertir IP a número (IPv4 o IPv6)
+function ipToNumber(ip) {
+  try {
+    return ip.includes(":") ? new Address6(ip).bigInteger() : new Address4(ip).bigInteger();
+  } catch (error) {
+    logMessage("error", `Error converting IP: ${error.message}`);
+    return null;
+  }
+}
+
+// Configurar Morgan para logging de HTTP
 function setupMorgan(app) {
   let accessLogStream;
 
@@ -17,7 +37,7 @@ function setupMorgan(app) {
   app.use(morgan("combined", { stream: accessLogStream || process.stdout }));
 }
 
-// Configuración de winston
+// Configuración de Winston para logging estructurado
 const logger = createLogger({
   level: "info",
   format: format.combine(
@@ -32,43 +52,75 @@ const logger = createLogger({
   ],
 });
 
+// Función helper para logging
 function logMessage(level, message) {
   logger.log({ level, message });
 }
 
+// Verificar si un torrent existe en la base de datos
 async function checkTorrent(infoHash, callback) {
   try {
     const torrent = await db.torrent.findUnique({
       where: { infoHash },
     });
     if (!torrent) {
+      logMessage("warn", `Torrent not found: ${infoHash}`);
       throw new Error("Torrent not found");
     }
     callback(null);
   } catch (error) {
+    logMessage("error", `Error in checkTorrent: ${error.message}`);
     callback(error);
-  } finally {
-    await db.$disconnect();
   }
 }
 
+// Verificar si una IP está en un rango baneado
 async function bannedIPs(params, callback) {
   try {
     const bannedIPs = await db.iPBan.findMany();
     const ip = params.ipv6 || params.ip;
-    const isBanned = bannedIPs.some(
-      (ipBan) => ip >= ipBan.fromIP && ip <= ipBan.toIP
-    );
+
+    const isBanned = bannedIPs.some((ipBan) => {
+      const fromIP = ipToNumber(ipBan.fromIP);
+      const toIP = ipToNumber(ipBan.toIP);
+      const currentIP = ipToNumber(ip);
+
+      if (fromIP === null || toIP === null || currentIP === null) {
+        return false;
+      }
+
+      return currentIP >= fromIP && currentIP <= toIP;
+    });
+
     if (isBanned) {
-      callback(new Error("IP Banned"));
+      logMessage("warn", `IP banned: ${ip}`);
+      callback(new Error("IP banned"));
     } else {
       callback(null);
     }
   } catch (error) {
+    logMessage("error", `Error in bannedIPs: ${error.message}`);
     callback(error);
-  } finally {
-    await db.$disconnect();
   }
 }
 
-export { checkTorrent, bannedIPs, setupMorgan, logMessage };
+// Generar un token JWT para autenticación
+function generateToken(user) {
+  if (!user || !user.id || !user.username) {
+    throw new Error("Invalid user data for token generation");
+  }
+
+  return jwt.sign(
+    { id: user.id, username: user.username },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+}
+
+// Generar una clave de invitación única
+function generateInviteKey() {
+  return `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// Exportar funciones
+export { checkTorrent, bannedIPs, setupMorgan, logMessage, generateToken, generateInviteKey };
