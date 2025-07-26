@@ -7,14 +7,14 @@ async function listAllIPBans(page = 1, limit = 20) {
     const skip = (page - 1) * limit;
     
     const [ipBans, total] = await Promise.all([
-      db.iPBan.findMany({
+      db.IPBan.findMany({
         skip,
         take: limit,
         orderBy: {
           id: 'desc'
         }
       }),
-      db.iPBan.count()
+      db.IPBan.count()
     ]);
 
     return {
@@ -35,7 +35,7 @@ async function listAllIPBans(page = 1, limit = 20) {
 // Create single IP ban
 async function createIPBan(data) {
   try {
-    const ipBan = await db.iPBan.create({
+    const ipBan = await db.IPBan.create({
       data
     });
     
@@ -50,7 +50,7 @@ async function createIPBan(data) {
 // Get IP ban by ID
 async function getIPBanById(id) {
   try {
-    const ipBan = await db.iPBan.findUnique({
+    const ipBan = await db.IPBan.findUnique({
       where: { id: parseInt(id) }
     });
 
@@ -68,7 +68,7 @@ async function getIPBanById(id) {
 // Update IP ban
 async function updateIPBan(id, data) {
   try {
-    const ipBan = await db.iPBan.update({
+    const ipBan = await db.IPBan.update({
       where: { id: parseInt(id) },
       data
     });
@@ -87,7 +87,7 @@ async function updateIPBan(id, data) {
 // Delete IP ban
 async function deleteIPBan(id) {
   try {
-    await db.iPBan.delete({
+    await db.IPBan.delete({
       where: { id: parseInt(id) }
     });
     
@@ -104,7 +104,7 @@ async function deleteIPBan(id) {
 // Bulk create IP bans
 async function bulkCreateIPBans(data) {
   try {
-    const result = await db.iPBan.createMany({
+    const result = await db.IPBan.createMany({
       data,
       skipDuplicates: true
     });
