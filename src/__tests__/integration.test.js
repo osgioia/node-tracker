@@ -101,7 +101,7 @@ describe('Integration Tests', () => {
       });
 
       const registerResponse = await request(app)
-        .post('/api/user/register')
+        .post('/api/users/register')
         .send({
           username: 'testuser',
           email: 'test@example.com',
@@ -123,7 +123,7 @@ describe('Integration Tests', () => {
       });
 
       const loginResponse = await request(app)
-        .post('/api/user/login')
+        .post('/api/users/login')
         .send({
           username: 'testuser',
           password: 'password123'
@@ -148,7 +148,7 @@ describe('Integration Tests', () => {
       });
 
       const profileResponse = await request(app)
-        .get('/api/user/profile')
+        .get('/api/users/profile')
         .set('Authorization', authToken);
 
       expect(profileResponse.status).toBe(200);
@@ -165,7 +165,7 @@ describe('Integration Tests', () => {
       mockBcrypt.compare.mockResolvedValue(false); // Invalid password
 
       const response = await request(app)
-        .post('/api/user/login')
+        .post('/api/users/login')
         .send({
           username: 'testuser',
           password: 'wrongpassword'
@@ -192,7 +192,7 @@ describe('Integration Tests', () => {
       mockDb.torrent.create.mockResolvedValue(mockTorrent);
 
       const addResponse = await request(app)
-        .post('/api/torrent')
+        .post('/api/torrents')
         .set('Authorization', authToken)
         .send({
           infoHash: 'abc123def456',
@@ -209,7 +209,7 @@ describe('Integration Tests', () => {
       mockDb.torrent.findFirst.mockResolvedValue(mockTorrent);
 
       const getResponse = await request(app)
-        .get('/api/torrent/abc123def456')
+        .get('/api/torrents/abc123def456')
         .set('Authorization', authToken);
 
       expect(getResponse.status).toBe(200);
@@ -220,7 +220,7 @@ describe('Integration Tests', () => {
       mockDb.torrent.update.mockResolvedValue(updatedTorrent);
 
       const updateResponse = await request(app)
-        .put('/api/torrent/1')
+        .put('/api/torrents/1')
         .set('Authorization', authToken)
         .send({
           name: 'Updated Torrent'
@@ -233,7 +233,7 @@ describe('Integration Tests', () => {
       mockDb.torrent.delete.mockResolvedValue(mockTorrent);
 
       const deleteResponse = await request(app)
-        .delete('/api/torrent/1')
+        .delete('/api/torrents/1')
         .set('Authorization', authToken);
 
       expect(deleteResponse.status).toBe(200);
@@ -241,7 +241,7 @@ describe('Integration Tests', () => {
 
     it('should require authentication for torrent operations', async () => {
       const response = await request(app)
-        .post('/api/torrent')
+        .post('/api/torrents')
         .send({
           infoHash: 'abc123',
           name: 'Test Torrent'
@@ -268,7 +268,7 @@ describe('Integration Tests', () => {
       mockDb.iPBan.count.mockResolvedValue(1);
 
       const listResponse = await request(app)
-        .get('/api/ipban')
+        .get('/api/ip-bans')
         .set('Authorization', authToken);
 
       expect(listResponse.status).toBe(200);
@@ -285,7 +285,7 @@ describe('Integration Tests', () => {
       mockDb.iPBan.create.mockResolvedValue(newBan);
 
       const createResponse = await request(app)
-        .post('/api/ipban')
+        .post('/api/ip-bans')
         .set('Authorization', authToken)
         .send({
           fromIP: '10.0.0.1',
@@ -301,7 +301,7 @@ describe('Integration Tests', () => {
       mockDb.iPBan.update.mockResolvedValue(updatedBan);
 
       const updateResponse = await request(app)
-        .put('/api/ipban/2')
+        .put('/api/ip-bans/2')
         .set('Authorization', authToken)
         .send({
           fromIP: '10.0.0.1',
@@ -316,7 +316,7 @@ describe('Integration Tests', () => {
       mockDb.iPBan.delete.mockResolvedValue(newBan);
 
       const deleteResponse = await request(app)
-        .delete('/api/ipban/2')
+        .delete('/api/ip-bans/2')
         .set('Authorization', authToken);
 
       expect(deleteResponse.status).toBe(204);
@@ -339,7 +339,7 @@ describe('Integration Tests', () => {
       mockDb.iPBan.createMany.mockResolvedValue({ count: 2 });
 
       const response = await request(app)
-        .post('/api/ipban/bulk')
+        .post('/api/ip-bans/bulk')
         .set('Authorization', authToken)
         .send(bulkData);
 
@@ -351,7 +351,7 @@ describe('Integration Tests', () => {
   describe('Error Handling', () => {
     it('should handle validation errors properly', async () => {
       const response = await request(app)
-        .post('/api/user/register')
+        .post('/api/users/register')
         .send({
           username: 'ab', // Too short
           email: 'invalid-email',
@@ -367,7 +367,7 @@ describe('Integration Tests', () => {
       mockDb.user.findFirst.mockRejectedValue(new Error('Database connection failed'));
 
       const response = await request(app)
-        .post('/api/user/login')
+        .post('/api/users/login')
         .send({
           username: 'testuser',
           password: 'password123'
@@ -379,7 +379,7 @@ describe('Integration Tests', () => {
 
     it('should handle missing required fields', async () => {
       const response = await request(app)
-        .post('/api/torrent')
+        .post('/api/torrents')
         .set('Authorization', authToken)
         .send({
           // Missing infoHash and name
@@ -407,7 +407,7 @@ describe('Integration Tests', () => {
       });
 
       const response = await request(app)
-        .get('/api/user/1')
+        .get('/api/users/1')
         .set('Authorization', authToken);
 
       expect(response.status).toBe(200);
@@ -415,7 +415,7 @@ describe('Integration Tests', () => {
 
     it('should deny access to other users data for non-admin', async () => {
       const response = await request(app)
-        .get('/api/user/2')
+        .get('/api/users/2')
         .set('Authorization', authToken);
 
       expect(response.status).toBe(403);
@@ -440,7 +440,7 @@ describe('Integration Tests', () => {
       });
 
       const response = await request(app)
-        .get('/api/user/2')
+        .get('/api/users/2')
         .set('Authorization', authToken);
 
       expect(response.status).toBe(200);
@@ -450,9 +450,9 @@ describe('Integration Tests', () => {
   describe('Rate Limiting and Security', () => {
     it('should reject requests without proper authentication', async () => {
       const endpoints = [
-        { method: 'get', path: '/api/user/profile' },
-        { method: 'post', path: '/api/torrent' },
-        { method: 'get', path: '/api/ipban' }
+        { method: 'get', path: '/api/users/profile' },
+        { method: 'post', path: '/api/torrents' },
+        { method: 'get', path: '/api/ip-bans' }
       ];
 
       for (const endpoint of endpoints) {
@@ -471,7 +471,7 @@ describe('Integration Tests', () => {
       });
 
       const response = await request(app)
-        .get('/api/user/profile')
+        .get('/api/users/profile')
         .set('Authorization', 'Bearer invalid.jwt.token');
 
       expect(response.status).toBe(401);

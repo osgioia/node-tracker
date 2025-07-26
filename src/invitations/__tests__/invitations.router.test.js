@@ -39,6 +39,11 @@ describe('Invitations Router', () => {
     app.use(express.json());
     app.use('/api/invitations', invitationsRouter);
     jest.clearAllMocks();
+    // Restaurar el mock del usuario por defecto antes de cada test
+    mockAuthMiddleware.mockImplementation((req, res, next) => {
+      req.user = { id: 1, username: 'testuser', role: 'USER' };
+      next();
+    });
   });
 
   describe('GET /api/invitations', () => {

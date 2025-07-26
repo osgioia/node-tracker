@@ -1,64 +1,62 @@
 # Node Tracker
 
-Un BitTorrent Tracker privado desarrollado en Node.js con Express, Prisma y PostgreSQL.
+Un tracker BitTorrent privado y completo, desarrollado en Node.js, Express y Prisma, con autenticación, sistema de invitaciones, métricas y API REST para gestión avanzada.
 
-## Características
+---
 
-- **BitTorrent Tracker completo** con soporte HTTP/UDP/WebSocket
-- **API REST** para gestión de usuarios, torrents e IPs baneadas
-- **Sistema de autenticación JWT** con roles de usuario
+## 🚀 Características principales
+
+- **Tracker BitTorrent** (HTTP/UDP/WebSocket opcional)
+- **API RESTful** para usuarios, torrents, invitaciones y baneos
+- **Autenticación JWT** y control de roles (USER, MODERATOR, ADMIN)
 - **Sistema de invitaciones** para registro controlado
-- **Rate limiting** para protección contra spam
-- **Métricas de Prometheus** para monitoreo
-- **Logging estructurado** con Winston
-- **Base de datos PostgreSQL** con Prisma ORM
+- **Rate limiting** y validaciones de seguridad
+- **Métricas Prometheus** y logging estructurado
+- **Base de datos PostgreSQL** gestionada con Prisma ORM
 
-## Instalación
+---
 
-1. Clonar el repositorio:
-```bash
+## 🛠️ Instalación rápida
+
+1. **Clona el repositorio:**
+   ```bash
 git clone <repository-url>
 cd node-tracker
 ```
 
-2. Instalar dependencias:
-```bash
+2. **Instala las dependencias:**
+   ```bash
 npm install
 ```
 
-3. Configurar variables de entorno:
-```bash
+3. **Configura las variables de entorno:**
+   ```bash
 cp .env.example .env
-# Editar .env con tus configuraciones
+# Edita .env con tus datos (DB, JWT, etc)
 ```
 
-4. Configurar la base de datos:
-```bash
+4. **Prepara la base de datos:**
+   ```bash
 npm run build:dev
 ```
 
-5. Iniciar el servidor:
-```bash
+5. **Inicia la aplicación:**
+   ```bash
 npm start
 ```
 
-## Configuración
+---
 
-### Variables de Entorno
+## ⚙️ Configuración
+
+Edita el archivo `.env` para definir los parámetros de conexión y seguridad:
 
 ```env
-# Base de datos
-DATABASE_URL=postgresql://user:password@localhost:5432/tracker
-
-# JWT
+DATABASE_URL=postgresql://usuario:password@localhost:5432/tracker
 JWT_SECRET=tu_secreto_super_seguro
 JWT_EXPIRES_IN=1h
-
-# Servidor
 PORT=3000
 TRUST_PROXY=false
-
-# Tracker
 UDP=false
 HTTP=true
 WS=false
@@ -66,136 +64,158 @@ ANNOUNCE_INTERVAL=300
 STATS=true
 ```
 
-## Uso
+---
 
-### API REST
+## 📚 Uso básico
 
-La API está documentada en [API_DOCUMENTATION.md](./API_DOCUMENTATION.md).
+### 1. **Registro y login de usuario**
 
-#### Ejemplo de uso:
-
-1. **Registrar usuario:**
 ```bash
 curl -X POST http://localhost:3000/api/user/register \
   -H "Content-Type: application/json" \
-  -d '{
-    "username": "usuario123",
-    "email": "usuario@example.com",
-    "password": "password123"
-  }'
-```
+  -d '{"username": "usuario123", "email": "usuario@example.com", "password": "password123"}'
 
-2. **Login:**
-```bash
 curl -X POST http://localhost:3000/api/user/login \
   -H "Content-Type: application/json" \
-  -d '{
-    "username": "usuario123",
-    "password": "password123"
-  }'
+  -d '{"username": "usuario123", "password": "password123"}'
 ```
 
-3. **Agregar torrent:**
+### 2. **Agregar un torrent**
+
 ```bash
 curl -X POST http://localhost:3000/api/torrent \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \
-  -d '{
-    "infoHash": "abc123...",
-    "name": "Mi Torrent",
-    "category": "Películas"
-  }'
+  -d '{"infoHash": "abc123...", "name": "Mi Torrent", "category": "Películas"}'
 ```
 
-### BitTorrent Tracker
+### 3. **Usar el tracker**
+- Anuncia: `http://localhost:3000/announce`
+- Scrape: `http://localhost:3000/scrape`
 
-El tracker está disponible en:
-- **HTTP:** `http://localhost:3000/announce`
-- **Scrape:** `http://localhost:3000/scrape`
+---
 
-## Estructura del Proyecto
+## 🧩 ¿Cómo funciona el sistema?
+
+### Flujo general
+
+1. **Registro controlado:** Solo se pueden registrar usuarios mediante invitación (invite). Un usuario existente con permisos puede generar invitaciones para otros.
+2. **Autenticación:** Los usuarios inician sesión con usuario y contraseña. Se utiliza JWT para autenticar y autorizar cada petición.
+3. **Gestión de torrents:** Los usuarios autenticados pueden agregar, buscar y administrar torrents. Los administradores pueden ver y gestionar todos los torrents.
+4. **Roles y permisos:**
+   - **USER:** Puede usar el tracker, subir torrents y ver los suyos.
+   - **MODERATOR:** Puede moderar contenido y gestionar usuarios/torrents.
+   - **ADMIN:** Control total sobre el sistema, usuarios, invitaciones y configuración.
+5. **Seguridad:**
+   - Rate limiting, validación de datos, hashing de contraseñas y baneos de IP.
+   - Acceso a rutas críticas solo para roles autorizados.
+6. **Monitoreo:** Métricas Prometheus y logs para auditar y monitorear el sistema.
+
+---
+
+### 🔗 ¿Cómo funciona el sistema de invitaciones?
+
+El sistema de invitaciones permite controlar quién puede registrarse en el tracker. Así funciona:
+
+1. **Generación de invitaciones:**
+   - Solo usuarios autenticados (usualmente ADMIN o MODERATOR) pueden crear invitaciones desde la API (`POST /api/invitations`).
+   - Se puede especificar un email, motivo y una expiración opcional (días de validez).
+   - Cada invitación genera un código único (inviteKey) que se envía al invitado.
+
+2. **Registro con invitación:**
+   - El usuario invitado debe registrarse usando el código de invitación recibido.
+   - El sistema valida que la invitación esté activa, no usada y no expirada.
+   - Al completar el registro, la invitación se marca como usada y no puede reutilizarse.
+
+3. **Control y auditoría:**
+   - Los administradores pueden listar, revocar o eliminar invitaciones.
+   - Todas las invitaciones quedan registradas con su estado (usada, activa, expirada).
+
+**Ventajas:**
+- Permite mantener la comunidad cerrada y segura.
+- Evita registros masivos o automatizados.
+- Da trazabilidad sobre quién invitó a quién.
+
+---
+
+## 🗂️ Estructura del proyecto
 
 ```
 src/
-├── ipban/              # Gestión de IPs baneadas
-│   ├── ipban.router.js
-│   └── ipban.service.js
-├── middleware/         # Middlewares
-│   └── auth.js
-├── torrent/           # Gestión de torrents
-│   ├── torrent.router.js
-│   └── torrent.service.js
-├── user/              # Gestión de usuarios
-│   ├── user.router.js
-│   └── user.service.js
-├── utils/             # Utilidades
-│   ├── db.server.js
-│   └── utils.js
-└── router.js          # Router principal
-
+├── auth/           # Autenticación y login
+├── invitations/    # Sistema de invitaciones
+├── ip-bans/        # Baneo de IPs
+├── ipban/          # Alternativa de baneo de IPs
+├── middleware/     # Middlewares (auth, etc)
+├── torrent/        # Gestión de torrents
+├── torrents/       # API de torrents
+├── user/           # Gestión de usuarios
+├── users/          # API de usuarios
+├── utils/          # Utilidades y DB
+└── router.js       # Router principal
 prisma/
-└── schema.prisma      # Esquema de base de datos
+└── schema.prisma   # Esquema de base de datos
 ```
 
-## Modelos de Base de Datos
+---
 
-- **User:** Usuarios del sistema con roles y sistema de invitaciones
-- **Torrent:** Torrents con categorías, tags y estadísticas
-- **Category:** Categorías de torrents
-- **Tag:** Etiquetas para torrents
-- **IPBan:** Rangos de IPs baneadas
-- **Invite:** Sistema de invitaciones
-- **Progress:** Progreso de descarga de usuarios
-- **Bookmark:** Marcadores de usuarios
+## 🗄️ Modelos principales
 
-## Scripts
+- **User:** Usuarios, roles, invitaciones
+- **Torrent:** Torrents, categorías, tags, estadísticas
+- **IPBan:** IPs baneadas
+- **Invite:** Invitaciones
+- **Bookmark, Progress:** Favoritos y progreso de usuario
 
-```bash
-# Desarrollo
-npm start                # Iniciar con nodemon
-npm run build:dev       # Generar cliente Prisma + migrar DB (dev)
-npm run build          # Generar cliente Prisma + migrar DB (prod)
+---
 
-# Testing
-node test-api.js       # Probar la API
-```
+## 🔒 Seguridad y buenas prácticas
 
-## Monitoreo
+- Autenticación JWT obligatoria en rutas protegidas
+- Rate limiting en endpoints críticos
+- Validación de datos con express-validator
+- Contraseñas hasheadas con bcrypt
+- Baneo de IPs y control de acceso por roles
 
-### Métricas de Prometheus
-Disponibles en `http://localhost:3000/metrics`
+---
 
-### Health Check
-Disponible en `http://localhost:3000/health`
+## 📊 Monitoreo y logs
 
-### Logs
-- **Consola:** Logs en tiempo real
-- **Archivo:** `application.log`
-- **HTTP:** `access.log` (en producción)
+- **Métricas Prometheus:** `http://localhost:3000/metrics`
+- **Health check:** `http://localhost:3000/health`
+- **Logs:** consola y archivos (`application.log`, `access.log`)
 
-## Seguridad
+---
 
-- **Autenticación JWT** obligatoria para rutas protegidas
-- **Rate limiting** en rutas críticas del tracker
-- **Validación de entrada** con express-validator
-- **Hashing de contraseñas** con bcrypt
-- **Filtrado de torrents** no registrados
-- **Sistema de baneos** por IP
+## 🧪 Testing
 
-## Roles de Usuario
+- Ejecuta todos los tests:
+  ```bash
+  npm test
+  ```
+- Prueba la API manualmente:
+  ```bash
+  node test-api.js
+  ```
 
-- **USER:** Usuario normal, puede subir torrents y usar el tracker
-- **MODERATOR:** Puede moderar contenido
-- **ADMIN:** Acceso completo al sistema
+---
 
-## Contribuir
+## 🤝 Contribuir
 
-1. Fork el proyecto
-2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abrir un Pull Request
+1. Haz fork del proyecto
+2. Crea una rama (`git checkout -b feature/NuevaFeature`)
+3. Haz commit de tus cambios
+4. Haz push a tu rama
+5. Abre un Pull Request
 
-## Licencia
+---
+
+## 📄 Licencia
 
 Este proyecto está bajo la Licencia ISC.
+
+---
+
+## 📖 Documentación de la API
+
+Consulta [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) para detalles completos de los endpoints y ejemplos avanzados.
