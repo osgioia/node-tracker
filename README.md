@@ -1,5 +1,7 @@
 # Node Tracker
 
+> ⚠️ **WORK IN PROGRESS** - Este proyecto está actualmente en desarrollo activo. Algunas funcionalidades pueden estar incompletas o experimentar cambios. Los tests están siendo actualizados y la documentación puede no reflejar el estado actual del código.
+
 Un tracker BitTorrent privado y completo, desarrollado en Node.js, Express y Prisma, con autenticación, sistema de invitaciones, métricas y API REST para gestión avanzada.
 
 ---
@@ -19,29 +21,34 @@ Un tracker BitTorrent privado y completo, desarrollado en Node.js, Express y Pri
 ## 🛠️ Instalación rápida
 
 1. **Clona el repositorio:**
-   ```bash
+
+```bash
 git clone <repository-url>
 cd node-tracker
 ```
 
 2. **Instala las dependencias:**
-   ```bash
+
+```bash
 npm install
 ```
 
 3. **Configura las variables de entorno:**
-   ```bash
+
+```bash
 cp .env.example .env
 # Edita .env con tus datos (DB, JWT, etc)
 ```
 
 4. **Prepara la base de datos:**
-   ```bash
+
+```bash
 npm run build:dev
 ```
 
 5. **Inicia la aplicación:**
-   ```bash
+
+```bash
 npm start
 ```
 
@@ -90,6 +97,7 @@ curl -X POST http://localhost:3000/api/torrent \
 ```
 
 ### 3. **Usar el tracker**
+
 - Anuncia: `http://localhost:3000/announce`
 - Scrape: `http://localhost:3000/scrape`
 
@@ -118,11 +126,13 @@ curl -X POST http://localhost:3000/api/torrent \
 El sistema de invitaciones permite controlar quién puede registrarse en el tracker. Así funciona:
 
 1. **Generación de invitaciones:**
+
    - Solo usuarios autenticados (usualmente ADMIN o MODERATOR) pueden crear invitaciones desde la API (`POST /api/invitations`).
    - Se puede especificar un email, motivo y una expiración opcional (días de validez).
    - Cada invitación genera un código único (inviteKey) que se envía al invitado.
 
 2. **Registro con invitación:**
+
    - El usuario invitado debe registrarse usando el código de invitación recibido.
    - El sistema valida que la invitación esté activa, no usada y no expirada.
    - Al completar el registro, la invitación se marca como usada y no puede reutilizarse.
@@ -132,6 +142,7 @@ El sistema de invitaciones permite controlar quién puede registrarse en el trac
    - Todas las invitaciones quedan registradas con su estado (usada, activa, expirada).
 
 **Ventajas:**
+
 - Permite mantener la comunidad cerrada y segura.
 - Evita registros masivos o automatizados.
 - Da trazabilidad sobre quién invitó a quién.
@@ -194,9 +205,10 @@ prisma/
   npm test
   ```
 - Prueba la API manualmente:
-  ```bash
+
+```bash
   node test-api.js
-  ```
+```
 
 ---
 
@@ -218,4 +230,16 @@ Este proyecto está bajo la Licencia ISC.
 
 ## 📖 Documentación de la API
 
-Consulta [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) para detalles completos de los endpoints y ejemplos avanzados.
+Una vez que inicies la aplicación, puedes acceder a la documentación interactiva de Swagger en:
+
+**🔗 [http://localhost:3000/api-docs](http://localhost:3000/api-docs)**
+
+La documentación de Swagger incluye:
+
+- Todos los endpoints disponibles
+- Esquemas de request/response
+- Ejemplos interactivos
+- Autenticación JWT integrada
+- Posibilidad de probar la API directamente desde el navegador
+
+> **Nota:** También puedes consultar [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) para referencia adicional, aunque Swagger es la fuente más actualizada.

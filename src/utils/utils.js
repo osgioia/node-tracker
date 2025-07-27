@@ -16,7 +16,18 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
 // Convertir IP a número (IPv4 o IPv6)
 function ipToNumber(ip) {
   try {
-    return ip.includes(":") ? new Address6(ip).bigInteger() : new Address4(ip).bigInteger();
+    if (ip.includes(":")) {
+      // IPv6
+      const addr6 = new Address6(ip);
+      return BigInt(addr6.bigInteger());
+    } else {
+      // IPv4 - convertir manualmente usando BigInt para evitar overflow
+      const parts = ip.split('.').map(Number);
+      if (parts.length !== 4 || parts.some(part => part < 0 || part > 255)) {
+        throw new Error('Invalid IPv4 address');
+      }
+      return BigInt(parts[0]) * 16777216n + BigInt(parts[1]) * 65536n + BigInt(parts[2]) * 256n + BigInt(parts[3]);
+    }
   } catch (error) {
     logMessage("error", `Error converting IP: ${error.message}`);
     return null;
@@ -77,7 +88,7 @@ async function checkTorrent(infoHash, callback) {
 // Verificar si una IP está en un rango baneado
 async function bannedIPs(params, callback) {
   try {
-    const bannedIPs = await db.iPBan.findMany();
+    const bannedIPs = await db.IPBan.findMany();
     const ip = params.ipv6 || params.ip;
 
     const isBanned = bannedIPs.some((ipBan) => {
@@ -123,4 +134,4 @@ function generateInviteKey() {
 }
 
 // Exportar funciones
-export { checkTorrent, bannedIPs, setupMorgan, logMessage, generateToken, generateInviteKey };
+export { checkTorrent, bannedIPs, setupMorgan, logMessage, generateToken, generateInviteKey, ipToNumber };

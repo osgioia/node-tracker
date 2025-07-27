@@ -1,0 +1,629 @@
+
+> starter-express-api@1.0.0 test
+> NODE_OPTIONS="--experimental-vm-modules" jest
+
+2025-07-26T20:08:03.870Z [ERROR]: Error listing IP bans: 
+Invalid `db.IPBan.findMany()` invocation in
+/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:10:16
+
+   7 const skip = (page - 1) * limit;
+   8 
+   9 const [ipBans, total] = await Promise.all([
+→ 10   db.IPBan.findMany({
+         take: 20,
+         orderBy: {
+           id: "desc"
+         },
+       + skip: Int
+       })
+
+Argument `skip` is missing.
+  console.error
+    Error listing IP bans: PrismaClientValidationError: 
+    Invalid `db.IPBan.findMany()` invocation in
+    /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:10:16
+    
+       7 const skip = (page - 1) * limit;
+       8 
+       9 const [ipBans, total] = await Promise.all([
+    → 10   db.IPBan.findMany({
+             take: 20,
+             orderBy: {
+               id: "desc"
+             },
+           + skip: Int
+           })
+    
+    Argument `skip` is missing.
+        at wn (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:29:1363)
+        at Vn.handleRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6982)
+        at Vn.handleAndLogRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6663)
+        at Vn.request (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6370)
+        at l (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:130:9617)
+        at async Promise.all (index 0)
+        at listAllIPBans (/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:9:29)
+        at /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.router.js:39:20 {
+      clientVersion: '6.2.1'
+    }
+
+      40 |     res.status(200).json(ipBans);
+      41 |   } catch (error) {
+    > 42 |     console.error("Error listing IP bans:", error);
+         |             ^
+      43 |     res.status(500).json({ error: "Error to get ips" }); // Ajustado para coincidir con la prueba
+      44 |   }
+      45 | });
+
+      at src/ip-bans/ip-bans.router.js:42:13
+
+2025-07-26T20:08:03.899Z [ERROR]: Error listing IP bans: 
+Invalid `db.IPBan.findMany()` invocation in
+/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:10:16
+
+   7 const skip = (page - 1) * limit;
+   8 
+   9 const [ipBans, total] = await Promise.all([
+→ 10   db.IPBan.findMany({
+         take: 20,
+         orderBy: {
+           id: "desc"
+         },
+       + skip: Int
+       })
+
+Argument `skip` is missing.
+  console.error
+    Error listing IP bans: PrismaClientValidationError: 
+    Invalid `db.IPBan.findMany()` invocation in
+    /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:10:16
+    
+       7 const skip = (page - 1) * limit;
+       8 
+       9 const [ipBans, total] = await Promise.all([
+    → 10   db.IPBan.findMany({
+             take: 20,
+             orderBy: {
+               id: "desc"
+             },
+           + skip: Int
+           })
+    
+    Argument `skip` is missing.
+        at wn (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:29:1363)
+        at Vn.handleRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6982)
+        at Vn.handleAndLogRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6663)
+        at Vn.request (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6370)
+        at l (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:130:9617)
+        at async Promise.all (index 0)
+        at listAllIPBans (/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:9:29)
+        at /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.router.js:39:20 {
+      clientVersion: '6.2.1'
+    }
+
+      40 |     res.status(200).json(ipBans);
+      41 |   } catch (error) {
+    > 42 |     console.error("Error listing IP bans:", error);
+         |             ^
+      43 |     res.status(500).json({ error: "Error to get ips" }); // Ajustado para coincidir con la prueba
+      44 |   }
+      45 | });
+
+      at src/ip-bans/ip-bans.router.js:42:13
+
+2025-07-26T20:08:03.921Z [ERROR]: Error creating IP ban: 
+Invalid `db.IPBan.create()` invocation in
+/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:38:34
+
+  35 // Create single IP ban
+  36 async function createIPBan(data) {
+  37   try {
+→ 38     const ipBan = await db.IPBan.create({
+           data: {
+             fromIP: "192.168.1.1",
+                     ~~~~~~~~~~~~~
+             toIP: "192.168.1.1",
+             reason: "Spam activity"
+           }
+         })
+
+Invalid value for argument `fromIP`: invalid digit found in string. Expected big integer String.
+  console.error
+    Error creating IP ban: PrismaClientValidationError: 
+    Invalid `db.IPBan.create()` invocation in
+    /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:38:34
+    
+      35 // Create single IP ban
+      36 async function createIPBan(data) {
+      37   try {
+    → 38     const ipBan = await db.IPBan.create({
+               data: {
+                 fromIP: "192.168.1.1",
+                         ~~~~~~~~~~~~~
+                 toIP: "192.168.1.1",
+                 reason: "Spam activity"
+               }
+             })
+    
+    Invalid value for argument `fromIP`: invalid digit found in string. Expected big integer String.
+        at wn (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:29:1363)
+        at Vn.handleRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6982)
+        at Vn.handleAndLogRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6663)
+        at Vn.request (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6370)
+        at l (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:130:9617)
+        at createIPBan (/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:38:19)
+        at /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.router.js:50:22 {
+      clientVersion: '6.2.1'
+    }
+
+      51 |     res.status(201).json(newIPBan);
+      52 |   } catch (error) {
+    > 53 |     console.error("Error creating IP ban:", error);
+         |             ^
+      54 |     res.status(400).json({ error: "Error to create ip to ban." }); // Ajustado para coincidir con la prueba
+      55 |   }
+      56 | });
+
+      at src/ip-bans/ip-bans.router.js:53:13
+
+2025-07-26T20:08:03.929Z [ERROR]: Error creating IP ban: 
+Invalid `db.IPBan.create()` invocation in
+/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:38:34
+
+  35 // Create single IP ban
+  36 async function createIPBan(data) {
+  37   try {
+→ 38     const ipBan = await db.IPBan.create({
+           data: {
+             fromIP: "192.168.1.1",
+                     ~~~~~~~~~~~~~
+             toIP: "192.168.1.1",
+             reason: "Spam activity"
+           }
+         })
+
+Invalid value for argument `fromIP`: invalid digit found in string. Expected big integer String.
+  console.error
+    Error creating IP ban: PrismaClientValidationError: 
+    Invalid `db.IPBan.create()` invocation in
+    /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:38:34
+    
+      35 // Create single IP ban
+      36 async function createIPBan(data) {
+      37   try {
+    → 38     const ipBan = await db.IPBan.create({
+               data: {
+                 fromIP: "192.168.1.1",
+                         ~~~~~~~~~~~~~
+                 toIP: "192.168.1.1",
+                 reason: "Spam activity"
+               }
+             })
+    
+    Invalid value for argument `fromIP`: invalid digit found in string. Expected big integer String.
+        at wn (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:29:1363)
+        at Vn.handleRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6982)
+        at Vn.handleAndLogRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6663)
+        at Vn.request (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6370)
+        at l (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:130:9617)
+        at createIPBan (/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:38:19)
+        at /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.router.js:50:22 {
+      clientVersion: '6.2.1'
+    }
+
+      51 |     res.status(201).json(newIPBan);
+      52 |   } catch (error) {
+    > 53 |     console.error("Error creating IP ban:", error);
+         |             ^
+      54 |     res.status(400).json({ error: "Error to create ip to ban." }); // Ajustado para coincidir con la prueba
+      55 |   }
+      56 | });
+
+      at src/ip-bans/ip-bans.router.js:53:13
+
+2025-07-26T20:08:03.942Z [ERROR]: Error bulk creating IP bans: 
+Invalid `db.IPBan.createMany()` invocation in
+/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:107:35
+
+  104 // Bulk create IP bans
+  105 async function bulkCreateIPBans(data) {
+  106   try {
+→ 107     const result = await db.IPBan.createMany({
+            data: [
+              {
+                fromIP: "192.168.1.1",
+                toIP: "192.168.1.255",
+                reason: "Spam network"
+              },
+              {
+                fromIP: "10.0.0.1",
+                toIP: "10.255.255.255",
+                reason: "Corporate network"
+              }
+            ],
+            skipDuplicates: true
+          })
+
+Invalid value for argument `fromIP`: invalid digit found in string. Expected big integer String.
+  console.error
+    Error bulk creating IP bans: PrismaClientValidationError: 
+    Invalid `db.IPBan.createMany()` invocation in
+    /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:107:35
+    
+      104 // Bulk create IP bans
+      105 async function bulkCreateIPBans(data) {
+      106   try {
+    → 107     const result = await db.IPBan.createMany({
+                data: [
+                  {
+                    fromIP: "192.168.1.1",
+                    toIP: "192.168.1.255",
+                    reason: "Spam network"
+                  },
+                  {
+                    fromIP: "10.0.0.1",
+                    toIP: "10.255.255.255",
+                    reason: "Corporate network"
+                  }
+                ],
+                skipDuplicates: true
+              })
+    
+    Invalid value for argument `fromIP`: invalid digit found in string. Expected big integer String.
+        at wn (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:29:1363)
+        at Vn.handleRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6982)
+        at Vn.handleAndLogRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6663)
+        at Vn.request (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6370)
+        at l (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:130:9617)
+        at bulkCreateIPBans (/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:107:20)
+        at /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.router.js:61:20 {
+      clientVersion: '6.2.1'
+    }
+
+      62 |     res.status(201).json(result);
+      63 |   } catch (error) {
+    > 64 |     console.error("Error bulk creating IP bans:", error);
+         |             ^
+      65 |     res.status(400).json({ error: "Error to create bulk ip to ban." }); // Ajustado para coincidir con la prueba
+      66 |   }
+      67 | });
+
+      at src/ip-bans/ip-bans.router.js:64:13
+
+2025-07-26T20:08:03.947Z [ERROR]: Error bulk creating IP bans: 
+Invalid `db.IPBan.createMany()` invocation in
+/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:107:35
+
+  104 // Bulk create IP bans
+  105 async function bulkCreateIPBans(data) {
+  106   try {
+→ 107     const result = await db.IPBan.createMany({
+            data: [
+              {
+                fromIP: "192.168.1.1",
+                toIP: "192.168.1.255",
+                reason: "Spam network"
+              }
+            ],
+            skipDuplicates: true
+          })
+
+Invalid value for argument `fromIP`: invalid digit found in string. Expected big integer String.
+  console.error
+    Error bulk creating IP bans: PrismaClientValidationError: 
+    Invalid `db.IPBan.createMany()` invocation in
+    /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:107:35
+    
+      104 // Bulk create IP bans
+      105 async function bulkCreateIPBans(data) {
+      106   try {
+    → 107     const result = await db.IPBan.createMany({
+                data: [
+                  {
+                    fromIP: "192.168.1.1",
+                    toIP: "192.168.1.255",
+                    reason: "Spam network"
+                  }
+                ],
+                skipDuplicates: true
+              })
+    
+    Invalid value for argument `fromIP`: invalid digit found in string. Expected big integer String.
+        at wn (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:29:1363)
+        at Vn.handleRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6982)
+        at Vn.handleAndLogRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6663)
+        at Vn.request (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6370)
+        at l (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:130:9617)
+        at bulkCreateIPBans (/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:107:20)
+        at /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.router.js:61:20 {
+      clientVersion: '6.2.1'
+    }
+
+      62 |     res.status(201).json(result);
+      63 |   } catch (error) {
+    > 64 |     console.error("Error bulk creating IP bans:", error);
+         |             ^
+      65 |     res.status(400).json({ error: "Error to create bulk ip to ban." }); // Ajustado para coincidir con la prueba
+      66 |   }
+      67 | });
+
+      at src/ip-bans/ip-bans.router.js:64:13
+
+2025-07-26T20:08:03.954Z [ERROR]: Error updating IP ban: 
+Invalid `db.IPBan.update()` invocation in
+/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:71:34
+
+  68 // Update IP ban
+  69 async function updateIPBan(id, data) {
+  70   try {
+→ 71     const ipBan = await db.IPBan.update({
+           where: {
+             id: 1
+           },
+           data: {
+             fromIP: "192.168.1.2",
+                     ~~~~~~~~~~~~~
+             toIP: "192.168.1.2",
+             reason: "Updated reason"
+           }
+         })
+
+Invalid value for argument `fromIP`: invalid digit found in string. Expected big integer String.
+  console.error
+    Error updating IP ban: PrismaClientValidationError: 
+    Invalid `db.IPBan.update()` invocation in
+    /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:71:34
+    
+      68 // Update IP ban
+      69 async function updateIPBan(id, data) {
+      70   try {
+    → 71     const ipBan = await db.IPBan.update({
+               where: {
+                 id: 1
+               },
+               data: {
+                 fromIP: "192.168.1.2",
+                         ~~~~~~~~~~~~~
+                 toIP: "192.168.1.2",
+                 reason: "Updated reason"
+               }
+             })
+    
+    Invalid value for argument `fromIP`: invalid digit found in string. Expected big integer String.
+        at wn (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:29:1363)
+        at Vn.handleRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6982)
+        at Vn.handleAndLogRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6663)
+        at Vn.request (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6370)
+        at l (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:130:9617)
+        at updateIPBan (/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:71:19)
+        at /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.router.js:72:26 {
+      clientVersion: '6.2.1'
+    }
+
+      73 |     res.status(200).json(updatedIPBan);
+      74 |   } catch (error) {
+    > 75 |     console.error("Error updating IP ban:", error);
+         |             ^
+      76 |     res.status(400).json({ error: "Error al update ip to ban." }); // Ajustado para coincidir con la prueba
+      77 |   }
+      78 | });
+
+      at src/ip-bans/ip-bans.router.js:75:13
+
+2025-07-26T20:08:03.959Z [ERROR]: Error updating IP ban: 
+Invalid `db.IPBan.update()` invocation in
+/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:71:34
+
+  68 // Update IP ban
+  69 async function updateIPBan(id, data) {
+  70   try {
+→ 71     const ipBan = await db.IPBan.update({
+           where: {
+             id: 1
+           },
+           data: {
+             fromIP: "192.168.1.2",
+                     ~~~~~~~~~~~~~
+             toIP: "192.168.1.2",
+             reason: "Updated reason"
+           }
+         })
+
+Invalid value for argument `fromIP`: invalid digit found in string. Expected big integer String.
+  console.error
+    Error updating IP ban: PrismaClientValidationError: 
+    Invalid `db.IPBan.update()` invocation in
+    /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:71:34
+    
+      68 // Update IP ban
+      69 async function updateIPBan(id, data) {
+      70   try {
+    → 71     const ipBan = await db.IPBan.update({
+               where: {
+                 id: 1
+               },
+               data: {
+                 fromIP: "192.168.1.2",
+                         ~~~~~~~~~~~~~
+                 toIP: "192.168.1.2",
+                 reason: "Updated reason"
+               }
+             })
+    
+    Invalid value for argument `fromIP`: invalid digit found in string. Expected big integer String.
+        at wn (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:29:1363)
+        at Vn.handleRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6982)
+        at Vn.handleAndLogRequestError (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6663)
+        at Vn.request (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:121:6370)
+        at l (/home/oz/Documents/Repos/node-tracker/node_modules/@prisma/client/runtime/library.js:130:9617)
+        at updateIPBan (/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:71:19)
+        at /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.router.js:72:26 {
+      clientVersion: '6.2.1'
+    }
+
+      73 |     res.status(200).json(updatedIPBan);
+      74 |   } catch (error) {
+    > 75 |     console.error("Error updating IP ban:", error);
+         |             ^
+      76 |     res.status(400).json({ error: "Error al update ip to ban." }); // Ajustado para coincidir con la prueba
+      77 |   }
+      78 | });
+
+      at src/ip-bans/ip-bans.router.js:75:13
+
+  console.error
+    Error deleting IP ban: Error: IP ban not found
+        at deleteIPBan (/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:97:13)
+        at /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.router.js:83:5
+
+      84 |     res.status(204).send();
+      85 |   } catch (error) {
+    > 86 |     console.error("Error deleting IP ban:", error);
+         |             ^
+      87 |     res.status(400).json({ error: "Error to delete ip." }); // Ajustado para coincidir con la prueba
+      88 |   }
+      89 | });
+
+      at src/ip-bans/ip-bans.router.js:86:13
+
+  console.error
+    Error deleting IP ban: Error: IP ban not found
+        at deleteIPBan (/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:97:13)
+        at /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.router.js:83:5
+
+      84 |     res.status(204).send();
+      85 |   } catch (error) {
+    > 86 |     console.error("Error deleting IP ban:", error);
+         |             ^
+      87 |     res.status(400).json({ error: "Error to delete ip." }); // Ajustado para coincidir con la prueba
+      88 |   }
+      89 | });
+
+      at src/ip-bans/ip-bans.router.js:86:13
+
+2025-07-26T20:08:04.237Z [WARN]: Access without token
+2025-07-26T20:08:04.245Z [WARN]: Access without token
+2025-07-26T20:08:04.254Z [WARN]: Access without token
+2025-07-26T20:08:04.256Z [ERROR]: Error listing IP bans: Cannot read properties of undefined (reading 'findMany')
+  console.error
+    Error listing IP bans: TypeError: Cannot read properties of undefined (reading 'findMany')
+        at listAllIPBans (/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:10:16)
+        at /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.router.js:39:26
+        at Layer.handle [as handle_request] (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/layer.js:95:5)
+        at next (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/route.js:149:13)
+        at Route.dispatch (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/route.js:119:3)
+        at Layer.handle [as handle_request] (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/layer.js:95:5)
+        at /home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:284:15
+        at Function.process_params (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:346:12)
+        at next (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:280:10)
+        at Function.handle (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:175:3)
+        at router (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:47:12)
+        at Layer.handle [as handle_request] (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/layer.js:95:5)
+        at trim_prefix (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:328:13)
+        at /home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:286:9
+        at Function.process_params (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:346:12)
+        at next (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:280:10)
+        at authMiddleware (/home/oz/Documents/Repos/node-tracker/src/middleware/auth.js:21:5)
+        at Layer.handle [as handle_request] (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/layer.js:95:5)
+        at trim_prefix (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:328:13)
+        at /home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:286:9
+        at Function.process_params (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:346:12)
+        at next (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:280:10)
+        at Function.handle (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:175:3)
+        at router (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:47:12)
+        at Layer.handle [as handle_request] (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/layer.js:95:5)
+        at trim_prefix (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:328:13)
+        at /home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:286:9
+        at Function.process_params (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:346:12)
+        at next (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:280:10)
+        at jsonParser (/home/oz/Documents/Repos/node-tracker/node_modules/body-parser/lib/types/json.js:113:7)
+        at Layer.handle [as handle_request] (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/layer.js:95:5)
+        at trim_prefix (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:328:13)
+        at /home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:286:9
+        at Function.process_params (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:346:12)
+        at next (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:280:10)
+        at expressInit (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/middleware/init.js:40:5)
+        at Layer.handle [as handle_request] (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/layer.js:95:5)
+        at trim_prefix (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:328:13)
+        at /home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:286:9
+        at Function.process_params (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:346:12)
+        at next (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:280:10)
+        at query (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/middleware/query.js:45:5)
+        at Layer.handle [as handle_request] (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/layer.js:95:5)
+        at trim_prefix (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:328:13)
+        at /home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:286:9
+        at Function.process_params (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:346:12)
+        at next (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:280:10)
+        at Function.handle (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:175:3)
+        at Function.handle (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/application.js:181:10)
+        at Server.app (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/express.js:39:9)
+        at Server.emit (node:events:519:28)
+        at parserOnIncoming (node:_http_server:1140:12)
+        at HTTPParser.parserOnHeadersComplete (node:_http_common:119:17)
+
+      40 |     res.status(200).json(ipBans);
+      41 |   } catch (error) {
+    > 42 |     console.error("Error listing IP bans:", error);
+         |             ^
+      43 |     res.status(500).json({ error: "Error to get ips" }); // Ajustado para coincidir con la prueba
+      44 |   }
+      45 | });
+
+      at src/ip-bans/ip-bans.router.js:42:13
+
+2025-07-26T20:08:04.261Z [ERROR]: Error bulk creating IP bans: Cannot read properties of undefined (reading 'createMany')
+  console.error
+    Error bulk creating IP bans: TypeError: Cannot read properties of undefined (reading 'createMany')
+        at bulkCreateIPBans (/home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.service.js:107:35)
+        at /home/oz/Documents/Repos/node-tracker/src/ip-bans/ip-bans.router.js:61:26
+        at Layer.handle [as handle_request] (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/layer.js:95:5)
+        at next (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/route.js:149:13)
+        at Route.dispatch (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/route.js:119:3)
+        at Layer.handle [as handle_request] (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/layer.js:95:5)
+        at /home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:284:15
+        at Function.process_params (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:346:12)
+        at next (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:280:10)
+        at Function.handle (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:175:3)
+        at router (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:47:12)
+        at Layer.handle [as handle_request] (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/layer.js:95:5)
+        at trim_prefix (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:328:13)
+        at /home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:286:9
+        at Function.process_params (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:346:12)
+        at next (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:280:10)
+        at authMiddleware (/home/oz/Documents/Repos/node-tracker/src/middleware/auth.js:21:5)
+        at Layer.handle [as handle_request] (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/layer.js:95:5)
+        at trim_prefix (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:328:13)
+        at /home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:286:9
+        at Function.process_params (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:346:12)
+        at next (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:280:10)
+        at Function.handle (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:175:3)
+        at router (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:47:12)
+        at Layer.handle [as handle_request] (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/layer.js:95:5)
+        at trim_prefix (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:328:13)
+        at /home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:286:9
+        at Function.process_params (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:346:12)
+        at next (/home/oz/Documents/Repos/node-tracker/node_modules/express/lib/router/index.js:280:10)
+        at /home/oz/Documents/Repos/node-tracker/node_modules/body-parser/lib/read.js:137:5
+        at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
+        at invokeCallback (/home/oz/Documents/Repos/node-tracker/node_modules/raw-body/index.js:238:16)
+        at done (/home/oz/Documents/Repos/node-tracker/node_modules/raw-body/index.js:227:7)
+        at IncomingMessage.onEnd (/home/oz/Documents/Repos/node-tracker/node_modules/raw-body/index.js:287:7)
+        at IncomingMessage.emit (node:events:519:28)
+        at endReadableNT (node:internal/streams/readable:1696:12)
+        at processTicksAndRejections (node:internal/process/task_queues:82:21)
+
+      62 |     res.status(201).json(result);
+      63 |   } catch (error) {
+    > 64 |     console.error("Error bulk creating IP bans:", error);
+         |             ^
+      65 |     res.status(400).json({ error: "Error to create bulk ip to ban." }); // Ajustado para coincidir con la prueba
+      66 |   }
+      67 | });
+
+      at src/ip-bans/ip-bans.router.js:64:13
+
+2025-07-26T20:08:04.267Z [WARN]: Access without token
+2025-07-26T20:08:04.269Z [WARN]: Access without token
+2025-07-26T20:08:04.282Z [WARN]: Access without token
+2025-07-26T20:08:04.284Z [WARN]: Access without token
+2025-07-26T20:08:04.286Z [WARN]: Access without token
+2025-07-26T20:08:04.288Z [ERROR]: Error in auth: Invalid token

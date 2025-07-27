@@ -1,8 +1,9 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
+import { ipToNumber } from '../../utils/utils.js';
 
-// Mock the ip-bans service
+// Mock the ip-bans service completely
 const mockIPBansService = {
   listAllIPBans: jest.fn(),
   createIPBan: jest.fn(),
@@ -11,16 +12,19 @@ const mockIPBansService = {
   bulkCreateIPBans: jest.fn()
 };
 
-jest.unstable_mockModule('../ip-bans.service.js', () => mockIPBansService);
-
 // Mock prometheus
-jest.unstable_mockModule('prom-client', () => ({
+const mockPrometheus = {
   Counter: jest.fn().mockImplementation(() => ({
     inc: jest.fn()
   }))
-}));
+};
 
-import { ipBansRouter } from '../ip-bans.router.js';
+// Set up mocks before importing the router
+jest.unstable_mockModule('../ip-bans.service.js', () => mockIPBansService);
+jest.unstable_mockModule('prom-client', () => mockPrometheus);
+
+// Import the router after setting up mocks
+const { ipBansRouter } = await import('../ip-bans.router.js');
 
 describe('IP Bans Router', () => {
   let app;
@@ -34,10 +38,18 @@ describe('IP Bans Router', () => {
 
   describe('GET /api/ip-bans', () => {
     it('should list all IP bans', async () => {
-      const mockBans = [
-        { id: 1, fromIP: '192.168.1.1', toIP: '192.168.1.1', reason: 'Spam' },
-        { id: 2, fromIP: '10.0.0.1', toIP: '10.0.0.255', reason: 'Abuse' }
-      ];
+      const mockBans = {
+        ipBans: [
+          { id: 1, fromIP: ipToNumber('192.168.1.1'), toIP: ipToNumber('192.168.1.1'), reason: 'Spam' },
+          { id: 2, fromIP: ipToNumber('10.0.0.1'), toIP: ipToNumber('10.0.0.255'), reason: 'Abuse' }
+        ],
+        pagination: {
+          page: 1,
+          limit: 20,
+          total: 2,
+          pages: 1
+        }
+      };
 
       mockIPBansService.listAllIPBans.mockResolvedValue(mockBans);
 
@@ -63,8 +75,8 @@ describe('IP Bans Router', () => {
   describe('POST /api/ip-bans', () => {
     it('should create single IP ban successfully', async () => {
       const ipBanData = {
-        fromIP: '192.168.1.1',
-        toIP: '192.168.1.1',
+        fromIP: ipToNumber('192.168.1.1'),
+        toIP: ipToNumber('192.168.1.1'),
         reason: 'Spam activity'
       };
 
@@ -87,8 +99,8 @@ describe('IP Bans Router', () => {
 
     it('should handle creation errors', async () => {
       const ipBanData = {
-        fromIP: '192.168.1.1',
-        toIP: '192.168.1.1',
+        fromIP: ipToNumber('192.168.1.1'),
+        toIP: ipToNumber('192.168.1.1'),
         reason: 'Spam activity'
       };
 
@@ -106,8 +118,8 @@ describe('IP Bans Router', () => {
   describe('POST /api/ip-bans/bulk', () => {
     it('should create bulk IP bans successfully', async () => {
       const ipBansData = [
-        { fromIP: '192.168.1.1', toIP: '192.168.1.255', reason: 'Spam network' },
-        { fromIP: '10.0.0.1', toIP: '10.255.255.255', reason: 'Corporate network' }
+        { fromIP: ipToNumber('192.168.1.1'), toIP: ipToNumber('192.168.1.255'), reason: 'Spam network' },
+        { fromIP: ipToNumber('10.0.0.1'), toIP: ipToNumber('10.255.255.255'), reason: 'Corporate network' }
       ];
 
       const mockResult = { count: 2 };
@@ -125,7 +137,7 @@ describe('IP Bans Router', () => {
 
     it('should handle bulk creation errors', async () => {
       const ipBansData = [
-        { fromIP: '192.168.1.1', toIP: '192.168.1.255', reason: 'Spam network' }
+        { fromIP: ipToNumber('192.168.1.1'), toIP: ipToNumber('192.168.1.255'), reason: 'Spam network' }
       ];
 
       mockIPBansService.bulkCreateIPBans.mockRejectedValue(new Error('Bulk creation failed'));
@@ -142,8 +154,8 @@ describe('IP Bans Router', () => {
   describe('PUT /api/ip-bans/:id', () => {
     it('should update IP ban successfully', async () => {
       const updateData = {
-        fromIP: '192.168.1.2',
-        toIP: '192.168.1.2',
+        fromIP: ipToNumber('192.168.1.2'),
+        toIP: ipToNumber('192.168.1.2'),
         reason: 'Updated reason'
       };
 
@@ -160,13 +172,13 @@ describe('IP Bans Router', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(mockUpdatedIPBan);
-      expect(mockIPBansService.updateIPBan).toHaveBeenCalledWith(1, updateData);
+      expect(mockIPBansService.updateIPBan).toHaveBeenCalledWith("1", updateData);
     });
 
     it('should handle update errors', async () => {
       const updateData = {
-        fromIP: '192.168.1.2',
-        toIP: '192.168.1.2',
+        fromIP: ipToNumber('192.168.1.2'),
+        toIP: ipToNumber('192.168.1.2'),
         reason: 'Updated reason'
       };
 
@@ -189,7 +201,7 @@ describe('IP Bans Router', () => {
         .delete('/api/ip-bans/1');
 
       expect(response.status).toBe(204);
-      expect(mockIPBansService.deleteIPBan).toHaveBeenCalledWith(1);
+      expect(mockIPBansService.deleteIPBan).toHaveBeenCalledWith("1");
     });
 
     it('should handle deletion errors', async () => {

@@ -7,6 +7,7 @@ import { checkTorrent, bannedIPs } from "./src/utils/utils.js";
 import { setupMorgan, logMessage } from "./src/utils/utils.js";
 import { db } from "./src/utils/db.server.js"; // Importar db para health check y cierre
 import apiRouter from "./src/router.js";
+import { specs, swaggerUi } from "./src/config/swagger.js";
 
 dotenv.config();
 
@@ -15,6 +16,13 @@ app.use(express.json());
 
 // Configurar logging HTTP
 setupMorgan(app);
+
+// Configurar Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "Node Tracker API Documentation"
+}));
 
 app.use("/", apiRouter);
 
