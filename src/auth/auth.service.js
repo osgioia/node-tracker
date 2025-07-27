@@ -1,6 +1,6 @@
-import { db } from "../utils/db.server.js";
-import { logMessage, generateToken } from "../utils/utils.js";
-import bcrypt from "bcrypt";
+import { db } from '../utils/db.server.js';
+import { logMessage, generateToken } from '../utils/utils.js';
+import bcrypt from 'bcrypt';
 
 // Contador de intentos de login fallidos (en producción usar Redis)
 const loginAttempts = new Map();
@@ -21,16 +21,16 @@ function validatePasswordStrength(password) {
     errors.push(`Password must be at least ${minLength} characters long`);
   }
   if (!hasUpperCase) {
-    errors.push("Password must contain at least one uppercase letter");
+    errors.push('Password must contain at least one uppercase letter');
   }
   if (!hasLowerCase) {
-    errors.push("Password must contain at least one lowercase letter");
+    errors.push('Password must contain at least one lowercase letter');
   }
   if (!hasNumbers) {
-    errors.push("Password must contain at least one number");
+    errors.push('Password must contain at least one number');
   }
   if (!hasSpecialChar) {
-    errors.push("Password must contain at least one special character");
+    errors.push('Password must contain at least one special character');
   }
   
   return {
@@ -42,7 +42,7 @@ function validatePasswordStrength(password) {
 // Función para verificar si una IP está bloqueada
 function isIPBlocked(ip) {
   const attempts = loginAttempts.get(ip);
-  if (!attempts) return false;
+  if (!attempts) {return false;}
   
   if (attempts.count >= MAX_LOGIN_ATTEMPTS) {
     const timeSinceLastAttempt = Date.now() - attempts.lastAttempt;
@@ -65,7 +65,7 @@ function recordFailedLogin(ip) {
   attempts.lastAttempt = Date.now();
   loginAttempts.set(ip, attempts);
   
-  logMessage("warn", `Failed login attempt ${attempts.count}/${MAX_LOGIN_ATTEMPTS} from IP: ${ip}`);
+  logMessage('warn', `Failed login attempt ${attempts.count}/${MAX_LOGIN_ATTEMPTS} from IP: ${ip}`);
 }
 
 // Función para limpiar intentos exitosos
@@ -90,15 +90,15 @@ async function registerUser(userData, clientIP = 'unknown') {
     
     // Validaciones adicionales
     if (sanitizedUsername.length < 3 || sanitizedUsername.length > 20) {
-      throw new Error("Username must be between 3 and 20 characters");
+      throw new Error('Username must be between 3 and 20 characters');
     }
     
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      throw new Error("Username can only contain letters, numbers and underscores");
+      throw new Error('Username can only contain letters, numbers and underscores');
     }
     
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitizedEmail)) {
-      throw new Error("Invalid email format");
+      throw new Error('Invalid email format');
     }
     
     // Check if user already exists
@@ -112,7 +112,7 @@ async function registerUser(userData, clientIP = 'unknown') {
     });
 
     if (existingUser) {
-      throw new Error("User or email already exists");
+      throw new Error('User or email already exists');
     }
 
     // Verify invitation if provided
@@ -129,7 +129,7 @@ async function registerUser(userData, clientIP = 'unknown') {
       });
 
       if (!inviteData) {
-        throw new Error("Invalid or expired invitation");
+        throw new Error('Invalid or expired invitation');
       }
     }
 
@@ -166,10 +166,10 @@ async function registerUser(userData, clientIP = 'unknown') {
       });
     }
 
-    logMessage("info", `User registered: ${username}`);
+    logMessage('info', `User registered: ${username}`);
     return { id: newUser.id, username: newUser.username, email: newUser.email };
   } catch (error) {
-    logMessage("error", `Error registering user: ${error.message}`);
+    logMessage('error', `Error registering user: ${error.message}`);
     throw error;
   }
 }
@@ -181,7 +181,7 @@ async function loginUser(username, password, clientIP = 'unknown') {
     if (isIPBlocked(clientIP)) {
       const attempts = loginAttempts.get(clientIP);
       const timeRemaining = Math.ceil((LOCKOUT_TIME - (Date.now() - attempts.lastAttempt)) / 1000 / 60);
-      logMessage("warn", `Blocked login attempt from IP: ${clientIP} - ${timeRemaining} minutes remaining`);
+      logMessage('warn', `Blocked login attempt from IP: ${clientIP} - ${timeRemaining} minutes remaining`);
       throw new Error(`Too many failed attempts. Try again in ${timeRemaining} minutes.`);
     }
 
@@ -205,16 +205,16 @@ async function loginUser(username, password, clientIP = 'unknown') {
 
     if (!user || !isValidPassword) {
       recordFailedLogin(clientIP);
-      logMessage("warn", `Failed login attempt for username: ${sanitizedUsername} from IP: ${clientIP}`);
+      logMessage('warn', `Failed login attempt for username: ${sanitizedUsername} from IP: ${clientIP}`);
       
       // Generic error message to prevent user enumeration
-      throw new Error("Invalid credentials");
+      throw new Error('Invalid credentials');
     }
 
     if (user.banned) {
       recordFailedLogin(clientIP);
-      logMessage("warn", `Banned user login attempt: ${user.username} from IP: ${clientIP}`);
-      throw new Error("Account is suspended");
+      logMessage('warn', `Banned user login attempt: ${user.username} from IP: ${clientIP}`);
+      throw new Error('Account is suspended');
     }
 
     // Login exitoso - limpiar intentos fallidos
@@ -223,7 +223,7 @@ async function loginUser(username, password, clientIP = 'unknown') {
     const token = generateToken(user);
     
     // Log successful login with security info
-    logMessage("info", `Successful login: ${user.username} from IP: ${clientIP}`);
+    logMessage('info', `Successful login: ${user.username} from IP: ${clientIP}`);
     
     // Update last login timestamp
     await db.user.update({
@@ -245,7 +245,7 @@ async function loginUser(username, password, clientIP = 'unknown') {
       token
     };
   } catch (error) {
-    logMessage("error", `Authentication error for ${username} from IP ${clientIP}: ${error.message}`);
+    logMessage('error', `Authentication error for ${username} from IP ${clientIP}: ${error.message}`);
     throw error;
   }
 }
@@ -255,10 +255,10 @@ async function logoutUser(token, clientIP = 'unknown') {
   try {
     // En una implementación completa, agregar el token a una blacklist
     // Por ahora solo loggeamos el evento
-    logMessage("info", `User logged out from IP: ${clientIP}`);
-    return { message: "Logged out successfully" };
+    logMessage('info', `User logged out from IP: ${clientIP}`);
+    return { message: 'Logged out successfully' };
   } catch (error) {
-    logMessage("error", `Logout error from IP ${clientIP}: ${error.message}`);
+    logMessage('error', `Logout error from IP ${clientIP}: ${error.message}`);
     throw error;
   }
 }

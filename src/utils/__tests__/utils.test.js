@@ -104,10 +104,10 @@ describe('Utils', () => {
       // Mock IP address conversion
       mockAddress4.mockImplementation((ip) => ({
         bigInteger: () => {
-          if (ip === '192.168.1.100') return BigInt('3232235876');
-          if (ip === '192.168.1.1') return BigInt('3232235777');
-          if (ip === '192.168.1.255') return BigInt('3232236031');
-          if (ip === '10.0.0.1') return BigInt('167772161');
+          if (ip === '192.168.1.100') {return BigInt('3232235876');}
+          if (ip === '192.168.1.1') {return BigInt('3232235777');}
+          if (ip === '192.168.1.255') {return BigInt('3232236031');}
+          if (ip === '10.0.0.1') {return BigInt('167772161');}
           return BigInt('0');
         }
       }));

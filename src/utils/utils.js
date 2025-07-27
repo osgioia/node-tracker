@@ -1,22 +1,22 @@
-import { createLogger, format, transports } from "winston";
-import { Address6, Address4 } from "ip-address";
-import { db } from "./db.server.js";
-import fs from "fs";
-import path from "path";
-import morgan from "morgan";
-import jwt from "jsonwebtoken";
+import { createLogger, format, transports } from 'winston';
+import { Address6, Address4 } from 'ip-address';
+import { db } from './db.server.js';
+import fs from 'fs';
+import path from 'path';
+import morgan from 'morgan';
+import jwt from 'jsonwebtoken';
 
 // Validar JWT_SECRET
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined in environment variables");
+  throw new Error('JWT_SECRET is not defined in environment variables');
 }
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 
 // Convertir IP a número (IPv4 o IPv6)
 function ipToNumber(ip) {
   try {
-    if (ip.includes(":")) {
+    if (ip.includes(':')) {
       // IPv6
       const addr6 = new Address6(ip);
       return BigInt(addr6.bigInteger());
@@ -29,7 +29,7 @@ function ipToNumber(ip) {
       return BigInt(parts[0]) * 16777216n + BigInt(parts[1]) * 65536n + BigInt(parts[2]) * 256n + BigInt(parts[3]);
     }
   } catch (error) {
-    logMessage("error", `Error converting IP: ${error.message}`);
+    logMessage('error', `Error converting IP: ${error.message}`);
     return null;
   }
 }
@@ -38,19 +38,19 @@ function ipToNumber(ip) {
 function setupMorgan(app) {
   let accessLogStream;
 
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === 'production') {
     accessLogStream = fs.createWriteStream(
-      path.join(process.cwd(), "access.log"),
-      { flags: "a" }
+      path.join(process.cwd(), 'access.log'),
+      { flags: 'a' }
     );
   }
 
-  app.use(morgan("combined", { stream: accessLogStream || process.stdout }));
+  app.use(morgan('combined', { stream: accessLogStream || process.stdout }));
 }
 
 // Configuración de Winston para logging estructurado
 const logger = createLogger({
-  level: "info",
+  level: 'info',
   format: format.combine(
     format.timestamp(),
     format.printf(({ timestamp, level, message }) => {
@@ -59,8 +59,8 @@ const logger = createLogger({
   ),
   transports: [
     new transports.Console(),
-    new transports.File({ filename: "application.log" }),
-  ],
+    new transports.File({ filename: 'application.log' })
+  ]
 });
 
 // Función helper para logging
@@ -72,15 +72,15 @@ function logMessage(level, message) {
 async function checkTorrent(infoHash, callback) {
   try {
     const torrent = await db.torrent.findUnique({
-      where: { infoHash },
+      where: { infoHash }
     });
     if (!torrent) {
-      logMessage("warn", `Torrent not found: ${infoHash}`);
-      throw new Error("Torrent not found");
+      logMessage('warn', `Torrent not found: ${infoHash}`);
+      throw new Error('Torrent not found');
     }
     callback(null);
   } catch (error) {
-    logMessage("error", `Error in checkTorrent: ${error.message}`);
+    logMessage('error', `Error in checkTorrent: ${error.message}`);
     callback(error);
   }
 }
@@ -104,13 +104,13 @@ async function bannedIPs(params, callback) {
     });
 
     if (isBanned) {
-      logMessage("warn", `IP banned: ${ip}`);
-      callback(new Error("IP banned"));
+      logMessage('warn', `IP banned: ${ip}`);
+      callback(new Error('IP banned'));
     } else {
       callback(null);
     }
   } catch (error) {
-    logMessage("error", `Error in bannedIPs: ${error.message}`);
+    logMessage('error', `Error in bannedIPs: ${error.message}`);
     callback(error);
   }
 }
@@ -118,7 +118,7 @@ async function bannedIPs(params, callback) {
 // Generar un token JWT para autenticación
 function generateToken(user) {
   if (!user || !user.id || !user.username) {
-    throw new Error("Invalid user data for token generation");
+    throw new Error('Invalid user data for token generation');
   }
 
   return jwt.sign(

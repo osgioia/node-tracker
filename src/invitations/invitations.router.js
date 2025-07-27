@@ -1,14 +1,14 @@
-import express from "express";
-import { body, param, query, validationResult } from "express-validator";
-import { Counter } from "prom-client";
-import { authMiddleware } from "../middleware/auth.js";
+import express from 'express';
+import { body, param, query, validationResult } from 'express-validator';
+import { Counter } from 'prom-client';
+import { authMiddleware } from '../middleware/auth.js';
 import {
   createInvitation,
   getUserInvitations,
   getAllInvitations,
   getInvitationById,
   deleteInvitation
-} from "./invitations.service.js";
+} from './invitations.service.js';
 
 export const invitationsRouter = express.Router();
 
@@ -33,7 +33,7 @@ const getInvitationCounter = new Counter({
 // Middleware to verify admin role
 const requireAdmin = (req, res, next) => {
   if (req.user.role !== 'ADMIN') {
-    return res.status(403).json({ error: "Access denied. Administrator role required." });
+    return res.status(403).json({ error: 'Access denied. Administrator role required.' });
   }
   next();
 };
@@ -137,7 +137,7 @@ invitationsRouter.use(authMiddleware);
  *               $ref: '#/components/schemas/Error'
  */
 // GET /api/invitations - Get user's own invitations or all invitations (admin)
-invitationsRouter.get("/",
+invitationsRouter.get('/',
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive number'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   async (req, res) => {
@@ -228,7 +228,7 @@ invitationsRouter.get("/",
  *               $ref: '#/components/schemas/Error'
  */
 // POST /api/invitations - Create new invitation
-invitationsRouter.post("/",
+invitationsRouter.post('/',
   createInvitationValidation,
   async (req, res) => {
     try {
@@ -242,7 +242,7 @@ invitationsRouter.post("/",
       
       createInvitationCounter.inc();
       res.status(201).json({
-        message: "Invitation created successfully",
+        message: 'Invitation created successfully',
         invitation: {
           id: invitation.id,
           inviteKey: invitation.inviteKey,
@@ -319,7 +319,7 @@ invitationsRouter.post("/",
  *               $ref: '#/components/schemas/Error'
  */
 // GET /api/invitations/:id - Get invitation by ID
-invitationsRouter.get("/:id",
+invitationsRouter.get('/:id',
   param('id').isInt().withMessage('ID must be a number'),
   async (req, res) => {
     try {
@@ -332,7 +332,7 @@ invitationsRouter.get("/:id",
       
       // Only admin or invitation owner can view
       if (req.user.role !== 'ADMIN' && invitation.inviter.id !== req.user.id) {
-        return res.status(403).json({ error: "Access denied" });
+        return res.status(403).json({ error: 'Access denied' });
       }
 
       getInvitationCounter.inc();
@@ -388,7 +388,7 @@ invitationsRouter.get("/:id",
  *               $ref: '#/components/schemas/Error'
  */
 // DELETE /api/invitations/:id - Delete invitation
-invitationsRouter.delete("/:id",
+invitationsRouter.delete('/:id',
   param('id').isInt().withMessage('ID must be a number'),
   async (req, res) => {
     try {
@@ -400,10 +400,10 @@ invitationsRouter.delete("/:id",
       const result = await deleteInvitation(req.params.id, req.user.id, req.user.role);
       res.json(result);
     } catch (error) {
-      if (error.message === "Invitation not found") {
+      if (error.message === 'Invitation not found') {
         return res.status(404).json({ error: error.message });
       }
-      if (error.message === "Access denied") {
+      if (error.message === 'Access denied') {
         return res.status(403).json({ error: error.message });
       }
       res.status(400).json({ error: error.message });

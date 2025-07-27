@@ -171,7 +171,7 @@ describe('IP Bans Router', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(mockUpdatedIPBan);
-      expect(mockIPBansService.updateIPBan).toHaveBeenCalledWith("1", updateData);
+      expect(mockIPBansService.updateIPBan).toHaveBeenCalledWith('1', updateData);
     });
 
     it('should handle update errors', async () => {
@@ -200,7 +200,7 @@ describe('IP Bans Router', () => {
         .delete('/api/ip-bans/1');
 
       expect(response.status).toBe(204);
-      expect(mockIPBansService.deleteIPBan).toHaveBeenCalledWith("1");
+      expect(mockIPBansService.deleteIPBan).toHaveBeenCalledWith('1');
     });
 
     it('should handle deletion errors', async () => {

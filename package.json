@@ -11,7 +11,10 @@
     "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --detectOpenHandles",
     "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
     "test:coverage": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage",
-    "test:verbose": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --verbose"
+    "test:verbose": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --verbose",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:check": "eslint . --max-warnings 0"
   },
   "repository": {
     "type": "git",

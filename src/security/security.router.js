@@ -1,5 +1,5 @@
-import express from "express";
-import { logMessage } from "../utils/utils.js";
+import express from 'express';
+import { logMessage } from '../utils/utils.js';
 
 export const securityRouter = express.Router();
 
@@ -27,11 +27,11 @@ export const securityRouter = express.Router();
  *         description: Reporte recibido
  */
 // POST /api/security/csp-report - Endpoint para reportes CSP
-securityRouter.post("/csp-report", express.raw({ type: 'application/csp-report' }), (req, res) => {
+securityRouter.post('/csp-report', express.raw({ type: 'application/csp-report' }), (req, res) => {
   try {
     const report = JSON.parse(req.body.toString());
     
-    logMessage("warn", `CSP Violation: ${JSON.stringify({
+    logMessage('warn', `CSP Violation: ${JSON.stringify({
       documentURI: report['csp-report']?.['document-uri'],
       violatedDirective: report['csp-report']?.['violated-directive'],
       blockedURI: report['csp-report']?.['blocked-uri'],
@@ -43,7 +43,7 @@ securityRouter.post("/csp-report", express.raw({ type: 'application/csp-report' 
     
     res.status(204).send();
   } catch (error) {
-    logMessage("error", `CSP report parsing error: ${error.message}`);
+    logMessage('error', `CSP report parsing error: ${error.message}`);
     res.status(400).send();
   }
 });
@@ -70,9 +70,9 @@ securityRouter.post("/csp-report", express.raw({ type: 'application/csp-report' 
  *                   type: object
  */
 // GET /api/security/health - Health check de seguridad
-securityRouter.get("/health", (req, res) => {
+securityRouter.get('/health', (req, res) => {
   const securityStatus = {
-    status: "secure",
+    status: 'secure',
     timestamp: new Date().toISOString(),
     security: {
       https: req.secure || req.get('X-Forwarded-Proto') === 'https',

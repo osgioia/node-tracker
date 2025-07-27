@@ -95,14 +95,14 @@ class SecurityAuditor {
   // Calcular entropía de una cadena
   calculateEntropy(str) {
     const freq = {};
-    for (let char of str) {
+    for (const char of str) {
       freq[char] = (freq[char] || 0) + 1;
     }
     
     let entropy = 0;
     const len = str.length;
     
-    for (let char in freq) {
+    for (const char in freq) {
       const p = freq[char] / len;
       entropy -= p * Math.log2(p);
     }
@@ -315,7 +315,7 @@ class SecurityAuditor {
     const total = this.results.passed + this.results.failed + this.results.warnings;
     const score = Math.round((this.results.passed / total) * 100);
     
-    this.log(`\n📊 RESUMEN:`, 'info');
+    this.log('\n📊 RESUMEN:', 'info');
     this.log(`   ✅ Pruebas pasadas: ${this.results.passed}`, 'success');
     this.log(`   ❌ Pruebas fallidas: ${this.results.failed}`, 'error');
     this.log(`   ⚠️  Advertencias: ${this.results.warnings}`, 'warning');
@@ -340,22 +340,22 @@ class SecurityAuditor {
     // Mostrar issues críticos
     const criticalIssues = this.results.issues.filter(i => !i.passed && i.severity === 'critical');
     if (criticalIssues.length > 0) {
-      this.log(`\n🚨 ISSUES CRÍTICOS A CORREGIR:`, 'error');
+      this.log('\n🚨 ISSUES CRÍTICOS A CORREGIR:', 'error');
       criticalIssues.forEach(issue => {
         this.log(`   • ${issue.test}: ${issue.message}`, 'error');
       });
     }
     
     // Mostrar próximos pasos
-    this.log(`\n📋 PRÓXIMOS PASOS:`, 'info');
+    this.log('\n📋 PRÓXIMOS PASOS:', 'info');
     if (this.results.failed > 0) {
       this.log(`   1. Corregir ${this.results.failed} issues críticos`, 'error');
     }
     if (this.results.warnings > 0) {
       this.log(`   2. Revisar ${this.results.warnings} advertencias`, 'warning');
     }
-    this.log(`   3. Ejecutar 'npm audit fix' para dependencias`, 'info');
-    this.log(`   4. Revisar SECURITY_AUDIT.md para detalles completos`, 'info');
+    this.log('   3. Ejecutar \'npm audit fix\' para dependencias', 'info');
+    this.log('   4. Revisar SECURITY_AUDIT.md para detalles completos', 'info');
     
     this.log('\n' + '='.repeat(60), 'info');
     

@@ -1,6 +1,6 @@
-import { db } from "../utils/db.server.js";
-import { logMessage } from "../utils/utils.js";
-import bcrypt from "bcrypt";
+import { db } from '../utils/db.server.js';
+import { logMessage } from '../utils/utils.js';
+import bcrypt from 'bcrypt';
 
 // Create new user (admin only)
 async function createUser(userData) {
@@ -18,7 +18,7 @@ async function createUser(userData) {
     });
 
     if (existingUser) {
-      throw new Error("User or email already exists");
+      throw new Error('User or email already exists');
     }
 
     // Hash password
@@ -38,10 +38,10 @@ async function createUser(userData) {
       }
     });
 
-    logMessage("info", `User created by admin: ${username}`);
+    logMessage('info', `User created by admin: ${username}`);
     return { id: newUser.id, username: newUser.username, email: newUser.email, role: newUser.role };
   } catch (error) {
-    logMessage("error", `Error creating user: ${error.message}`);
+    logMessage('error', `Error creating user: ${error.message}`);
     throw error;
   }
 }
@@ -82,12 +82,12 @@ async function getUserById(id) {
     });
 
     if (!user) {
-      throw new Error("User not found");
+      throw new Error('User not found');
     }
 
     return user;
   } catch (error) {
-    logMessage("error", `Error getting user: ${error.message}`);
+    logMessage('error', `Error getting user: ${error.message}`);
     throw error;
   }
 }
@@ -133,7 +133,7 @@ async function getAllUsers(page = 1, limit = 20) {
       }
     };
   } catch (error) {
-    logMessage("error", `Error listing users: ${error.message}`);
+    logMessage('error', `Error listing users: ${error.message}`);
     throw error;
   }
 }
@@ -143,7 +143,7 @@ async function updateUser(id, updateData) {
   try {
     const { password, ...otherData } = updateData;
     
-    let dataToUpdate = { ...otherData };
+    const dataToUpdate = { ...otherData };
     
     // Hash new password if provided
     if (password) {
@@ -164,10 +164,10 @@ async function updateUser(id, updateData) {
       }
     });
 
-    logMessage("info", `User updated: ${updatedUser.username}`);
+    logMessage('info', `User updated: ${updatedUser.username}`);
     return updatedUser;
   } catch (error) {
-    logMessage("error", `Error updating user: ${error.message}`);
+    logMessage('error', `Error updating user: ${error.message}`);
     throw error;
   }
 }
@@ -185,12 +185,12 @@ async function toggleUserBan(id, banned, reason = null) {
       }
     });
 
-    const action = banned ? "banned" : "unbanned";
-    logMessage("info", `User ${action}: ${updatedUser.username}${reason ? ` - Reason: ${reason}` : ''}`);
+    const action = banned ? 'banned' : 'unbanned';
+    logMessage('info', `User ${action}: ${updatedUser.username}${reason ? ` - Reason: ${reason}` : ''}`);
     
     return updatedUser;
   } catch (error) {
-    logMessage("error", `Error changing ban status: ${error.message}`);
+    logMessage('error', `Error changing ban status: ${error.message}`);
     throw error;
   }
 }
@@ -217,7 +217,7 @@ async function getUserStats(userId) {
     });
 
     if (!stats) {
-      throw new Error("User not found");
+      throw new Error('User not found');
     }
 
     // Calculate upload/download totals
@@ -233,7 +233,7 @@ async function getUserStats(userId) {
       ratio: parseFloat(ratio.toFixed(2))
     };
   } catch (error) {
-    logMessage("error", `Error getting user statistics: ${error.message}`);
+    logMessage('error', `Error getting user statistics: ${error.message}`);
     throw error;
   }
 }

@@ -1,8 +1,8 @@
-import express from "express";
-import { body, validationResult } from "express-validator";
-import { Counter } from "prom-client";
-import { registerUser, loginUser, logoutUser, validatePasswordStrength } from "./auth.service.js";
-import { authMiddleware, revokeToken } from "../middleware/auth.js";
+import express from 'express';
+import { body, validationResult } from 'express-validator';
+import { Counter } from 'prom-client';
+import { registerUser, loginUser, logoutUser, validatePasswordStrength } from './auth.service.js';
+import { authMiddleware, revokeToken } from '../middleware/auth.js';
 
 export const authRouter = express.Router();
 
@@ -90,7 +90,7 @@ const loginValidation = [
  *               $ref: '#/components/schemas/Error'
  */
 // POST /api/auth/register
-authRouter.post("/register", registerValidation, async (req, res) => {
+authRouter.post('/register', registerValidation, async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -104,16 +104,16 @@ authRouter.post("/register", registerValidation, async (req, res) => {
     
     registerCounter.inc();
     res.status(201).json({
-      message: "User registered successfully",
+      message: 'User registered successfully',
       user
     });
   } catch (error) {
-    if (error.message === "User or email already exists") {
+    if (error.message === 'User or email already exists') {
       return res.status(409).json({ error: error.message });
     }
-    if (error.message.includes("Password requirements not met")) {
+    if (error.message.includes('Password requirements not met')) {
       return res.status(400).json({ 
-        error: "Password does not meet security requirements",
+        error: 'Password does not meet security requirements',
         details: error.message
       });
     }
@@ -162,7 +162,7 @@ authRouter.post("/register", registerValidation, async (req, res) => {
  *               $ref: '#/components/schemas/Error'
  */
 // POST /api/auth/login
-authRouter.post("/login", loginValidation, async (req, res) => {
+authRouter.post('/login', loginValidation, async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -176,14 +176,14 @@ authRouter.post("/login", loginValidation, async (req, res) => {
     
     loginCounter.inc();
     res.json({
-      message: "Login successful",
+      message: 'Login successful',
       ...result
     });
   } catch (error) {
-    if (error.message.includes("Too many failed attempts")) {
+    if (error.message.includes('Too many failed attempts')) {
       return res.status(429).json({ 
         error: error.message,
-        code: "TOO_MANY_ATTEMPTS"
+        code: 'TOO_MANY_ATTEMPTS'
       });
     }
     res.status(401).json({ error: error.message });
@@ -216,7 +216,7 @@ authRouter.post("/login", loginValidation, async (req, res) => {
  *               $ref: '#/components/schemas/Error'
  */
 // POST /api/auth/logout
-authRouter.post("/logout", authMiddleware, async (req, res) => {
+authRouter.post('/logout', authMiddleware, async (req, res) => {
   try {
     const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
     
@@ -265,7 +265,7 @@ authRouter.post("/logout", authMiddleware, async (req, res) => {
  *                     type: string
  */
 // POST /api/auth/validate-password
-authRouter.post("/validate-password", [
+authRouter.post('/validate-password', [
   body('password').notEmpty().withMessage('Password is required')
 ], async (req, res) => {
   try {

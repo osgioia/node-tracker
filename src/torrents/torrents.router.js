@@ -1,7 +1,7 @@
-import express from "express";
-import { body, param, query, validationResult } from "express-validator";
-import { Counter } from "prom-client";
-import { authMiddleware } from "../middleware/auth.js";
+import express from 'express';
+import { body, param, query, validationResult } from 'express-validator';
+import { Counter } from 'prom-client';
+import { authMiddleware } from '../middleware/auth.js';
 import {
   addTorrent,
   getTorrentById,
@@ -9,7 +9,7 @@ import {
   getAllTorrents,
   updateTorrent,
   deleteTorrent
-} from "./torrents.service.js";
+} from './torrents.service.js';
 
 export const torrentsRouter = express.Router();
 
@@ -46,12 +46,12 @@ const requireOwnerOrAdmin = async (req, res, next) => {
   try {
     const torrent = await getTorrentById(req.params.id);
     if (req.user.role !== 'ADMIN' && torrent.uploadedById !== req.user.id) {
-      return res.status(403).json({ error: "Access denied. You can only modify your own torrents." });
+      return res.status(403).json({ error: 'Access denied. You can only modify your own torrents.' });
     }
     req.torrent = torrent; // Store for later use
     next();
   } catch (error) {
-    res.status(404).json({ error: "Torrent not found" });
+    res.status(404).json({ error: 'Torrent not found' });
   }
 };
 
@@ -194,7 +194,7 @@ torrentsRouter.use(authMiddleware);
  *               $ref: '#/components/schemas/Error'
  */
 // GET /api/torrents - List all torrents with pagination and filters
-torrentsRouter.get("/",
+torrentsRouter.get('/',
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive number'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   query('category').optional().isString().withMessage('Category must be a string'),
@@ -293,7 +293,7 @@ torrentsRouter.get("/",
  *               $ref: '#/components/schemas/Error'
  */
 // POST /api/torrents - Create new torrent
-torrentsRouter.post("/",
+torrentsRouter.post('/',
   createTorrentValidation,
   async (req, res) => {
     try {
@@ -318,11 +318,11 @@ torrentsRouter.post("/",
       
       createTorrentCounter.inc();
       res.status(201).json({
-        message: "Torrent created successfully",
+        message: 'Torrent created successfully',
         torrent
       });
     } catch (error) {
-      if (error.message.includes("already exists")) {
+      if (error.message.includes('already exists')) {
         return res.status(409).json({ error: error.message });
       }
       res.status(400).json({ error: error.message });
@@ -366,7 +366,7 @@ torrentsRouter.post("/",
  *               $ref: '#/components/schemas/Error'
  */
 // GET /api/torrents/:id - Get torrent by ID
-torrentsRouter.get("/:id",
+torrentsRouter.get('/:id',
   param('id').isInt().withMessage('ID must be a number'),
   async (req, res) => {
     try {
@@ -427,7 +427,7 @@ torrentsRouter.get("/:id",
  *               $ref: '#/components/schemas/Error'
  */
 // GET /api/torrents/by-hash/:infoHash - Get torrent by infoHash (for tracker compatibility)
-torrentsRouter.get("/by-hash/:infoHash",
+torrentsRouter.get('/by-hash/:infoHash',
   param('infoHash').isLength({ min: 40, max: 40 }).withMessage('InfoHash must be 40 characters'),
   async (req, res) => {
     try {
@@ -520,7 +520,7 @@ torrentsRouter.get("/by-hash/:infoHash",
  *               $ref: '#/components/schemas/Error'
  */
 // PUT /api/torrents/:id - Update torrent (full update)
-torrentsRouter.put("/:id",
+torrentsRouter.put('/:id',
   param('id').isInt().withMessage('ID must be a number'),
   updateTorrentValidation,
   requireOwnerOrAdmin,
@@ -535,7 +535,7 @@ torrentsRouter.put("/:id",
       
       updateTorrentCounter.inc();
       res.json({
-        message: "Torrent updated successfully",
+        message: 'Torrent updated successfully',
         torrent: updatedTorrent
       });
     } catch (error) {
@@ -618,7 +618,7 @@ torrentsRouter.put("/:id",
  *               $ref: '#/components/schemas/Error'
  */
 // PATCH /api/torrents/:id - Partial update torrent
-torrentsRouter.patch("/:id",
+torrentsRouter.patch('/:id',
   param('id').isInt().withMessage('ID must be a number'),
   updateTorrentValidation,
   requireOwnerOrAdmin,
@@ -633,7 +633,7 @@ torrentsRouter.patch("/:id",
       
       updateTorrentCounter.inc();
       res.json({
-        message: "Torrent updated successfully",
+        message: 'Torrent updated successfully',
         torrent: updatedTorrent
       });
     } catch (error) {
@@ -680,7 +680,7 @@ torrentsRouter.patch("/:id",
  *               $ref: '#/components/schemas/Error'
  */
 // DELETE /api/torrents/:id - Delete torrent
-torrentsRouter.delete("/:id",
+torrentsRouter.delete('/:id',
   param('id').isInt().withMessage('ID must be a number'),
   requireOwnerOrAdmin,
   async (req, res) => {

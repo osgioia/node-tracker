@@ -1,5 +1,5 @@
-import { db } from "../utils/db.server.js";
-import { logMessage } from "../utils/utils.js";
+import { db } from '../utils/db.server.js';
+import { logMessage } from '../utils/utils.js';
 
 // List all IP bans with pagination
 async function listAllIPBans(page = 1, limit = 20) {
@@ -27,7 +27,7 @@ async function listAllIPBans(page = 1, limit = 20) {
       }
     };
   } catch (error) {
-    logMessage("error", `Error listing IP bans: ${error.message}`);
+    logMessage('error', `Error listing IP bans: ${error.message}`);
     throw error;
   }
 }
@@ -39,10 +39,10 @@ async function createIPBan(data) {
       data
     });
     
-    logMessage("info", `IP ban created: ${data.fromIP} - ${data.toIP}`);
+    logMessage('info', `IP ban created: ${data.fromIP} - ${data.toIP}`);
     return ipBan;
   } catch (error) {
-    logMessage("error", `Error creating IP ban: ${error.message}`);
+    logMessage('error', `Error creating IP ban: ${error.message}`);
     throw error;
   }
 }
@@ -55,12 +55,12 @@ async function getIPBanById(id) {
     });
 
     if (!ipBan) {
-      throw new Error("IP ban not found");
+      throw new Error('IP ban not found');
     }
 
     return ipBan;
   } catch (error) {
-    logMessage("error", `Error getting IP ban: ${error.message}`);
+    logMessage('error', `Error getting IP ban: ${error.message}`);
     throw error;
   }
 }
@@ -73,13 +73,13 @@ async function updateIPBan(id, data) {
       data
     });
     
-    logMessage("info", `IP ban updated: ${id}`);
+    logMessage('info', `IP ban updated: ${id}`);
     return ipBan;
   } catch (error) {
     if (error.code === 'P2025') {
-      throw new Error("IP ban not found");
+      throw new Error('IP ban not found');
     }
-    logMessage("error", `Error updating IP ban: ${error.message}`);
+    logMessage('error', `Error updating IP ban: ${error.message}`);
     throw error;
   }
 }
@@ -91,12 +91,12 @@ async function deleteIPBan(id) {
       where: { id: parseInt(id) }
     });
     
-    logMessage("info", `IP ban deleted: ${id}`);
+    logMessage('info', `IP ban deleted: ${id}`);
   } catch (error) {
     if (error.code === 'P2025') {
-      throw new Error("IP ban not found");
+      throw new Error('IP ban not found');
     }
-    logMessage("error", `Error deleting IP ban: ${error.message}`);
+    logMessage('error', `Error deleting IP ban: ${error.message}`);
     throw error;
   }
 }
@@ -109,10 +109,10 @@ async function bulkCreateIPBans(data) {
       skipDuplicates: true
     });
     
-    logMessage("info", `Bulk IP bans created: ${result.count} records`);
+    logMessage('info', `Bulk IP bans created: ${result.count} records`);
     return result;
   } catch (error) {
-    logMessage("error", `Error bulk creating IP bans: ${error.message}`);
+    logMessage('error', `Error bulk creating IP bans: ${error.message}`);
     throw error;
   }
 }

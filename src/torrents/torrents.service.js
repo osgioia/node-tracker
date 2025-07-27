@@ -1,6 +1,6 @@
-import { db } from "../utils/db.server.js";
-import { logMessage } from "../utils/utils.js";
-import magnet from "magnet-uri";
+import { db } from '../utils/db.server.js';
+import { logMessage } from '../utils/utils.js';
+import magnet from 'magnet-uri';
 
 // Generate magnet URI
 function generateMagnetURI(infoHash, name, hostname) {
@@ -16,7 +16,7 @@ function generateMagnetURI(infoHash, name, hostname) {
     
     return magnetUri;
   } catch (err) {
-    throw new Error("Error generating magnet URI");
+    throw new Error('Error generating magnet URI');
   }
 }
 
@@ -31,7 +31,7 @@ async function addTorrent(torrentData) {
     });
 
     if (existingTorrent) {
-      throw new Error("Torrent with this infoHash already exists");
+      throw new Error('Torrent with this infoHash already exists');
     }
 
     const torrentCreateData = {
@@ -57,7 +57,7 @@ async function addTorrent(torrentData) {
     // Add tags if provided
     if (tags && tags.trim()) {
       torrentCreateData.tags = {
-        connectOrCreate: tags.split(",").map((tag) => ({
+        connectOrCreate: tags.split(',').map((tag) => ({
           where: { name: tag.trim() },
           create: { name: tag.trim() }
         }))
@@ -78,10 +78,10 @@ async function addTorrent(torrentData) {
       }
     });
 
-    logMessage("info", `Torrent added: ${name} by user ${uploadedById}`);
+    logMessage('info', `Torrent added: ${name} by user ${uploadedById}`);
     return newTorrent;
   } catch (error) {
-    logMessage("error", `Error adding torrent: ${error.message}`);
+    logMessage('error', `Error adding torrent: ${error.message}`);
     throw error;
   }
 }
@@ -104,12 +104,12 @@ async function getTorrentById(id) {
     });
 
     if (!torrent) {
-      throw new Error("Torrent not found");
+      throw new Error('Torrent not found');
     }
 
     return torrent;
   } catch (error) {
-    logMessage("error", `Error getting torrent: ${error.message}`);
+    logMessage('error', `Error getting torrent: ${error.message}`);
     throw error;
   }
 }
@@ -132,13 +132,13 @@ async function getTorrentByInfoHash(infoHash, hostname) {
     });
 
     if (!torrent) {
-      throw new Error("Torrent not found");
+      throw new Error('Torrent not found');
     }
 
     const uri = generateMagnetURI(infoHash, torrent.name, hostname);
     return uri;
   } catch (error) {
-    logMessage("error", `Error getting torrents: ${error.message}`);
+    logMessage('error', `Error getting torrents: ${error.message}`);
     throw error;
   }
 }
@@ -197,7 +197,7 @@ async function getAllTorrents(page = 1, limit = 20, filters = {}) {
       }
     };
   } catch (error) {
-    logMessage("error", `Error listing torrents: ${error.message}`);
+    logMessage('error', `Error listing torrents: ${error.message}`);
     throw error;
   }
 }
@@ -225,7 +225,7 @@ async function updateTorrent(id, data) {
         // Disconnect all existing tags and connect new ones
         updateData.tags = {
           set: [], // Clear existing
-          connectOrCreate: tags.split(",").map((tag) => ({
+          connectOrCreate: tags.split(',').map((tag) => ({
             where: { name: tag.trim() },
             create: { name: tag.trim() }
           }))
@@ -253,10 +253,10 @@ async function updateTorrent(id, data) {
       }
     });
 
-    logMessage("info", `Torrent updated: ${updatedTorrent.name}`);
+    logMessage('info', `Torrent updated: ${updatedTorrent.name}`);
     return updatedTorrent;
   } catch (error) {
-    logMessage("error", `Error updating torrent: ${error.message}`);
+    logMessage('error', `Error updating torrent: ${error.message}`);
     throw error;
   }
 }
@@ -268,9 +268,9 @@ async function deleteTorrent(id) {
       where: { id: parseInt(id) }
     });
     
-    logMessage("info", `Torrent deleted: ${id}`);
+    logMessage('info', `Torrent deleted: ${id}`);
   } catch (error) {
-    logMessage("error", `Error deleting torrent: ${error.message}`);
+    logMessage('error', `Error deleting torrent: ${error.message}`);
     throw error;
   }
 }

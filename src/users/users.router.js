@@ -1,7 +1,7 @@
-import express from "express";
-import { body, param, query, validationResult } from "express-validator";
-import { Counter } from "prom-client";
-import { authMiddleware } from "../middleware/auth.js";
+import express from 'express';
+import { body, param, query, validationResult } from 'express-validator';
+import { Counter } from 'prom-client';
+import { authMiddleware } from '../middleware/auth.js';
 import {
   createUser,
   getUserById,
@@ -9,7 +9,7 @@ import {
   updateUser,
   toggleUserBan,
   getUserStats
-} from "./users.service.js";
+} from './users.service.js';
 
 export const usersRouter = express.Router();
 
@@ -39,7 +39,7 @@ const updateUserCounter = new Counter({
 // Middleware to verify admin role
 const requireAdmin = (req, res, next) => {
   if (req.user.role !== 'ADMIN') {
-    return res.status(403).json({ error: "Access denied. Administrator role required." });
+    return res.status(403).json({ error: 'Access denied. Administrator role required.' });
   }
   next();
 };
@@ -48,7 +48,7 @@ const requireAdmin = (req, res, next) => {
 const requireOwnerOrAdmin = (req, res, next) => {
   const targetUserId = parseInt(req.params.id);
   if (req.user.id !== targetUserId && req.user.role !== 'ADMIN') {
-    return res.status(403).json({ error: "Access denied." });
+    return res.status(403).json({ error: 'Access denied.' });
   }
   next();
 };
@@ -173,7 +173,7 @@ usersRouter.use(authMiddleware);
  *               $ref: '#/components/schemas/Error'
  */
 // GET /api/users - List all users (admin only)
-usersRouter.get("/",
+usersRouter.get('/',
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive number'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   requireAdmin,
@@ -270,7 +270,7 @@ usersRouter.get("/",
  *               $ref: '#/components/schemas/Error'
  */
 // POST /api/users - Create new user (admin only)
-usersRouter.post("/",
+usersRouter.post('/',
   createUserValidation,
   requireAdmin,
   async (req, res) => {
@@ -285,11 +285,11 @@ usersRouter.post("/",
       
       createUserCounter.inc();
       res.status(201).json({
-        message: "User created successfully",
+        message: 'User created successfully',
         user
       });
     } catch (error) {
-      if (error.message === "User or email already exists") {
+      if (error.message === 'User or email already exists') {
         return res.status(409).json({ error: error.message });
       }
       res.status(400).json({ error: error.message });
@@ -334,7 +334,7 @@ usersRouter.post("/",
  *               $ref: '#/components/schemas/Error'
  */
 // GET /api/users/me - Get current user profile
-usersRouter.get("/me", async (req, res) => {
+usersRouter.get('/me', async (req, res) => {
   try {
     const user = await getUserById(req.user.id);
     const stats = await getUserStats(req.user.id);
@@ -405,7 +405,7 @@ usersRouter.get("/me", async (req, res) => {
  *               $ref: '#/components/schemas/Error'
  */
 // GET /api/users/:id - Get user by ID (only own user or admin)
-usersRouter.get("/:id", 
+usersRouter.get('/:id', 
   param('id').isInt().withMessage('ID must be a number'),
   requireOwnerOrAdmin,
   async (req, res) => {
@@ -501,7 +501,7 @@ usersRouter.get("/:id",
  *               $ref: '#/components/schemas/Error'
  */
 // PUT /api/users/:id - Update user (only own user or admin)
-usersRouter.put("/:id",
+usersRouter.put('/:id',
   param('id').isInt().withMessage('ID must be a number'),
   updateUserValidation,
   requireOwnerOrAdmin,
@@ -523,7 +523,7 @@ usersRouter.put("/:id",
       
       updateUserCounter.inc();
       res.json({
-        message: "User updated successfully",
+        message: 'User updated successfully',
         user: updatedUser
       });
     } catch (error) {
@@ -594,7 +594,7 @@ usersRouter.put("/:id",
  *               $ref: '#/components/schemas/Error'
  */
 // PATCH /api/users/:id - Partial update user (for ban/unban, role changes, etc.)
-usersRouter.patch("/:id",
+usersRouter.patch('/:id',
   param('id').isInt().withMessage('ID must be a number'),
   body('banned').optional().isBoolean().withMessage('Banned must be true or false'),
   body('role').optional().isIn(['USER', 'ADMIN', 'MODERATOR']).withMessage('Invalid role'),
@@ -624,7 +624,7 @@ usersRouter.patch("/:id",
       
       updateUserCounter.inc();
       res.json({
-        message: "User updated successfully",
+        message: 'User updated successfully',
         user: updatedUser
       });
     } catch (error) {
@@ -688,7 +688,7 @@ usersRouter.patch("/:id",
  *               $ref: '#/components/schemas/Error'
  */
 // GET /api/users/:id/statistics - Get user statistics (admin only)
-usersRouter.get("/:id/statistics",
+usersRouter.get('/:id/statistics',
   param('id').isInt().withMessage('ID must be a number'),
   requireAdmin,
   async (req, res) => {

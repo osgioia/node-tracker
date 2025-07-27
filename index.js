@@ -1,33 +1,33 @@
-import { Server } from "bittorrent-tracker";
-import express from "express";
-import dotenv from "dotenv";
-import rateLimit from "express-rate-limit";
-import slowDown from "express-slow-down";
-import helmet from "helmet";
-import cors from "cors";
-import { register } from "prom-client";
-import { checkTorrent, bannedIPs } from "./src/utils/utils.js";
-import { setupMorgan, logMessage } from "./src/utils/utils.js";
-import { db } from "./src/utils/db.server.js";
-import apiRouter from "./src/router.js";
-import { specs, swaggerUi } from "./src/config/swagger.js";
-import { securityConfig, validateSecurityConfig } from "./src/config/security.js";
+import { Server } from 'bittorrent-tracker';
+import express from 'express';
+import dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit';
+import slowDown from 'express-slow-down';
+import helmet from 'helmet';
+import cors from 'cors';
+import { register } from 'prom-client';
+import { checkTorrent, bannedIPs } from './src/utils/utils.js';
+import { setupMorgan, logMessage } from './src/utils/utils.js';
+import { db } from './src/utils/db.server.js';
+import apiRouter from './src/router.js';
+import { specs, swaggerUi } from './src/config/swagger.js';
+import { securityConfig, validateSecurityConfig } from './src/config/security.js';
 import { 
   sanitizeInput, 
   validateContentType, 
   validateUserAgent, 
   securityLogger, 
   preventEnumeration 
-} from "./src/middleware/security.js";
+} from './src/middleware/security.js';
 
 dotenv.config();
 
 // Validar configuración de seguridad al inicio
 try {
   validateSecurityConfig();
-  logMessage("info", "Security configuration validated successfully");
+  logMessage('info', 'Security configuration validated successfully');
 } catch (error) {
-  logMessage("error", `Security configuration validation failed: ${error.message}`);
+  logMessage('error', `Security configuration validation failed: ${error.message}`);
   process.exit(1);
 }
 
@@ -41,7 +41,7 @@ app.use(helmet({
   },
   hsts: securityConfig.headers.hsts,
   crossOriginEmbedderPolicy: false, // Disable for tracker compatibility
-  crossOriginResourcePolicy: { policy: "cross-origin" }
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
 // CORS configuration
@@ -73,11 +73,11 @@ const globalLimiter = rateLimit({
   windowMs: securityConfig.rateLimit.global.windowMs,
   max: securityConfig.rateLimit.global.max,
   message: {
-    error: "Too many requests from this IP, please try again later.",
-    retryAfter: "15 minutes"
+    error: 'Too many requests from this IP, please try again later.',
+    retryAfter: '15 minutes'
   },
   standardHeaders: true,
-  legacyHeaders: false,
+  legacyHeaders: false
 });
 
 // Slow down middleware para requests sospechosos
@@ -85,7 +85,7 @@ const speedLimiter = slowDown({
   windowMs: 15 * 60 * 1000, // 15 minutos
   delayAfter: 100, // Permitir 100 requests a velocidad normal
   delayMs: 500, // Agregar 500ms de delay por cada request después del límite
-  maxDelayMs: 20000, // Máximo delay de 20 segundos
+  maxDelayMs: 20000 // Máximo delay de 20 segundos
 });
 
 // Auth rate limiting (más estricto para endpoints de autenticación)
@@ -93,12 +93,12 @@ const authLimiter = rateLimit({
   windowMs: securityConfig.rateLimit.auth.windowMs,
   max: securityConfig.rateLimit.auth.max,
   message: {
-    error: "Too many authentication attempts, please try again later.",
-    retryAfter: "15 minutes"
+    error: 'Too many authentication attempts, please try again later.',
+    retryAfter: '15 minutes'
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: true, // No contar requests exitosos
+  skipSuccessfulRequests: true // No contar requests exitosos
 });
 
 // Security middlewares
@@ -115,86 +115,86 @@ app.use(speedLimiter);
 app.use('/api-docs', rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 50, // Límite más bajo para documentación
-  message: { error: "Too many requests to API documentation" }
+  message: { error: 'Too many requests to API documentation' }
 }), swaggerUi.serve, swaggerUi.setup(specs, {
   explorer: true,
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: "Node Tracker API Documentation"
+  customSiteTitle: 'Node Tracker API Documentation'
 }));
 
 // Aplicar rate limiting específico para rutas de autenticación
-app.use("/api/auth", authLimiter);
+app.use('/api/auth', authLimiter);
 
-app.use("/", apiRouter);
+app.use('/', apiRouter);
 
 // Endpoint de métricas para Prometheus
-app.get("/metrics", async (req, res) => {
-  res.set("Content-Type", register.contentType);
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
   res.end(await register.metrics());
 });
 
 // Health check para verificar la conexión a la base de datos
-app.get("/health", async (req, res) => {
+app.get('/health', async (req, res) => {
   try {
     await db.$queryRaw`SELECT 1`;
-    res.status(200).send("OK");
+    res.status(200).send('OK');
   } catch (err) {
-    logMessage("error", `Error en health check: ${err.message}`);
-    res.status(500).send("Database Error");
+    logMessage('error', `Error en health check: ${err.message}`);
+    res.status(500).send('Database Error');
   }
 });
 
 // Configurar el servidor BitTorrent Tracker
 const server = new Server({
-  udp: process.env.UDP === "true", // Convertir a booleano
-  http: process.env.HTTP === "true",
+  udp: process.env.UDP === 'true', // Convertir a booleano
+  http: process.env.HTTP === 'true',
   interval: Number(process.env.ANNOUNCE_INTERVAL) || 300, // Convertir a número
-  ws: process.env.WS === "true",
-  stats: process.env.STATS === "true",
-  trustProxy: process.env.TRUST_PROXY === "true",
+  ws: process.env.WS === 'true',
+  stats: process.env.STATS === 'true',
+  trustProxy: process.env.TRUST_PROXY === 'true',
   filter: async (infoHash, params, callback) => {
     try {
       await checkTorrent(infoHash, callback);
       await bannedIPs(params, callback);
     } catch (error) {
-      logMessage("error", `Error en filtro del tracker: ${error.message}`);
+      logMessage('error', `Error en filtro del tracker: ${error.message}`);
       callback(error);
     }
-  },
+  }
 });
 
 // Middleware de rate limiting para /announce y /scrape
 const trackerRateLimiter = rateLimit({
   windowMs: 60_000, // 1 minuto
   max: 100, // Máximo 100 solicitudes por IP
-  message: "Demasiadas solicitudes, inténtalo de nuevo más tarde.",
+  message: 'Demasiadas solicitudes, inténtalo de nuevo más tarde.'
 });
 
 // Rutas del tracker con rate limiting
 const onHttpRequest = server.onHttpRequest.bind(server);
-app.use("/announce", trackerRateLimiter, onHttpRequest);
-app.use("/scrape", trackerRateLimiter, onHttpRequest);
+app.use('/announce', trackerRateLimiter, onHttpRequest);
+app.use('/scrape', trackerRateLimiter, onHttpRequest);
 
 // Manejar cierre del servidor
-process.on("SIGINT", async () => {
-  logMessage("info", "Cerrando servidor...");
+process.on('SIGINT', async () => {
+  logMessage('info', 'Cerrando servidor...');
   try {
     await db.$disconnect(); // Desconectar la base de datos
-    logMessage("info", "Base de datos desconectada.");
+    logMessage('info', 'Base de datos desconectada.');
   } catch (error) {
-    logMessage("error", `Error al desconectar la base de datos: ${error.message}`);
+    logMessage('error', `Error al desconectar la base de datos: ${error.message}`);
   }
   process.exit(0);
 });
 
 // Middleware de errores (debe ir al final)
 app.use((err, req, res, next) => {
-  logMessage("error", `Error no manejado: ${err.message}`);
-  res.status(500).json({ error: "Internal Server Error." });
+  logMessage('error', `Error no manejado: ${err.message}`);
+  res.status(500).json({ error: 'Internal Server Error.' });
 });
 
 // Iniciar el servidor
 const expressPort = process.env.PORT || 3000;
 app.listen(expressPort, () => {
-  logMessage("info", `Torrent Tracker running at http://localhost:${expressPort}`);
+  logMessage('info', `Torrent Tracker running at http://localhost:${expressPort}`);
 });

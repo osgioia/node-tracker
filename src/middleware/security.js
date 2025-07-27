@@ -1,11 +1,11 @@
-import { logMessage } from "../utils/utils.js";
+import { logMessage } from '../utils/utils.js';
 
 // Middleware para sanitizar inputs
 export const sanitizeInput = (req, res, next) => {
   try {
     // Función para limpiar strings de caracteres peligrosos
     const sanitizeString = (str) => {
-      if (typeof str !== 'string') return str;
+      if (typeof str !== 'string') {return str;}
       
       return str
         .trim()
@@ -17,7 +17,7 @@ export const sanitizeInput = (req, res, next) => {
 
     // Función recursiva para sanitizar objetos
     const sanitizeObject = (obj) => {
-      if (obj === null || obj === undefined) return obj;
+      if (obj === null || obj === undefined) {return obj;}
       
       if (typeof obj === 'string') {
         return sanitizeString(obj);
@@ -53,8 +53,8 @@ export const sanitizeInput = (req, res, next) => {
 
     next();
   } catch (error) {
-    logMessage("error", `Input sanitization error: ${error.message}`);
-    res.status(400).json({ error: "Invalid input format" });
+    logMessage('error', `Input sanitization error: ${error.message}`);
+    res.status(400).json({ error: 'Invalid input format' });
   }
 };
 
@@ -64,10 +64,10 @@ export const validateContentType = (req, res, next) => {
     const contentType = req.get('Content-Type');
     
     if (!contentType || !contentType.includes('application/json')) {
-      logMessage("warn", `Invalid content type: ${contentType} from IP: ${req.ip}`);
+      logMessage('warn', `Invalid content type: ${contentType} from IP: ${req.ip}`);
       return res.status(415).json({ 
-        error: "Content-Type must be application/json",
-        code: "INVALID_CONTENT_TYPE"
+        error: 'Content-Type must be application/json',
+        code: 'INVALID_CONTENT_TYPE'
       });
     }
   }
@@ -90,10 +90,10 @@ export const validateUserAgent = (req, res, next) => {
   const userAgent = req.get('User-Agent');
   
   if (!userAgent || userAgent.length < 10) {
-    logMessage("warn", `Suspicious User-Agent: ${userAgent} from IP: ${req.ip}`);
+    logMessage('warn', `Suspicious User-Agent: ${userAgent} from IP: ${req.ip}`);
     return res.status(400).json({ 
-      error: "Invalid User-Agent",
-      code: "INVALID_USER_AGENT"
+      error: 'Invalid User-Agent',
+      code: 'INVALID_USER_AGENT'
     });
   }
   
@@ -108,10 +108,10 @@ export const validateUserAgent = (req, res, next) => {
   ];
   
   if (suspiciousPatterns.some(pattern => pattern.test(userAgent))) {
-    logMessage("warn", `Malicious User-Agent detected: ${userAgent} from IP: ${req.ip}`);
+    logMessage('warn', `Malicious User-Agent detected: ${userAgent} from IP: ${req.ip}`);
     return res.status(403).json({ 
-      error: "Access denied",
-      code: "SUSPICIOUS_USER_AGENT"
+      error: 'Access denied',
+      code: 'SUSPICIOUS_USER_AGENT'
     });
   }
   
@@ -133,7 +133,7 @@ export const securityLogger = (req, res, next) => {
   
   // Log suspicious activity
   if (req.url.includes('..') || req.url.includes('<script>') || req.url.includes('SELECT')) {
-    logMessage("warn", `Suspicious request: ${JSON.stringify(requestInfo)}`);
+    logMessage('warn', `Suspicious request: ${JSON.stringify(requestInfo)}`);
   }
   
   // Override res.json to log responses
@@ -142,7 +142,7 @@ export const securityLogger = (req, res, next) => {
     const responseTime = Date.now() - startTime;
     
     if (res.statusCode >= 400) {
-      logMessage("warn", `Error response: ${res.statusCode} for ${req.method} ${req.url} from ${req.ip} (${responseTime}ms)`);
+      logMessage('warn', `Error response: ${res.statusCode} for ${req.method} ${req.url} from ${req.ip} (${responseTime}ms)`);
     }
     
     return originalJson.call(this, data);

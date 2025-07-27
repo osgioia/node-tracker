@@ -1,5 +1,5 @@
-import { db } from "../utils/db.server.js";
-import { logMessage, generateInviteKey } from "../utils/utils.js";
+import { db } from '../utils/db.server.js';
+import { logMessage, generateInviteKey } from '../utils/utils.js';
 
 // Create invitation
 async function createInvitation(invitationData) {
@@ -29,10 +29,10 @@ async function createInvitation(invitationData) {
       }
     });
 
-    logMessage("info", `Invitation created by user: ${inviterId}`);
+    logMessage('info', `Invitation created by user: ${inviterId}`);
     return invitation;
   } catch (error) {
-    logMessage("error", `Error creating invitation: ${error.message}`);
+    logMessage('error', `Error creating invitation: ${error.message}`);
     throw error;
   }
 }
@@ -57,7 +57,7 @@ async function getUserInvitations(userId) {
 
     return invitations;
   } catch (error) {
-    logMessage("error", `Error getting user invitations: ${error.message}`);
+    logMessage('error', `Error getting user invitations: ${error.message}`);
     throw error;
   }
 }
@@ -106,7 +106,7 @@ async function getAllInvitations(page = 1, limit = 20, isAdmin = false, userId =
       }
     };
   } catch (error) {
-    logMessage("error", `Error getting all invitations: ${error.message}`);
+    logMessage('error', `Error getting all invitations: ${error.message}`);
     throw error;
   }
 }
@@ -133,12 +133,12 @@ async function getInvitationById(id) {
     });
 
     if (!invitation) {
-      throw new Error("Invitation not found");
+      throw new Error('Invitation not found');
     }
 
     return invitation;
   } catch (error) {
-    logMessage("error", `Error getting invitation: ${error.message}`);
+    logMessage('error', `Error getting invitation: ${error.message}`);
     throw error;
   }
 }
@@ -150,12 +150,12 @@ async function deleteInvitation(id) {
       where: { id: parseInt(id) }
     });
 
-    logMessage("info", `Invitation deleted: ${id}`);
+    logMessage('info', `Invitation deleted: ${id}`);
   } catch (error) {
     if (error.code === 'P2025') {
-      throw new Error("Invitation not found");
+      throw new Error('Invitation not found');
     }
-    logMessage("error", `Error deleting invitation: ${error.message}`);
+    logMessage('error', `Error deleting invitation: ${error.message}`);
     throw error;
   }
 }
