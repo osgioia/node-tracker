@@ -1,7 +1,7 @@
 {
-  "name": "starter-express-api",
+  "name": "node-tracker",
   "version": "1.0.0",
-  "description": "",
+  "description": "An semi-private bittorrent tracker made with nodejs",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -18,14 +18,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cyclic-software/starter-express-api.git"
+    "url": "git+https://github.com/osgioia/node-tracker"
   },
-  "author": "",
+  "author": "osgioia",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/cyclic-software/starter-express-api/issues"
+    "url": "https://github.com/osgioia/node-tracker/issues"
   },
-  "homepage": "https://github.com/cyclic-software/starter-express-api#readme",
+  "homepage": "https://github.com/osgioia/node-tracker#readme",
   "dependencies": {
     "@prisma/client": "^6.2.1",
     "bcrypt": "^6.0.0",

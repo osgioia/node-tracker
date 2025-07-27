@@ -1,245 +1,556 @@
 # Node Tracker
 
-> ⚠️ **WORK IN PROGRESS** - Este proyecto está actualmente en desarrollo activo. Algunas funcionalidades pueden estar incompletas o experimentar cambios. Los tests están siendo actualizados y la documentación puede no reflejar el estado actual del código.
+> ⚠️ **WORK IN PROGRESS** - This project is currently under active development. Some features may be incomplete or subject to change. Tests are being updated and documentation may not reflect the current state of the code.
 
-Un tracker BitTorrent privado y completo, desarrollado en Node.js, Express y Prisma, con autenticación, sistema de invitaciones, métricas y API REST para gestión avanzada.
-
----
-
-## 🚀 Características principales
-
-- **Tracker BitTorrent** (HTTP/UDP/WebSocket opcional)
-- **API RESTful** para usuarios, torrents, invitaciones y baneos
-- **Autenticación JWT** y control de roles (USER, MODERATOR, ADMIN)
-- **Sistema de invitaciones** para registro controlado
-- **Rate limiting** y validaciones de seguridad
-- **Métricas Prometheus** y logging estructurado
-- **Base de datos PostgreSQL** gestionada con Prisma ORM
+A complete private BitTorrent tracker built with Node.js, Express, and Prisma, featuring authentication, invitation system, metrics, and REST API for advanced management.
 
 ---
 
-## 🛠️ Instalación rápida
+## 🚀 Key Features
 
-1. **Clona el repositorio:**
+- **BitTorrent Tracker** (HTTP/UDP/WebSocket optional)
+- **RESTful API** for users, torrents, invitations, and IP bans
+- **JWT Authentication** with role-based access control (USER, MODERATOR, ADMIN)
+- **Invitation System** for controlled registration
+- **Rate Limiting** and security validations
+- **Prometheus Metrics** and structured logging
+- **PostgreSQL Database** managed with Prisma ORM
+- **Code Quality** with ESLint integration
+
+---
+
+## 🛠️ Quick Installation
+
+### Prerequisites
+
+- Node.js 18+ 
+- PostgreSQL 12+
+- npm or yarn
+
+### Setup Steps
+
+1. **Clone the repository:**
 
 ```bash
 git clone <repository-url>
 cd node-tracker
 ```
 
-2. **Instala las dependencias:**
+2. **Install dependencies:**
 
 ```bash
 npm install
 ```
 
-3. **Configura las variables de entorno:**
+3. **Configure environment variables:**
 
 ```bash
 cp .env.example .env
-# Edita .env con tus datos (DB, JWT, etc)
+# Edit .env with your configuration (DB, JWT, etc)
 ```
 
-4. **Prepara la base de datos:**
+4. **Set up the database:**
 
 ```bash
 npm run build:dev
 ```
 
-5. **Inicia la aplicación:**
+5. **Start the application:**
 
 ```bash
 npm start
 ```
 
+The tracker will be available at `http://localhost:3000`
+
 ---
 
-## ⚙️ Configuración
+## ⚙️ Configuration
 
-Edita el archivo `.env` para definir los parámetros de conexión y seguridad:
+Edit the `.env` file to configure connection parameters and security settings:
 
 ```env
-DATABASE_URL=postgresql://usuario:password@localhost:5432/tracker
-JWT_SECRET=tu_secreto_super_seguro
+# Database
+DATABASE_URL=postgresql://username:password@localhost:5432/tracker
+
+# JWT Configuration
+JWT_SECRET=your_super_secure_secret_key_here
 JWT_EXPIRES_IN=1h
+
+# Server Configuration
 PORT=3000
 TRUST_PROXY=false
+
+# Tracker Configuration
 UDP=false
 HTTP=true
 WS=false
 ANNOUNCE_INTERVAL=300
 STATS=true
+
+# Security
+RATE_LIMIT_WINDOW=15
+RATE_LIMIT_MAX=100
 ```
+
+### Environment Variables Reference
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string | Required |
+| `JWT_SECRET` | Secret key for JWT tokens | Required |
+| `JWT_EXPIRES_IN` | JWT token expiration time | `1h` |
+| `PORT` | Server port | `3000` |
+| `TRUST_PROXY` | Trust proxy headers | `false` |
+| `UDP` | Enable UDP tracker | `false` |
+| `HTTP` | Enable HTTP tracker | `true` |
+| `WS` | Enable WebSocket tracker | `false` |
+| `ANNOUNCE_INTERVAL` | Announce interval in seconds | `300` |
 
 ---
 
-## 📚 Uso básico
+## 📚 Usage Guide
 
-### 1. **Registro y login de usuario**
+### Initial Setup
+
+1. **Create the first admin user:**
 
 ```bash
-curl -X POST http://localhost:3000/api/user/register \
+curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"username": "usuario123", "email": "usuario@example.com", "password": "password123"}'
-
-curl -X POST http://localhost:3000/api/user/login \
-  -H "Content-Type: application/json" \
-  -d '{"username": "usuario123", "password": "password123"}'
+  -d '{
+    "username": "admin",
+    "email": "admin@example.com",
+    "password": "secure_password_123",
+    "inviteKey": "bootstrap"
+  }'
 ```
 
-### 2. **Agregar un torrent**
+2. **Login to get authentication token:**
 
 ```bash
-curl -X POST http://localhost:3000/api/torrent \
+curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"infoHash": "abc123...", "name": "Mi Torrent", "category": "Películas"}'
+  -d '{
+    "username": "admin",
+    "password": "secure_password_123"
+  }'
 ```
 
-### 3. **Usar el tracker**
+### User Management
 
-- Anuncia: `http://localhost:3000/announce`
-- Scrape: `http://localhost:3000/scrape`
+#### Create an invitation:
+
+```bash
+curl -X POST http://localhost:3000/api/invitations \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your_token>" \
+  -d '{
+    "email": "newuser@example.com",
+    "reason": "New community member",
+    "expiresInDays": 7
+  }'
+```
+
+#### Register with invitation:
+
+```bash
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "newuser",
+    "email": "newuser@example.com",
+    "password": "user_password_123",
+    "inviteKey": "<invitation_key_received>"
+  }'
+```
+
+### Torrent Management
+
+#### Add a torrent:
+
+```bash
+curl -X POST http://localhost:3000/api/torrents \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your_token>" \
+  -d '{
+    "infoHash": "abcdef1234567890abcdef1234567890abcdef12",
+    "name": "My Awesome Torrent",
+    "category": "Movies",
+    "description": "A great movie torrent",
+    "tags": ["action", "2024"]
+  }'
+```
+
+#### Search torrents:
+
+```bash
+curl "http://localhost:3000/api/torrents?search=awesome&category=Movies" \
+  -H "Authorization: Bearer <your_token>"
+```
+
+### Tracker Usage
+
+#### BitTorrent Client Configuration:
+
+- **Announce URL:** `http://localhost:3000/announce`
+- **Scrape URL:** `http://localhost:3000/scrape`
+
+#### Manual announce (for testing):
+
+```bash
+curl "http://localhost:3000/announce?info_hash=<20_byte_hash>&peer_id=<20_byte_peer_id>&port=6881&uploaded=0&downloaded=0&left=1000000&event=started"
+```
 
 ---
 
-## 🧩 ¿Cómo funciona el sistema?
+## 🧩 How the System Works
 
-### Flujo general
+### General Flow
 
-1. **Registro controlado:** Solo se pueden registrar usuarios mediante invitación (invite). Un usuario existente con permisos puede generar invitaciones para otros.
-2. **Autenticación:** Los usuarios inician sesión con usuario y contraseña. Se utiliza JWT para autenticar y autorizar cada petición.
-3. **Gestión de torrents:** Los usuarios autenticados pueden agregar, buscar y administrar torrents. Los administradores pueden ver y gestionar todos los torrents.
-4. **Roles y permisos:**
-   - **USER:** Puede usar el tracker, subir torrents y ver los suyos.
-   - **MODERATOR:** Puede moderar contenido y gestionar usuarios/torrents.
-   - **ADMIN:** Control total sobre el sistema, usuarios, invitaciones y configuración.
-5. **Seguridad:**
-   - Rate limiting, validación de datos, hashing de contraseñas y baneos de IP.
-   - Acceso a rutas críticas solo para roles autorizados.
-6. **Monitoreo:** Métricas Prometheus y logs para auditar y monitorear el sistema.
+1. **Controlled Registration:** Users can only register through invitations. Existing users with permissions can generate invitations for others.
+
+2. **Authentication:** Users log in with username and password. JWT tokens are used to authenticate and authorize each request.
+
+3. **Torrent Management:** Authenticated users can add, search, and manage torrents. Administrators can view and manage all torrents.
+
+4. **Role-based Permissions:**
+   - **USER:** Can use the tracker, upload torrents, and view their own content
+   - **MODERATOR:** Can moderate content and manage users/torrents
+   - **ADMIN:** Full system control, users, invitations, and configuration
+
+5. **Security Features:**
+   - Rate limiting, data validation, password hashing, and IP banning
+   - Access to critical routes restricted by role authorization
+
+6. **Monitoring:** Prometheus metrics and structured logging for system auditing and monitoring
+
+### Invitation System Deep Dive
+
+The invitation system controls who can register on the tracker:
+
+1. **Invitation Generation:**
+   - Only authenticated users (usually ADMIN or MODERATOR) can create invitations via API (`POST /api/invitations`)
+   - You can specify email, reason, and optional expiration (days of validity)
+   - Each invitation generates a unique code (inviteKey) sent to the invitee
+
+2. **Registration with Invitation:**
+   - The invited user must register using the received invitation code
+   - The system validates that the invitation is active, unused, and not expired
+   - Upon successful registration, the invitation is marked as used and cannot be reused
+
+3. **Control and Auditing:**
+   - Administrators can list, revoke, or delete invitations
+   - All invitations are logged with their status (used, active, expired)
+
+**Benefits:**
+- Maintains a closed and secure community
+- Prevents mass or automated registrations
+- Provides traceability of who invited whom
 
 ---
 
-### 🔗 ¿Cómo funciona el sistema de invitaciones?
-
-El sistema de invitaciones permite controlar quién puede registrarse en el tracker. Así funciona:
-
-1. **Generación de invitaciones:**
-
-   - Solo usuarios autenticados (usualmente ADMIN o MODERATOR) pueden crear invitaciones desde la API (`POST /api/invitations`).
-   - Se puede especificar un email, motivo y una expiración opcional (días de validez).
-   - Cada invitación genera un código único (inviteKey) que se envía al invitado.
-
-2. **Registro con invitación:**
-
-   - El usuario invitado debe registrarse usando el código de invitación recibido.
-   - El sistema valida que la invitación esté activa, no usada y no expirada.
-   - Al completar el registro, la invitación se marca como usada y no puede reutilizarse.
-
-3. **Control y auditoría:**
-   - Los administradores pueden listar, revocar o eliminar invitaciones.
-   - Todas las invitaciones quedan registradas con su estado (usada, activa, expirada).
-
-**Ventajas:**
-
-- Permite mantener la comunidad cerrada y segura.
-- Evita registros masivos o automatizados.
-- Da trazabilidad sobre quién invitó a quién.
-
----
-
-## 🗂️ Estructura del proyecto
+## 🗂️ Project Structure
 
 ```
 src/
-├── auth/           # Autenticación y login
-├── invitations/    # Sistema de invitaciones
-├── ip-bans/        # Baneo de IPs
-├── ipban/          # Alternativa de baneo de IPs
-├── middleware/     # Middlewares (auth, etc)
-├── torrent/        # Gestión de torrents
-├── torrents/       # API de torrents
-├── user/           # Gestión de usuarios
-├── users/          # API de usuarios
-├── utils/          # Utilidades y DB
-└── router.js       # Router principal
+├── auth/              # Authentication and login
+├── config/            # Configuration files
+├── invitations/       # Invitation system
+├── ip-bans/          # IP banning system
+├── middleware/        # Middleware (auth, security, etc)
+├── security/          # Security utilities
+├── torrents/          # Torrent management and API
+├── users/             # User management and API
+├── utils/             # Utilities and database
+└── router.js          # Main router
+
 prisma/
-└── schema.prisma   # Esquema de base de datos
+├── migrations/        # Database migrations
+└── schema.prisma      # Database schema
+
+scripts/
+├── security-audit.js  # Security auditing script
+├── test-api.js       # API testing script
+└── test-runner.js    # Test runner utility
 ```
 
 ---
 
-## 🗄️ Modelos principales
+## 🗄️ Database Models
 
-- **User:** Usuarios, roles, invitaciones
-- **Torrent:** Torrents, categorías, tags, estadísticas
-- **IPBan:** IPs baneadas
-- **Invite:** Invitaciones
-- **Bookmark, Progress:** Favoritos y progreso de usuario
+### Core Models
 
----
+- **User:** User accounts, roles, authentication
+- **Torrent:** Torrent metadata, categories, statistics
+- **Invite:** Invitation system management
+- **IPBan:** IP address banning
+- **Bookmark:** User bookmarks/favorites
+- **Progress:** User download progress tracking
 
-## 🔒 Seguridad y buenas prácticas
+### Relationships
 
-- Autenticación JWT obligatoria en rutas protegidas
-- Rate limiting en endpoints críticos
-- Validación de datos con express-validator
-- Contraseñas hasheadas con bcrypt
-- Baneo de IPs y control de acceso por roles
-
----
-
-## 📊 Monitoreo y logs
-
-- **Métricas Prometheus:** `http://localhost:3000/metrics`
-- **Health check:** `http://localhost:3000/health`
-- **Logs:** consola y archivos (`application.log`, `access.log`)
+- Users can have multiple torrents
+- Users can create and use invitations
+- Torrents can be bookmarked by users
+- Progress tracks user interaction with torrents
 
 ---
 
-## 🧪 Testing
+## 🔒 Security Features
 
-- Ejecuta todos los tests:
-  ```bash
-  npm test
-  ```
-- Prueba la API manualmente:
+### Authentication & Authorization
+- JWT-based authentication with configurable expiration
+- Role-based access control (RBAC)
+- Secure password hashing with bcrypt
+- Protected routes with middleware validation
+
+### Rate Limiting & Protection
+- Configurable rate limiting on critical endpoints
+- IP-based banning system
+- Request validation with express-validator
+- CORS and security headers with Helmet
+
+### Data Validation
+- Input sanitization and validation
+- SQL injection prevention with Prisma ORM
+- XSS protection
+- CSRF protection for state-changing operations
+
+---
+
+## 📊 Monitoring & Observability
+
+### Metrics (Prometheus)
+Access metrics at: `http://localhost:3000/metrics`
+
+Available metrics:
+- HTTP request duration and count
+- Active connections
+- Database query performance
+- Custom business metrics
+
+### Health Checks
+- **Health endpoint:** `http://localhost:3000/health`
+- **Database connectivity check**
+- **System resource monitoring**
+
+### Logging
+- Structured logging with Winston
+- Multiple log levels (error, warn, info, debug)
+- File-based logging (`application.log`)
+- Request logging with Morgan
+
+---
+
+## 🧪 Testing & Development
+
+### Running Tests
 
 ```bash
-  node test-api.js
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests with verbose output
+npm run test:verbose
+```
+
+### Code Quality
+
+```bash
+# Run linter
+npm run lint
+
+# Fix linting issues automatically
+npm run lint:fix
+
+# Check for linting issues (strict mode)
+npm run lint:check
+```
+
+### API Testing
+
+```bash
+# Manual API testing script
+node scripts/test-api.js
+
+# Security audit
+node scripts/security-audit.js
+```
+
+### Development Scripts
+
+```bash
+# Start with auto-reload
+npm start
+
+# Database operations
+npm run build:dev    # Generate Prisma client + run migrations (dev)
+npm run build        # Generate Prisma client + deploy migrations (prod)
 ```
 
 ---
 
-## 🤝 Contribuir
+## 🚀 Deployment
 
-1. Haz fork del proyecto
-2. Crea una rama (`git checkout -b feature/NuevaFeature`)
-3. Haz commit de tus cambios
-4. Haz push a tu rama
-5. Abre un Pull Request
+### Production Setup
+
+1. **Environment Configuration:**
+```bash
+# Set production environment variables
+export NODE_ENV=production
+export DATABASE_URL=postgresql://user:pass@prod-db:5432/tracker
+export JWT_SECRET=your_production_secret
+```
+
+2. **Database Migration:**
+```bash
+npm run build
+```
+
+3. **Start Production Server:**
+```bash
+npm start
+```
+
+### Docker Deployment (Optional)
+
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN npm run build
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+### Reverse Proxy Configuration (Nginx)
+
+```nginx
+server {
+    listen 80;
+    server_name your-tracker.com;
+    
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
 
 ---
 
-## 📄 Licencia
+## 🤝 Contributing
 
-Este proyecto está bajo la Licencia ISC.
+We welcome contributions! Please follow these steps:
+
+1. **Fork the repository**
+2. **Create a feature branch:** `git checkout -b feature/amazing-feature`
+3. **Make your changes and add tests**
+4. **Run the linter:** `npm run lint:fix`
+5. **Run tests:** `npm test`
+6. **Commit your changes:** `git commit -m 'Add amazing feature'`
+7. **Push to your branch:** `git push origin feature/amazing-feature`
+8. **Open a Pull Request**
+
+### Development Guidelines
+
+- Follow the existing code style (enforced by ESLint)
+- Write tests for new features
+- Update documentation as needed
+- Use meaningful commit messages
+- Keep PRs focused and atomic
 
 ---
 
-## 📖 Documentación de la API
+## 📖 API Documentation
 
-Una vez que inicies la aplicación, puedes acceder a la documentación interactiva de Swagger en:
+### Interactive Documentation
+
+Once you start the application, access the interactive Swagger documentation at:
 
 **🔗 [http://localhost:3000/api-docs](http://localhost:3000/api-docs)**
 
-La documentación de Swagger incluye:
+The Swagger documentation includes:
+- All available endpoints with examples
+- Request/response schemas
+- Interactive API testing
+- Integrated JWT authentication
+- Real-time API exploration
 
-- Todos los endpoints disponibles
-- Esquemas de request/response
-- Ejemplos interactivos
-- Autenticación JWT integrada
-- Posibilidad de probar la API directamente desde el navegador
+### API Endpoints Overview
 
-> **Nota:** También puedes consultar [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) para referencia adicional, aunque Swagger es la fuente más actualizada.
+| Endpoint | Method | Description | Auth Required |
+|----------|--------|-------------|---------------|
+| `/api/auth/login` | POST | User authentication | No |
+| `/api/auth/register` | POST | User registration | No |
+| `/api/users` | GET | List users | Yes (Admin) |
+| `/api/users/:id` | GET/PUT/DELETE | User management | Yes |
+| `/api/torrents` | GET/POST | Torrent operations | Yes |
+| `/api/torrents/:id` | GET/PUT/DELETE | Torrent management | Yes |
+| `/api/invitations` | GET/POST | Invitation management | Yes (Moderator+) |
+| `/api/ip-bans` | GET/POST/DELETE | IP ban management | Yes (Admin) |
+| `/announce` | GET | BitTorrent announce | No |
+| `/scrape` | GET | BitTorrent scrape | No |
+| `/metrics` | GET | Prometheus metrics | No |
+| `/health` | GET | Health check | No |
+
+---
+
+## 📄 License
+
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+
+### What this means:
+
+- ✅ **Freedom to use:** You can use this software for any purpose
+- ✅ **Freedom to study:** You can examine and modify the source code
+- ✅ **Freedom to share:** You can redistribute the software
+- ✅ **Freedom to improve:** You can distribute modified versions
+
+### Requirements:
+
+- 📋 **Source disclosure:** If you distribute this software, you must provide the source code
+- 📋 **License preservation:** You must include the original license and copyright notices
+- 📋 **Network use:** If you run this software on a server and users interact with it over a network, you must provide the source code to those users
+- 📋 **Same license:** Any derivative works must be licensed under AGPL-3.0
+
+### Why AGPL-3.0?
+
+The AGPL-3.0 license ensures that improvements to this tracker remain open source and benefit the entire community, even when the software is used as a web service. This promotes collaboration and prevents proprietary forks that don't contribute back to the community.
+
+For the full license text, see the [LICENSE](LICENSE) file in this repository or visit: https://www.gnu.org/licenses/agpl-3.0.html
+
+---
+
+## 🆘 Support & Community
+
+- **Issues:** Report bugs and request features on [GitHub Issues](https://github.com/your-repo/node-tracker/issues)
+- **Discussions:** Join community discussions on [GitHub Discussions](https://github.com/your-repo/node-tracker/discussions)
+- **Security:** Report security vulnerabilities privately to [security@your-domain.com]
+
+---
+
+## 🙏 Acknowledgments
+
+- Built with [Node.js](https://nodejs.org/) and [Express](https://expressjs.com/)
+- Database management with [Prisma](https://www.prisma.io/)
+- Authentication powered by [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken)
+- Code quality ensured by [ESLint](https://eslint.org/)
+- Testing with [Jest](https://jestjs.io/)
+- Metrics with [prom-client](https://github.com/siimon/prom-client)
+
+---
+
+*Made with ❤️ for the open source community*
