@@ -1,28 +1,129 @@
 import { Server } from "bittorrent-tracker";
 import express from "express";
 import dotenv from "dotenv";
-import rateLimit from "express-rate-limit"; // Corregido el nombre del paquete
+import rateLimit from "express-rate-limit";
+import slowDown from "express-slow-down";
+import helmet from "helmet";
+import cors from "cors";
 import { register } from "prom-client";
 import { checkTorrent, bannedIPs } from "./src/utils/utils.js";
 import { setupMorgan, logMessage } from "./src/utils/utils.js";
-import { db } from "./src/utils/db.server.js"; // Importar db para health check y cierre
+import { db } from "./src/utils/db.server.js";
 import apiRouter from "./src/router.js";
 import { specs, swaggerUi } from "./src/config/swagger.js";
+import { securityConfig, validateSecurityConfig } from "./src/config/security.js";
+import { 
+  sanitizeInput, 
+  validateContentType, 
+  validateUserAgent, 
+  securityLogger, 
+  preventEnumeration 
+} from "./src/middleware/security.js";
 
 dotenv.config();
 
+// Validar configuración de seguridad al inicio
+try {
+  validateSecurityConfig();
+  logMessage("info", "Security configuration validated successfully");
+} catch (error) {
+  logMessage("error", `Security configuration validation failed: ${error.message}`);
+  process.exit(1);
+}
+
 const app = express();
-app.use(express.json());
+
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: securityConfig.headers.csp.directives,
+    reportUri: securityConfig.headers.csp.reportUri
+  },
+  hsts: securityConfig.headers.hsts,
+  crossOriginEmbedderPolicy: false, // Disable for tracker compatibility
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+// CORS configuration
+app.use(cors(securityConfig.cors));
+
+// Body parsing with size limits
+app.use(express.json({ 
+  limit: '10mb',
+  verify: (req, res, buf) => {
+    try {
+      JSON.parse(buf);
+    } catch (e) {
+      res.status(400).json({ error: 'Invalid JSON' });
+      throw new Error('Invalid JSON');
+    }
+  }
+}));
+
+app.use(express.urlencoded({ 
+  extended: true, 
+  limit: '10mb' 
+}));
 
 // Configurar logging HTTP
 setupMorgan(app);
 
-// Configurar Swagger
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+// Global rate limiting usando configuración centralizada
+const globalLimiter = rateLimit({
+  windowMs: securityConfig.rateLimit.global.windowMs,
+  max: securityConfig.rateLimit.global.max,
+  message: {
+    error: "Too many requests from this IP, please try again later.",
+    retryAfter: "15 minutes"
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Slow down middleware para requests sospechosos
+const speedLimiter = slowDown({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  delayAfter: 100, // Permitir 100 requests a velocidad normal
+  delayMs: 500, // Agregar 500ms de delay por cada request después del límite
+  maxDelayMs: 20000, // Máximo delay de 20 segundos
+});
+
+// Auth rate limiting (más estricto para endpoints de autenticación)
+const authLimiter = rateLimit({
+  windowMs: securityConfig.rateLimit.auth.windowMs,
+  max: securityConfig.rateLimit.auth.max,
+  message: {
+    error: "Too many authentication attempts, please try again later.",
+    retryAfter: "15 minutes"
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true, // No contar requests exitosos
+});
+
+// Security middlewares
+app.use(securityLogger);
+app.use(preventEnumeration);
+app.use(validateUserAgent);
+app.use(validateContentType);
+app.use(sanitizeInput);
+
+app.use(globalLimiter);
+app.use(speedLimiter);
+
+// Configurar Swagger con rate limiting
+app.use('/api-docs', rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50, // Límite más bajo para documentación
+  message: { error: "Too many requests to API documentation" }
+}), swaggerUi.serve, swaggerUi.setup(specs, {
   explorer: true,
   customCss: '.swagger-ui .topbar { display: none }',
   customSiteTitle: "Node Tracker API Documentation"
 }));
+
+// Aplicar rate limiting específico para rutas de autenticación
+app.use("/api/auth", authLimiter);
 
 app.use("/", apiRouter);
 

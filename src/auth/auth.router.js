@@ -1,7 +1,8 @@
 import express from "express";
 import { body, validationResult } from "express-validator";
 import { Counter } from "prom-client";
-import { registerUser, loginUser } from "./auth.service.js";
+import { registerUser, loginUser, logoutUser, validatePasswordStrength } from "./auth.service.js";
+import { authMiddleware, revokeToken } from "../middleware/auth.js";
 
 export const authRouter = express.Router();
 
@@ -97,7 +98,9 @@ authRouter.post("/register", registerValidation, async (req, res) => {
     }
 
     const { username, email, password, inviteKey } = req.body;
-    const user = await registerUser({ username, email, password, inviteKey });
+    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+    
+    const user = await registerUser({ username, email, password, inviteKey }, clientIP);
     
     registerCounter.inc();
     res.status(201).json({
@@ -107,6 +110,12 @@ authRouter.post("/register", registerValidation, async (req, res) => {
   } catch (error) {
     if (error.message === "User or email already exists") {
       return res.status(409).json({ error: error.message });
+    }
+    if (error.message.includes("Password requirements not met")) {
+      return res.status(400).json({ 
+        error: "Password does not meet security requirements",
+        details: error.message
+      });
     }
     res.status(400).json({ error: error.message });
   }
@@ -161,7 +170,9 @@ authRouter.post("/login", loginValidation, async (req, res) => {
     }
 
     const { username, password } = req.body;
-    const result = await loginUser(username, password);
+    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+    
+    const result = await loginUser(username, password, clientIP);
     
     loginCounter.inc();
     res.json({
@@ -169,6 +180,105 @@ authRouter.post("/login", loginValidation, async (req, res) => {
       ...result
     });
   } catch (error) {
+    if (error.message.includes("Too many failed attempts")) {
+      return res.status(429).json({ 
+        error: error.message,
+        code: "TOO_MANY_ATTEMPTS"
+      });
+    }
     res.status(401).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Cerrar sesión
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logout exitoso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Token inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+// POST /api/auth/logout
+authRouter.post("/logout", authMiddleware, async (req, res) => {
+  try {
+    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+    
+    // Revocar el token
+    revokeToken(req.token);
+    
+    const result = await logoutUser(req.token, clientIP);
+    
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/auth/validate-password:
+ *   post:
+ *     summary: Validar fortaleza de contraseña
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 description: Contraseña a validar
+ *     responses:
+ *       200:
+ *         description: Resultado de validación
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isValid:
+ *                   type: boolean
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ */
+// POST /api/auth/validate-password
+authRouter.post("/validate-password", [
+  body('password').notEmpty().withMessage('Password is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { password } = req.body;
+    const validation = validatePasswordStrength(password);
+    
+    res.json(validation);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
