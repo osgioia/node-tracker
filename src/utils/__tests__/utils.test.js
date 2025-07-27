@@ -5,7 +5,7 @@ const mockDb = {
   torrent: {
     findUnique: jest.fn()
   },
-  iPBan: {
+  IPBan: {
     findMany: jest.fn()
   }
 };
@@ -125,13 +125,13 @@ describe('Utils', () => {
         }
       ];
 
-      mockDb.iPBan.findMany.mockResolvedValue(mockBannedIPs);
+      mockDb.IPBan.findMany.mockResolvedValue(mockBannedIPs);
       const callback = jest.fn();
       const params = { ip: '10.0.0.1' }; // Different network
 
       await bannedIPs(params, callback);
 
-      expect(mockDb.iPBan.findMany).toHaveBeenCalled();
+      expect(mockDb.IPBan.findMany).toHaveBeenCalled();
       expect(callback).toHaveBeenCalledWith(null);
     });
 
@@ -143,7 +143,7 @@ describe('Utils', () => {
         }
       ];
 
-      mockDb.iPBan.findMany.mockResolvedValue(mockBannedIPs);
+      mockDb.IPBan.findMany.mockResolvedValue(mockBannedIPs);
       const callback = jest.fn();
       const params = { ip: '192.168.1.100' }; // Within banned range
 
@@ -154,7 +154,7 @@ describe('Utils', () => {
     });
 
     it('should handle IPv6 addresses', async () => {
-      mockDb.iPBan.findMany.mockResolvedValue([]);
+      mockDb.IPBan.findMany.mockResolvedValue([]);
       const callback = jest.fn();
       const params = { ipv6: '2001:db8::1' };
 
@@ -168,7 +168,7 @@ describe('Utils', () => {
         throw new Error('Invalid IP');
       });
 
-      mockDb.iPBan.findMany.mockResolvedValue([
+      mockDb.IPBan.findMany.mockResolvedValue([
         {
           fromIP: '192.168.1.1',
           toIP: '192.168.1.255'
@@ -185,7 +185,7 @@ describe('Utils', () => {
     });
 
     it('should handle database errors', async () => {
-      mockDb.iPBan.findMany.mockRejectedValue(new Error('Database error'));
+      mockDb.IPBan.findMany.mockRejectedValue(new Error('Database error'));
       const callback = jest.fn();
       const params = { ip: '192.168.1.100' };
 

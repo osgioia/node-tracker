@@ -16,7 +16,7 @@ const mockDb = {
     update: jest.fn(),
     delete: jest.fn()
   },
-  iPBan: {
+  IPBan: {
     findMany: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
@@ -101,7 +101,7 @@ describe('Integration Tests', () => {
       });
 
       const registerResponse = await request(app)
-        .post('/api/users/register')
+        .post('/api/auth/register')
         .send({
           username: 'testuser',
           email: 'test@example.com',
@@ -123,7 +123,7 @@ describe('Integration Tests', () => {
       });
 
       const loginResponse = await request(app)
-        .post('/api/users/login')
+        .post('/api/auth/login')
         .send({
           username: 'testuser',
           password: 'password123'
@@ -165,7 +165,7 @@ describe('Integration Tests', () => {
       mockBcrypt.compare.mockResolvedValue(false); // Invalid password
 
       const response = await request(app)
-        .post('/api/users/login')
+        .post('/api/auth/login')
         .send({
           username: 'testuser',
           password: 'wrongpassword'
@@ -263,9 +263,9 @@ describe('Integration Tests', () => {
         }
       ];
 
-      mockDb.iPBan.findMany.mockResolvedValue(mockBans);
+      mockDb.IPBan.findMany.mockResolvedValue(mockBans);
 
-      mockDb.iPBan.count.mockResolvedValue(1);
+      mockDb.IPBan.count.mockResolvedValue(1);
 
       const listResponse = await request(app)
         .get('/api/ip-bans')
@@ -282,7 +282,7 @@ describe('Integration Tests', () => {
         reason: 'Malicious activity'
       };
 
-      mockDb.iPBan.create.mockResolvedValue(newBan);
+      mockDb.IPBan.create.mockResolvedValue(newBan);
 
       const createResponse = await request(app)
         .post('/api/ip-bans')
@@ -298,7 +298,7 @@ describe('Integration Tests', () => {
 
       // 3. Update IP ban
       const updatedBan = { ...newBan, reason: 'Updated reason' };
-      mockDb.iPBan.update.mockResolvedValue(updatedBan);
+      mockDb.IPBan.update.mockResolvedValue(updatedBan);
 
       const updateResponse = await request(app)
         .put('/api/ip-bans/2')
@@ -313,7 +313,7 @@ describe('Integration Tests', () => {
       expect(updateResponse.body).toHaveProperty('id');
 
       // 4. Delete IP ban
-      mockDb.iPBan.delete.mockResolvedValue(newBan);
+      mockDb.IPBan.delete.mockResolvedValue(newBan);
 
       const deleteResponse = await request(app)
         .delete('/api/ip-bans/2')
@@ -336,7 +336,7 @@ describe('Integration Tests', () => {
         }
       ];
 
-      mockDb.iPBan.createMany.mockResolvedValue({ count: 2 });
+      mockDb.IPBan.createMany.mockResolvedValue({ count: 2 });
 
       const response = await request(app)
         .post('/api/ip-bans/bulk')
@@ -351,7 +351,7 @@ describe('Integration Tests', () => {
   describe('Error Handling', () => {
     it('should handle validation errors properly', async () => {
       const response = await request(app)
-        .post('/api/users/register')
+        .post('/api/auth/register')
         .send({
           username: 'ab', // Too short
           email: 'invalid-email',
@@ -367,7 +367,7 @@ describe('Integration Tests', () => {
       mockDb.user.findFirst.mockRejectedValue(new Error('Database connection failed'));
 
       const response = await request(app)
-        .post('/api/users/login')
+        .post('/api/auth/login')
         .send({
           username: 'testuser',
           password: 'password123'

@@ -1,7 +1,6 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
-import { ipToNumber } from '../../utils/utils.js';
 
 // Mock the ip-bans service completely
 const mockIPBansService = {
@@ -40,8 +39,8 @@ describe('IP Bans Router', () => {
     it('should list all IP bans', async () => {
       const mockBans = {
         ipBans: [
-          { id: 1, fromIP: ipToNumber('192.168.1.1'), toIP: ipToNumber('192.168.1.1'), reason: 'Spam' },
-          { id: 2, fromIP: ipToNumber('10.0.0.1'), toIP: ipToNumber('10.0.0.255'), reason: 'Abuse' }
+          { id: 1, fromIP: '3232235777', toIP: '3232235777', reason: 'Spam' },
+          { id: 2, fromIP: '167772161', toIP: '167772415', reason: 'Abuse' }
         ],
         pagination: {
           page: 1,
@@ -75,8 +74,8 @@ describe('IP Bans Router', () => {
   describe('POST /api/ip-bans', () => {
     it('should create single IP ban successfully', async () => {
       const ipBanData = {
-        fromIP: ipToNumber('192.168.1.1'),
-        toIP: ipToNumber('192.168.1.1'),
+        fromIP: '3232235777',
+        toIP: '3232235777',
         reason: 'Spam activity'
       };
 
@@ -99,8 +98,8 @@ describe('IP Bans Router', () => {
 
     it('should handle creation errors', async () => {
       const ipBanData = {
-        fromIP: ipToNumber('192.168.1.1'),
-        toIP: ipToNumber('192.168.1.1'),
+        fromIP: '3232235777',
+        toIP: '3232235777',
         reason: 'Spam activity'
       };
 
@@ -118,8 +117,8 @@ describe('IP Bans Router', () => {
   describe('POST /api/ip-bans/bulk', () => {
     it('should create bulk IP bans successfully', async () => {
       const ipBansData = [
-        { fromIP: ipToNumber('192.168.1.1'), toIP: ipToNumber('192.168.1.255'), reason: 'Spam network' },
-        { fromIP: ipToNumber('10.0.0.1'), toIP: ipToNumber('10.255.255.255'), reason: 'Corporate network' }
+        { fromIP: '3232235777', toIP: '3232236031', reason: 'Spam network' },
+        { fromIP: '167772161', toIP: '184549375', reason: 'Corporate network' }
       ];
 
       const mockResult = { count: 2 };
@@ -137,7 +136,7 @@ describe('IP Bans Router', () => {
 
     it('should handle bulk creation errors', async () => {
       const ipBansData = [
-        { fromIP: ipToNumber('192.168.1.1'), toIP: ipToNumber('192.168.1.255'), reason: 'Spam network' }
+        { fromIP: '3232235777', toIP: '3232236031', reason: 'Spam network' }
       ];
 
       mockIPBansService.bulkCreateIPBans.mockRejectedValue(new Error('Bulk creation failed'));
@@ -154,8 +153,8 @@ describe('IP Bans Router', () => {
   describe('PUT /api/ip-bans/:id', () => {
     it('should update IP ban successfully', async () => {
       const updateData = {
-        fromIP: ipToNumber('192.168.1.2'),
-        toIP: ipToNumber('192.168.1.2'),
+        fromIP: '3232235778',
+        toIP: '3232235778',
         reason: 'Updated reason'
       };
 
@@ -177,8 +176,8 @@ describe('IP Bans Router', () => {
 
     it('should handle update errors', async () => {
       const updateData = {
-        fromIP: ipToNumber('192.168.1.2'),
-        toIP: ipToNumber('192.168.1.2'),
+        fromIP: '3232235778',
+        toIP: '3232235778',
         reason: 'Updated reason'
       };
 
