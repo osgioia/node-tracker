@@ -63,13 +63,17 @@ model User {
   created          DateTime
   banned           Boolean
   role             Role             @default(USER)
-  invitedBy        Invite?          @relation("UserInvitedBy")
-  invitedById      Int?             @unique
+  invitesCreated   Invite[]         @relation("InviteCreator")
+  invitedById      Int?
   remainingInvites Int
   emailVerified    Boolean
-  inviteId         Int?
   Progress         Progress[]
   InviteTreeNode   InviteTreeNode[]
+  userBans         UserBan[]
+  // Campos para funcionalidad de ratio
+  uploaded         BigInt           @default(0)
+  downloaded       BigInt           @default(0)
+  seedtime         BigInt           @default(0) // tiempo total de seed en segundos
 }
 
 /// Modelo para representar el progreso de descarga de un usuario.
@@ -106,8 +110,8 @@ model InviteTreeNode {
 /// Modelo para representar una invitación.
 model Invite {
   id        Int      @id @default(autoincrement())
-  inviter   User     @relation("UserInvitedBy", fields: [inviterId], references: [id])
-  inviterId Int      @unique
+  inviter   User     @relation("InviteCreator", fields: [inviterId], references: [id])
+  inviterId Int
   inviteKey String   @unique
   email     String
   expires   DateTime
@@ -127,6 +131,22 @@ model IPBan {
 
   @@unique([fromIP, toIP], name: "FromIP_ToIP")
   @@index([toIP], name: "ToIPIndex")
+}
+
+/// Modelo para representar un baneo específico de usuario.
+model UserBan {
+  id        Int       @id @default(autoincrement())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    Int
+  reason    String    @db.VarChar(500)
+  bannedBy  String // username del admin/moderador que aplicó el ban
+  bannedAt  DateTime  @default(now())
+  expiresAt DateTime? // null para ban permanente
+  active    Boolean   @default(true)
+
+  @@index([userId], name: "UserBanUserIdIndex")
+  @@index([expiresAt], name: "UserBanExpiresIndex")
+  @@index([active], name: "UserBanActiveIndex")
 }
 
 /// Roles de usuario.

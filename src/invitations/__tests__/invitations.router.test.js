@@ -142,7 +142,12 @@ describe('Invitations Router', () => {
       expect(response.body).toHaveProperty('message', 'Invitation created successfully');
       expect(response.body).toHaveProperty('invitation');
       expect(mockInvitationsService.createInvitation).toHaveBeenCalledWith(
-        1, 'test@example.com', 'Friend invitation', 7
+        expect.objectContaining({
+          inviterId: 1,
+          email: 'test@example.com',
+          reason: 'Friend invitation',
+          expires: expect.any(Date)
+        })
       );
     });
 
@@ -168,7 +173,12 @@ describe('Invitations Router', () => {
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('invitation');
       expect(mockInvitationsService.createInvitation).toHaveBeenCalledWith(
-        1, 'test@example.com', 'Friend invitation', undefined
+        expect.objectContaining({
+          inviterId: 1,
+          email: 'test@example.com',
+          reason: 'Friend invitation',
+          expires: null
+        })
       );
     });
 

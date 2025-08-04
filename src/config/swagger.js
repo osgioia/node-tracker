@@ -61,6 +61,23 @@ const options = {
               type: 'string',
               format: 'date-time',
               description: 'Fecha de creación'
+            },
+            uploaded: {
+              type: 'integer',
+              description: 'Total de bytes subidos por el usuario'
+            },
+            downloaded: {
+              type: 'integer',
+              description: 'Total de bytes descargados por el usuario'
+            },
+            seedtime: {
+              type: 'integer',
+              description: 'Tiempo total de seed en segundos'
+            },
+            ratio: {
+              type: 'number',
+              format: 'float',
+              description: 'Ratio de subida/descarga (uploaded/downloaded)'
             }
           }
         },
@@ -255,6 +272,145 @@ const options = {
             name: {
               type: 'string',
               description: 'Nombre del tag'
+            }
+          }
+        },
+        UserBan: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              description: 'ID único del baneo'
+            },
+            userId: {
+              type: 'integer',
+              description: 'ID del usuario baneado'
+            },
+            reason: {
+              type: 'string',
+              description: 'Razón del baneo'
+            },
+            bannedBy: {
+              type: 'string',
+              description: 'Username del admin/moderador que aplicó el ban'
+            },
+            bannedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Fecha y hora del baneo'
+            },
+            expiresAt: {
+              type: 'string',
+              format: 'date-time',
+              nullable: true,
+              description: 'Fecha de expiración (null para ban permanente)'
+            },
+            active: {
+              type: 'boolean',
+              description: 'Si el ban está activo'
+            },
+            user: {
+              type: 'object',
+              properties: {
+                id: {
+                  type: 'integer'
+                },
+                username: {
+                  type: 'string'
+                },
+                email: {
+                  type: 'string',
+                  format: 'email'
+                }
+              }
+            }
+          }
+        },
+        UserBanRequest: {
+          type: 'object',
+          required: ['userId', 'reason'],
+          properties: {
+            userId: {
+              type: 'integer',
+              minimum: 1,
+              description: 'ID del usuario a banear'
+            },
+            reason: {
+              type: 'string',
+              minLength: 5,
+              maxLength: 500,
+              description: 'Razón del baneo'
+            },
+            expiresAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Fecha de expiración (opcional, null para permanente)'
+            }
+          }
+        },
+        QuickBanRequest: {
+          type: 'object',
+          required: ['userId', 'reason'],
+          properties: {
+            userId: {
+              type: 'integer',
+              minimum: 1,
+              description: 'ID del usuario a banear'
+            },
+            reason: {
+              type: 'string',
+              minLength: 5,
+              maxLength: 500,
+              description: 'Razón del baneo'
+            }
+          }
+        },
+        CustomBanRequest: {
+          type: 'object',
+          required: ['userId', 'reason', 'days'],
+          properties: {
+            userId: {
+              type: 'integer',
+              minimum: 1,
+              description: 'ID del usuario a banear'
+            },
+            reason: {
+              type: 'string',
+              minLength: 5,
+              maxLength: 500,
+              description: 'Razón del baneo'
+            },
+            days: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 365,
+              description: 'Número de días del ban'
+            }
+          }
+        },
+        UserBanStatus: {
+          type: 'object',
+          properties: {
+            userId: {
+              type: 'integer',
+              description: 'ID del usuario'
+            },
+            isBanned: {
+              type: 'boolean',
+              description: 'Si el usuario está baneado'
+            }
+          }
+        },
+        CleanupResult: {
+          type: 'object',
+          properties: {
+            message: {
+              type: 'string',
+              description: 'Mensaje de resultado'
+            },
+            cleaned: {
+              type: 'integer',
+              description: 'Número de bans limpiados'
             }
           }
         }

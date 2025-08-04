@@ -238,7 +238,14 @@ invitationsRouter.post('/',
       }
 
       const { email, reason, expiresInDays } = req.body;
-      const invitation = await createInvitation(req.user.id, email, reason, expiresInDays);
+      const expires = expiresInDays ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000) : null;
+      
+      const invitation = await createInvitation({
+        inviterId: req.user.id,
+        email,
+        reason,
+        expires
+      });
       
       createInvitationCounter.inc();
       res.status(201).json({

@@ -39,7 +39,7 @@ async function addTorrent(torrentData) {
       name,
       uploadedById,
       description: description || null,
-      size: size || null,
+      size: size || 0, // Default to 0 instead of null
       anonymous: anonymous || false,
       freeleech: freeleech || false
     };

@@ -177,7 +177,7 @@ describe('Invitations Service', () => {
         }
       });
       expect(result).toEqual(mockCreatedInvitation);
-      expect(mockLogMessage).toHaveBeenCalledWith('info', 'Invitation created by user: 1');
+      expect(mockLogMessage).toHaveBeenCalledWith('info', 'Invitation created by user: 1 for email: undefined');
     });
 
     it('should create invitation with default expiration', async () => {

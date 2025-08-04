@@ -1,6 +1,7 @@
 import express from 'express';
 import { authMiddleware } from './middleware/auth.js';
 import { usersRouter } from './users/users.router.js';
+import { userBanRouter } from './users/user-ban.router.js';
 import { ipBansRouter } from './ip-bans/ip-bans.router.js';
 import { torrentsRouter } from './torrents/torrents.router.js';
 import { invitationsRouter } from './invitations/invitations.router.js';
@@ -18,6 +19,7 @@ router.use('/api/security', securityRouter);
 router.use('/api/users', usersRouter);
 
 // Aplicar el middleware de autenticación a las rutas protegidas
+router.use('/api/user-bans', authMiddleware, userBanRouter);
 router.use('/api/ip-bans', authMiddleware, ipBansRouter);
 router.use('/api/torrents', authMiddleware, torrentsRouter);
 router.use('/api/invitations', authMiddleware, invitationsRouter);

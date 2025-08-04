@@ -130,7 +130,7 @@ describe('Torrents Service', () => {
           name: 'Test Torrent',
           uploadedById: 1,
           description: null,
-          size: null,
+          size: 0, // Changed from null to 0
           anonymous: false,
           freeleech: false
         }),

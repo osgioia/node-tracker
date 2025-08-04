@@ -43,7 +43,7 @@ describe('Users Router', () => {
   });
 
   describe('GET /api/users', () => {
-    it('should list all users for admin', async () => {
+    it('should list all users for admin with ratio data', async () => {
       // Mock admin user
       mockAuthMiddleware.mockImplementation((req, res, next) => {
         req.user = { id: 1, username: 'admin', role: 'ADMIN' };
@@ -52,8 +52,24 @@ describe('Users Router', () => {
 
       const mockResult = {
         users: [
-          { id: 1, username: 'user1' },
-          { id: 2, username: 'user2' }
+          { 
+            id: 1, 
+            username: 'user1',
+            email: 'user1@example.com',
+            uploaded: 5368709120,
+            downloaded: 2684354560,
+            seedtime: 86400,
+            ratio: 2.0
+          },
+          { 
+            id: 2, 
+            username: 'user2',
+            email: 'user2@example.com',
+            uploaded: 1073741824,
+            downloaded: 2147483648,
+            seedtime: 43200,
+            ratio: 0.5
+          }
         ],
         pagination: {
           page: 1,
@@ -132,21 +148,38 @@ describe('Users Router', () => {
   });
 
   describe('GET /api/users/me', () => {
-    it('should get current user profile', async () => {
+    it('should get current user profile with ratio data', async () => {
       const mockUser = {
         id: 1,
         username: 'testuser',
-        email: 'test@example.com'
+        email: 'test@example.com',
+        uploaded: 5368709120,
+        downloaded: 2684354560,
+        seedtime: 86400,
+        ratio: 2.0
+      };
+
+      const mockStats = {
+        torrentsUploaded: 5,
+        bookmarks: 3,
+        totalUploaded: 5368709120,
+        totalDownloaded: 2684354560,
+        seedtime: 86400,
+        ratio: 2.0
       };
 
       mockUsersService.getUserById.mockResolvedValue(mockUser);
+      mockUsersService.getUserStats.mockResolvedValue(mockStats);
 
       const response = await request(app)
         .get('/api/users/me');
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('user', mockUser);
+      expect(response.body).toHaveProperty('stats', mockStats);
+      expect(response.body.user).toHaveProperty('ratio', 2.0);
       expect(mockUsersService.getUserById).toHaveBeenCalledWith(1);
+      expect(mockUsersService.getUserStats).toHaveBeenCalledWith(1);
     });
   });
 

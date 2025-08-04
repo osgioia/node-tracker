@@ -61,6 +61,10 @@ async function getUserById(id) {
         role: true,
         remainingInvites: true,
         emailVerified: true,
+        // Campos de ratio
+        uploaded: true,
+        downloaded: true,
+        seedtime: true,
         torrents: {
           select: {
             id: true,
@@ -85,7 +89,19 @@ async function getUserById(id) {
       throw new Error('User not found');
     }
 
-    return user;
+    // Calcular ratio
+    const uploaded = Number(user.uploaded);
+    const downloaded = Number(user.downloaded);
+    const ratio = downloaded > 0 ? uploaded / downloaded : 0;
+    const seedtime = Number(user.seedtime);
+
+    return {
+      ...user,
+      uploaded,
+      downloaded,
+      seedtime,
+      ratio: parseFloat(ratio.toFixed(2))
+    };
   } catch (error) {
     logMessage('error', `Error getting user: ${error.message}`);
     throw error;
@@ -97,7 +113,7 @@ async function getAllUsers(page = 1, limit = 20) {
   try {
     const skip = (page - 1) * limit;
     
-    const [users, total] = await Promise.all([
+    const [usersData, total] = await Promise.all([
       db.user.findMany({
         skip,
         take: limit,
@@ -110,6 +126,10 @@ async function getAllUsers(page = 1, limit = 20) {
           role: true,
           emailVerified: true,
           remainingInvites: true,
+          // Campos de ratio
+          uploaded: true,
+          downloaded: true,
+          seedtime: true,
           _count: {
             select: {
               torrents: true
@@ -122,6 +142,22 @@ async function getAllUsers(page = 1, limit = 20) {
       }),
       db.user.count()
     ]);
+
+    // Calcular ratio para cada usuario
+    const users = usersData.map(user => {
+      const uploaded = Number(user.uploaded);
+      const downloaded = Number(user.downloaded);
+      const seedtime = Number(user.seedtime);
+      const ratio = downloaded > 0 ? uploaded / downloaded : 0;
+
+      return {
+        ...user,
+        uploaded,
+        downloaded,
+        seedtime,
+        ratio: parseFloat(ratio.toFixed(2))
+      };
+    });
 
     return {
       users,
@@ -201,16 +237,14 @@ async function getUserStats(userId) {
     const stats = await db.user.findUnique({
       where: { id: parseInt(userId) },
       select: {
+        // Campos de ratio directos del usuario
+        uploaded: true,
+        downloaded: true,
+        seedtime: true,
         _count: {
           select: {
             torrents: true,
             bookmarks: true
-          }
-        },
-        Progress: {
-          select: {
-            uploaded: true,
-            download: true
           }
         }
       }
@@ -220,9 +254,10 @@ async function getUserStats(userId) {
       throw new Error('User not found');
     }
 
-    // Calculate upload/download totals
-    const totalUploaded = stats.Progress.reduce((sum, p) => sum + Number(p.uploaded), 0);
-    const totalDownloaded = stats.Progress.reduce((sum, p) => sum + Number(p.download), 0);
+    // Usar los campos directos del usuario
+    const totalUploaded = Number(stats.uploaded);
+    const totalDownloaded = Number(stats.downloaded);
+    const seedtime = Number(stats.seedtime);
     const ratio = totalDownloaded > 0 ? totalUploaded / totalDownloaded : 0;
 
     return {
@@ -230,6 +265,7 @@ async function getUserStats(userId) {
       bookmarks: stats._count.bookmarks,
       totalUploaded,
       totalDownloaded,
+      seedtime,
       ratio: parseFloat(ratio.toFixed(2))
     };
   } catch (error) {

@@ -1,3 +1,7 @@
+// Configure environment variables first
+process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-purposes-at-least-32-characters-long';
+process.env.NODE_ENV = 'test';
+
 import { jest, describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
@@ -70,14 +74,14 @@ jest.unstable_mockModule('prom-client', () => ({
   }
 }));
 
-// Import router after mocking
-const router = await import('../router.js');
-
 describe('Integration Tests', () => {
   let app;
   let authToken;
 
   beforeAll(async () => {
+    // Import router after environment is configured
+    const router = await import('../router.js');
+    
     app = express();
     app.use(express.json());
     app.use('/', router.default);

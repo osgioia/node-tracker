@@ -4,7 +4,7 @@ import { logMessage, generateInviteKey } from '../utils/utils.js';
 // Create invitation
 async function createInvitation(invitationData) {
   try {
-    const { inviterId, expires } = invitationData;
+    const { inviterId, email, reason, expires } = invitationData;
     
     // Generate unique invitation key
     const inviteKey = generateInviteKey();
@@ -16,6 +16,8 @@ async function createInvitation(invitationData) {
       data: {
         inviterId: parseInt(inviterId),
         inviteKey,
+        email,
+        reason,
         expires: expiresAt,
         used: false
       },
@@ -29,7 +31,7 @@ async function createInvitation(invitationData) {
       }
     });
 
-    logMessage('info', `Invitation created by user: ${inviterId}`);
+    logMessage('info', `Invitation created by user: ${inviterId} for email: ${email}`);
     return invitation;
   } catch (error) {
     logMessage('error', `Error creating invitation: ${error.message}`);

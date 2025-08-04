@@ -46,7 +46,9 @@ const requireOwnerOrAdmin = async (req, res, next) => {
   try {
     const torrent = await getTorrentById(req.params.id);
     if (req.user.role !== 'ADMIN' && torrent.uploadedById !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied. You can only modify your own torrents.' });
+      return res.status(403).json({
+        error: 'Access denied. You can only modify your own torrents.'
+      });
     }
     req.torrent = torrent; // Store for later use
     next();
@@ -71,10 +73,7 @@ const createTorrentValidation = [
     .optional()
     .isString()
     .withMessage('Category must be a string'),
-  body('tags')
-    .optional()
-    .isString()
-    .withMessage('Tags must be a string'),
+  body('tags').optional().isString().withMessage('Tags must be a string'),
   body('description')
     .optional()
     .isString()
@@ -106,10 +105,7 @@ const updateTorrentValidation = [
     .optional()
     .isString()
     .withMessage('Category must be a string'),
-  body('tags')
-    .optional()
-    .isString()
-    .withMessage('Tags must be a string'),
+  body('tags').optional().isString().withMessage('Tags must be a string'),
   body('anonymous')
     .optional()
     .isBoolean()
@@ -194,10 +190,20 @@ torrentsRouter.use(authMiddleware);
  *               $ref: '#/components/schemas/Error'
  */
 // GET /api/torrents - List all torrents with pagination and filters
-torrentsRouter.get('/',
-  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive number'),
-  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
-  query('category').optional().isString().withMessage('Category must be a string'),
+torrentsRouter.get(
+  '/',
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Page must be a positive number'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage('Limit must be between 1 and 100'),
+  query('category')
+    .optional()
+    .isString()
+    .withMessage('Category must be a string'),
   query('search').optional().isString().withMessage('Search must be a string'),
   async (req, res) => {
     try {
@@ -211,7 +217,7 @@ torrentsRouter.get('/',
       const { category, search } = req.query;
 
       const result = await getAllTorrents(page, limit, { category, search });
-      
+
       getTorrentCounter.inc();
       res.json(result);
     } catch (error) {
@@ -293,42 +299,48 @@ torrentsRouter.get('/',
  *               $ref: '#/components/schemas/Error'
  */
 // POST /api/torrents - Create new torrent
-torrentsRouter.post('/',
-  createTorrentValidation,
-  async (req, res) => {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
-
-      const { infoHash, name, category, tags, description, size, anonymous, freeleech } = req.body;
-      
-      const torrent = await addTorrent({
-        infoHash,
-        name,
-        category,
-        tags,
-        description,
-        size,
-        anonymous,
-        freeleech,
-        uploadedById: req.user.id
-      });
-      
-      createTorrentCounter.inc();
-      res.status(201).json({
-        message: 'Torrent created successfully',
-        torrent
-      });
-    } catch (error) {
-      if (error.message.includes('already exists')) {
-        return res.status(409).json({ error: error.message });
-      }
-      res.status(400).json({ error: error.message });
+torrentsRouter.post('/', createTorrentValidation, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
+
+    const {
+      infoHash,
+      name,
+      category,
+      tags,
+      description,
+      size,
+      anonymous,
+      freeleech
+    } = req.body;
+
+    const torrent = await addTorrent({
+      infoHash,
+      name,
+      category,
+      tags,
+      description,
+      size,
+      anonymous,
+      freeleech,
+      uploadedById: req.user.id
+    });
+
+    createTorrentCounter.inc();
+    res.status(201).json({
+      message: 'Torrent created successfully',
+      torrent
+    });
+  } catch (error) {
+    if (error.message.includes('already exists')) {
+      return res.status(409).json({ error: error.message });
+    }
+    res.status(400).json({ error: error.message });
   }
-);
+});
 
 /**
  * @swagger
@@ -366,7 +378,8 @@ torrentsRouter.post('/',
  *               $ref: '#/components/schemas/Error'
  */
 // GET /api/torrents/:id - Get torrent by ID
-torrentsRouter.get('/:id',
+torrentsRouter.get(
+  '/:id',
   param('id').isInt().withMessage('ID must be a number'),
   async (req, res) => {
     try {
@@ -376,7 +389,7 @@ torrentsRouter.get('/:id',
       }
 
       const torrent = await getTorrentById(req.params.id);
-      
+
       getTorrentCounter.inc();
       res.json(torrent);
     } catch (error) {
@@ -427,8 +440,11 @@ torrentsRouter.get('/:id',
  *               $ref: '#/components/schemas/Error'
  */
 // GET /api/torrents/by-hash/:infoHash - Get torrent by infoHash (for tracker compatibility)
-torrentsRouter.get('/by-hash/:infoHash',
-  param('infoHash').isLength({ min: 40, max: 40 }).withMessage('InfoHash must be 40 characters'),
+torrentsRouter.get(
+  '/by-hash/:infoHash',
+  param('infoHash')
+    .isLength({ min: 40, max: 40 })
+    .withMessage('InfoHash must be 40 characters'),
   async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -436,8 +452,11 @@ torrentsRouter.get('/by-hash/:infoHash',
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const torrent = await getTorrentByInfoHash(req.params.infoHash, req.hostname);
-      
+      const torrent = await getTorrentByInfoHash(
+        req.params.infoHash,
+        req.hostname
+      );
+
       getTorrentCounter.inc();
       res.json({ magnetUri: torrent });
     } catch (error) {
@@ -520,7 +539,8 @@ torrentsRouter.get('/by-hash/:infoHash',
  *               $ref: '#/components/schemas/Error'
  */
 // PUT /api/torrents/:id - Update torrent (full update)
-torrentsRouter.put('/:id',
+torrentsRouter.put(
+  '/:id',
   param('id').isInt().withMessage('ID must be a number'),
   updateTorrentValidation,
   requireOwnerOrAdmin,
@@ -532,7 +552,7 @@ torrentsRouter.put('/:id',
       }
 
       const updatedTorrent = await updateTorrent(req.params.id, req.body);
-      
+
       updateTorrentCounter.inc();
       res.json({
         message: 'Torrent updated successfully',
@@ -618,7 +638,8 @@ torrentsRouter.put('/:id',
  *               $ref: '#/components/schemas/Error'
  */
 // PATCH /api/torrents/:id - Partial update torrent
-torrentsRouter.patch('/:id',
+torrentsRouter.patch(
+  '/:id',
   param('id').isInt().withMessage('ID must be a number'),
   updateTorrentValidation,
   requireOwnerOrAdmin,
@@ -630,7 +651,7 @@ torrentsRouter.patch('/:id',
       }
 
       const updatedTorrent = await updateTorrent(req.params.id, req.body);
-      
+
       updateTorrentCounter.inc();
       res.json({
         message: 'Torrent updated successfully',
@@ -680,7 +701,8 @@ torrentsRouter.patch('/:id',
  *               $ref: '#/components/schemas/Error'
  */
 // DELETE /api/torrents/:id - Delete torrent
-torrentsRouter.delete('/:id',
+torrentsRouter.delete(
+  '/:id',
   param('id').isInt().withMessage('ID must be a number'),
   requireOwnerOrAdmin,
   async (req, res) => {
@@ -691,7 +713,7 @@ torrentsRouter.delete('/:id',
       }
 
       await deleteTorrent(req.params.id);
-      
+
       deleteTorrentCounter.inc();
       res.status(204).send(); // No content for successful deletion
     } catch (error) {

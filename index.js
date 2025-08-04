@@ -11,13 +11,16 @@ import { setupMorgan, logMessage } from './src/utils/utils.js';
 import { db } from './src/utils/db.server.js';
 import apiRouter from './src/router.js';
 import { specs, swaggerUi } from './src/config/swagger.js';
-import { securityConfig, validateSecurityConfig } from './src/config/security.js';
-import { 
-  sanitizeInput, 
-  validateContentType, 
-  validateUserAgent, 
-  securityLogger, 
-  preventEnumeration 
+import {
+  securityConfig,
+  validateSecurityConfig
+} from './src/config/security.js';
+import {
+  sanitizeInput,
+  validateContentType,
+  validateUserAgent,
+  securityLogger,
+  preventEnumeration
 } from './src/middleware/security.js';
 
 dotenv.config();
@@ -27,43 +30,52 @@ try {
   validateSecurityConfig();
   logMessage('info', 'Security configuration validated successfully');
 } catch (error) {
-  logMessage('error', `Security configuration validation failed: ${error.message}`);
+  logMessage(
+    'error',
+    `Security configuration validation failed: ${error.message}`
+  );
   process.exit(1);
 }
 
 const app = express();
 
 // Security middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: securityConfig.headers.csp.directives,
-    reportUri: securityConfig.headers.csp.reportUri
-  },
-  hsts: securityConfig.headers.hsts,
-  crossOriginEmbedderPolicy: false, // Disable for tracker compatibility
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: securityConfig.headers.csp.directives,
+      reportUri: securityConfig.headers.csp.reportUri
+    },
+    hsts: securityConfig.headers.hsts,
+    crossOriginEmbedderPolicy: false, // Disable for tracker compatibility
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
+  })
+);
 
 // CORS configuration
 app.use(cors(securityConfig.cors));
 
 // Body parsing with size limits
-app.use(express.json({ 
-  limit: '10mb',
-  verify: (req, res, buf) => {
-    try {
-      JSON.parse(buf);
-    } catch (e) {
-      res.status(400).json({ error: 'Invalid JSON' });
-      throw new Error('Invalid JSON');
+app.use(
+  express.json({
+    limit: '10mb',
+    verify: (req, res, buf) => {
+      try {
+        JSON.parse(buf);
+      } catch (e) {
+        res.status(400).json({ error: 'Invalid JSON' });
+        throw new Error('Invalid JSON');
+      }
     }
-  }
-}));
+  })
+);
 
-app.use(express.urlencoded({ 
-  extended: true, 
-  limit: '10mb' 
-}));
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: '10mb'
+  })
+);
 
 // Configurar logging HTTP
 setupMorgan(app);
@@ -84,8 +96,9 @@ const globalLimiter = rateLimit({
 const speedLimiter = slowDown({
   windowMs: 15 * 60 * 1000, // 15 minutos
   delayAfter: 100, // Permitir 100 requests a velocidad normal
-  delayMs: 500, // Agregar 500ms de delay por cada request después del límite
-  maxDelayMs: 20000 // Máximo delay de 20 segundos
+  delayMs: () => 500, // Función que retorna 500ms de delay
+  maxDelayMs: 20000, // Máximo delay de 20 segundos
+  validate: { delayMs: false } // Deshabilitar warning
 });
 
 // Auth rate limiting (más estricto para endpoints de autenticación)
@@ -112,42 +125,28 @@ app.use(globalLimiter);
 app.use(speedLimiter);
 
 // Configurar Swagger con rate limiting
-app.use('/api-docs', rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 50, // Límite más bajo para documentación
-  message: { error: 'Too many requests to API documentation' }
-}), swaggerUi.serve, swaggerUi.setup(specs, {
-  explorer: true,
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Node Tracker API Documentation'
-}));
+app.use(
+  '/api-docs',
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 50, // Límite más bajo para documentación
+    message: { error: 'Too many requests to API documentation' }
+  }),
+  swaggerUi.serve,
+  swaggerUi.setup(specs, {
+    explorer: true,
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Node Tracker API Documentation'
+  })
+);
 
 // Aplicar rate limiting específico para rutas de autenticación
 app.use('/api/auth', authLimiter);
 
-app.use('/', apiRouter);
-
-// Endpoint de métricas para Prometheus
-app.get('/metrics', async (req, res) => {
-  res.set('Content-Type', register.contentType);
-  res.end(await register.metrics());
-});
-
-// Health check para verificar la conexión a la base de datos
-app.get('/health', async (req, res) => {
-  try {
-    await db.$queryRaw`SELECT 1`;
-    res.status(200).send('OK');
-  } catch (err) {
-    logMessage('error', `Error en health check: ${err.message}`);
-    res.status(500).send('Database Error');
-  }
-});
-
 // Configurar el servidor BitTorrent Tracker
 const server = new Server({
   udp: process.env.UDP === 'true', // Convertir a booleano
-  http: process.env.HTTP === 'true',
+  http: false, // Deshabilitamos HTTP interno, usaremos Express
   interval: Number(process.env.ANNOUNCE_INTERVAL) || 300, // Convertir a número
   ws: process.env.WS === 'true',
   stats: process.env.STATS === 'true',
@@ -170,10 +169,29 @@ const trackerRateLimiter = rateLimit({
   message: 'Demasiadas solicitudes, inténtalo de nuevo más tarde.'
 });
 
-// Rutas del tracker con rate limiting
-const onHttpRequest = server.onHttpRequest.bind(server);
-app.use('/announce', trackerRateLimiter, onHttpRequest);
-app.use('/scrape', trackerRateLimiter, onHttpRequest);
+// Rutas del tracker con rate limiting (ANTES del router principal)
+const onHttpRequest = server._onHttpRequest.bind(server);
+app.get('/announce', trackerRateLimiter, onHttpRequest);
+app.get('/scrape', trackerRateLimiter, onHttpRequest);
+
+// Endpoint de métricas para Prometheus
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
+
+// Health check para verificar la conexión a la base de datos
+app.get('/health', async (req, res) => {
+  try {
+    await db.$queryRaw`SELECT 1`;
+    res.status(200).send('OK');
+  } catch (err) {
+    logMessage('error', `Error en health check: ${err.message}`);
+    res.status(500).send('Database Error');
+  }
+});
+
+app.use('/', apiRouter);
 
 // Manejar cierre del servidor
 process.on('SIGINT', async () => {
@@ -182,7 +200,10 @@ process.on('SIGINT', async () => {
     await db.$disconnect(); // Desconectar la base de datos
     logMessage('info', 'Base de datos desconectada.');
   } catch (error) {
-    logMessage('error', `Error al desconectar la base de datos: ${error.message}`);
+    logMessage(
+      'error',
+      `Error al desconectar la base de datos: ${error.message}`
+    );
   }
   process.exit(0);
 });
@@ -196,5 +217,8 @@ app.use((err, req, res, next) => {
 // Iniciar el servidor
 const expressPort = process.env.PORT || 3000;
 app.listen(expressPort, () => {
-  logMessage('info', `Torrent Tracker running at http://localhost:${expressPort}`);
+  logMessage(
+    'info',
+    `Torrent Tracker running at http://localhost:${expressPort}`
+  );
 });

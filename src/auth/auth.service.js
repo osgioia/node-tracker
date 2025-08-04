@@ -115,28 +115,40 @@ async function registerUser(userData, clientIP = 'unknown') {
       throw new Error('User or email already exists');
     }
 
-    // Verify invitation if provided
+    // Verify invitation if provided, or allow bootstrap for first user
     let inviteData = null;
+    const userCount = await db.user.count();
+    
     if (inviteKey) {
-      inviteData = await db.invite.findFirst({
-        where: {
-          inviteKey,
-          used: false,
-          expires: {
-            gt: new Date()
+      // Special case: allow "bootstrap" key for first user
+      if (inviteKey === 'bootstrap' && userCount === 0) {
+        logMessage('info', 'Bootstrap registration for first admin user');
+        inviteData = null; // No invitation needed for bootstrap
+      } else {
+        inviteData = await db.invite.findFirst({
+          where: {
+            inviteKey,
+            used: false,
+            expires: {
+              gt: new Date()
+            }
           }
-        }
-      });
+        });
 
-      if (!inviteData) {
-        throw new Error('Invalid or expired invitation');
+        if (!inviteData) {
+          throw new Error('Invalid or expired invitation');
+        }
       }
+    } else if (userCount > 0) {
+      // If there are existing users, invitation is required
+      throw new Error('Invitation required for registration');
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user - first user (bootstrap) gets ADMIN role
+    const isFirstUser = userCount === 0 && inviteKey === 'bootstrap';
     const newUser = await db.user.create({
       data: {
         username,
@@ -144,9 +156,10 @@ async function registerUser(userData, clientIP = 'unknown') {
         password: hashedPassword,
         created: new Date(),
         banned: false,
-        remainingInvites: 0,
-        emailVerified: false,
-        invitedById: inviteData?.inviterId || null
+        remainingInvites: isFirstUser ? 10 : 0, // Give admin some invites
+        emailVerified: isFirstUser, // Auto-verify bootstrap user
+        invitedById: inviteData?.inviterId || null,
+        role: isFirstUser ? 'ADMIN' : 'USER'
       }
     });
 
