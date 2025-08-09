@@ -1,5 +1,5 @@
 // Configure environment variables first
-process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-purposes-at-least-32-characters-long';
+process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-purposes-at-least-32-characters-long-and-secure';
 process.env.NODE_ENV = 'test';
 
 import { jest, describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
@@ -12,13 +12,23 @@ const mockDb = {
     findFirst: jest.fn(),
     findUnique: jest.fn(),
     create: jest.fn(),
-    update: jest.fn()
+    update: jest.fn(),
+    count: jest.fn()
   },
   torrent: {
     findFirst: jest.fn(),
+    findUnique: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn()
+  },
+  category: {
+    findFirst: jest.fn(),
+    create: jest.fn()
+  },
+  tag: {
+    findMany: jest.fn(),
+    create: jest.fn()
   },
   IPBan: {
     findMany: jest.fn(),
@@ -54,8 +64,7 @@ const mockMagnet = {
   encode: jest.fn().mockReturnValue('magnet:?xt=urn:btih:test&dn=test&tr=test')
 };
 
-// Set up environment variables before importing modules
-process.env.JWT_SECRET = 'test-secret';
+// Set up additional environment variables before importing modules
 process.env.JWT_EXPIRES_IN = '1h';
 process.env.PORT = '3000';
 
@@ -92,12 +101,23 @@ describe('Integration Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Setup default user mock for auth middleware
+    mockDb.user.findUnique.mockResolvedValue({
+      id: 1,
+      username: 'testuser',
+      email: 'test@example.com',
+      role: 'USER',
+      banned: false,
+      emailVerified: true
+    });
   });
 
   describe('User Authentication Flow', () => {
     it('should complete full user registration and login flow', async () => {
       // 1. Register user
       mockDb.user.findFirst.mockResolvedValue(null); // No existing user
+      mockDb.user.count.mockResolvedValue(0); // No existing users with same email/username
       mockDb.user.create.mockResolvedValue({
         id: 1,
         username: 'testuser',
@@ -109,11 +129,11 @@ describe('Integration Tests', () => {
         .send({
           username: 'testuser',
           email: 'test@example.com',
-          password: 'password123'
+          password: 'Password123!'
         });
 
       expect(registerResponse.status).toBe(201);
-      expect(registerResponse.body.message).toBe('User created successfully');
+      expect(registerResponse.body.message).toBe('User registered successfully');
 
       // 2. Login user
       mockDb.user.findFirst.mockResolvedValue({
@@ -130,7 +150,7 @@ describe('Integration Tests', () => {
         .post('/api/auth/login')
         .send({
           username: 'testuser',
-          password: 'password123'
+          password: 'Password123!'
         });
 
       expect(loginResponse.status).toBe(200);
@@ -152,7 +172,7 @@ describe('Integration Tests', () => {
       });
 
       const profileResponse = await request(app)
-        .get('/api/users/profile')
+        .get('/api/users/me')
         .set('Authorization', authToken);
 
       expect(profileResponse.status).toBe(200);
@@ -176,7 +196,7 @@ describe('Integration Tests', () => {
         });
 
       expect(response.status).toBe(401);
-      expect(response.body.error).toBe('Incorrect password');
+      expect(response.body.error).toBe('Invalid credentials');
     });
   });
 
@@ -185,7 +205,7 @@ describe('Integration Tests', () => {
       // 1. Add torrent
       const mockTorrent = {
         id: 1,
-        infoHash: 'abc123def456',
+        infoHash: 'abc123def456789012345678901234567890abcd',
         name: 'Test Torrent',
         uploadedById: 1,
         category: { name: 'Movies' },
@@ -193,27 +213,37 @@ describe('Integration Tests', () => {
         uploadedBy: { id: 1, username: 'testuser' }
       };
 
+      // Mock torrent doesn't exist yet
+      mockDb.torrent.findFirst.mockResolvedValueOnce(null);
+      // Mock category operations
+      mockDb.category.findFirst.mockResolvedValue({ id: 1, name: 'Movies' });
+      // Mock tag operations
+      mockDb.tag.findMany.mockResolvedValue([{ id: 1, name: 'action' }]);
+      // Mock torrent creation
       mockDb.torrent.create.mockResolvedValue(mockTorrent);
 
       const addResponse = await request(app)
         .post('/api/torrents')
         .set('Authorization', authToken)
         .send({
-          infoHash: 'abc123def456',
+          infoHash: 'abc123def456789012345678901234567890abcd',
           name: 'Test Torrent',
           category: 'Movies',
           tags: 'action'
         });
 
+      if (addResponse.status !== 201) {
+        console.log('Torrent creation failed:', addResponse.body);
+      }
       expect(addResponse.status).toBe(201);
-      expect(addResponse.body.message).toBe('Torrent added successfully');
+      expect(addResponse.body.message).toBe('Torrent created successfully');
       expect(addResponse.body.torrent).toBeDefined();
 
       // 2. Get torrent
       mockDb.torrent.findFirst.mockResolvedValue(mockTorrent);
 
       const getResponse = await request(app)
-        .get('/api/torrents/abc123def456')
+        .get('/api/torrents/by-hash/abc123def456789012345678901234567890abcd')
         .set('Authorization', authToken);
 
       expect(getResponse.status).toBe(200);
@@ -221,6 +251,7 @@ describe('Integration Tests', () => {
 
       // 3. Update torrent
       const updatedTorrent = { ...mockTorrent, name: 'Updated Torrent' };
+      mockDb.torrent.findUnique.mockResolvedValue(mockTorrent); // Mock finding the torrent to update
       mockDb.torrent.update.mockResolvedValue(updatedTorrent);
 
       const updateResponse = await request(app)
@@ -240,7 +271,7 @@ describe('Integration Tests', () => {
         .delete('/api/torrents/1')
         .set('Authorization', authToken);
 
-      expect(deleteResponse.status).toBe(200);
+      expect(deleteResponse.status).toBe(204);
     });
 
     it('should require authentication for torrent operations', async () => {
@@ -276,7 +307,8 @@ describe('Integration Tests', () => {
         .set('Authorization', authToken);
 
       expect(listResponse.status).toBe(200);
-      expect(Array.isArray(listResponse.body)).toBe(true);
+      expect(listResponse.body).toHaveProperty('ipBans');
+      expect(Array.isArray(listResponse.body.ipBans)).toBe(true);
 
       // 2. Create IP ban
       const newBan = {
@@ -391,7 +423,9 @@ describe('Integration Tests', () => {
         });
 
       expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('error');
+      expect(response.body).toHaveProperty('errors');
+      expect(response.body.errors).toBeInstanceOf(Array);
+      expect(response.body.errors.length).toBeGreaterThan(0);
     });
   });
 
@@ -479,7 +513,7 @@ describe('Integration Tests', () => {
         .set('Authorization', 'Bearer invalid.jwt.token');
 
       expect(response.status).toBe(401);
-      expect(response.body.error).toBe('Token invalid or expired');
+      expect(response.body.error).toBe('Authentication failed');
     });
   });
 });

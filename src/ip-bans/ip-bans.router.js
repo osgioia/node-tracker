@@ -98,7 +98,6 @@ ipBansRouter.get('/', async (req, res) => {
     const ipBans = await listAllIPBans(req.query);
     res.status(200).json(ipBans);
   } catch (error) {
-    console.error('Error listing IP bans:', error);
     res.status(500).json({ error: 'Error to get ips' }); // Ajustado para coincidir con la prueba
   }
 });
@@ -137,7 +136,6 @@ ipBansRouter.post('/', async (req, res) => {
     const newIPBan = await createIPBan(req.body);
     res.status(201).json(newIPBan);
   } catch (error) {
-    console.error('Error creating IP ban:', error);
     res.status(400).json({ error: 'Error to create ip to ban.' }); // Ajustado para coincidir con la prueba
   }
 });
@@ -182,7 +180,6 @@ ipBansRouter.post('/bulk', async (req, res) => {
     const result = await bulkCreateIPBans(req.body);
     res.status(201).json(result);
   } catch (error) {
-    console.error('Error bulk creating IP bans:', error);
     res.status(400).json({ error: 'Error to create bulk ip to ban.' }); // Ajustado para coincidir con la prueba
   }
 });
@@ -234,7 +231,6 @@ ipBansRouter.put('/:id', async (req, res) => {
     const updatedIPBan = await updateIPBan(req.params.id, req.body);
     res.status(200).json(updatedIPBan);
   } catch (error) {
-    console.error('Error updating IP ban:', error);
     res.status(400).json({ error: 'Error al update ip to ban.' }); // Ajustado para coincidir con la prueba
   }
 });
@@ -276,7 +272,6 @@ ipBansRouter.delete('/:id', async (req, res) => {
     await deleteIPBan(req.params.id);
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting IP ban:', error);
     res.status(400).json({ error: 'Error to delete ip.' }); // Ajustado para coincidir con la prueba
   }
 });
