@@ -4,12 +4,10 @@ import { db } from '../utils/db.server.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Validar que JWT_SECRET existe y es seguro
 if (!JWT_SECRET || JWT_SECRET.length < 32) {
   throw new Error('JWT_SECRET must be at least 32 characters long for security');
 }
 
-// Lista negra de tokens (en producción usar Redis)
 const tokenBlacklist = new Set();
 
 export const authMiddleware = async (req, res, next) => {
@@ -26,7 +24,6 @@ export const authMiddleware = async (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
 
-    // Verificar si el token está en la lista negra
     if (tokenBlacklist.has(token)) {
       logMessage('warn', `Blacklisted token used from IP: ${req.ip}`);
       return res.status(401).json({ 
@@ -35,10 +32,8 @@ export const authMiddleware = async (req, res, next) => {
       });
     }
 
-    // Verificar token
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // Verificar que el usuario aún existe y no está baneado
     const user = await db.user.findUnique({
       where: { id: decoded.id },
       select: {
@@ -67,7 +62,6 @@ export const authMiddleware = async (req, res, next) => {
       });
     }
 
-    // Agregar información del usuario a la request
     req.user = user;
     req.token = token;
 
@@ -97,14 +91,11 @@ export const authMiddleware = async (req, res, next) => {
   }
 };
 
-// Función para revocar tokens (logout)
 export const revokeToken = (token) => {
   tokenBlacklist.add(token);
-  // En producción, esto debería ir a Redis con TTL
   logMessage('info', 'Token revoked');
 };
 
-// Middleware para verificar roles específicos
 export const requireRole = (roles) => {
   return (req, res, next) => {
     if (!req.user) {

@@ -1,15 +1,12 @@
 import { db } from '../utils/db.server.js';
 import { logMessage, generateInviteKey } from '../utils/utils.js';
 
-// Create invitation
 async function createInvitation(invitationData) {
   try {
     const { inviterId, email, reason, expires } = invitationData;
     
-    // Generate unique invitation key
     const inviteKey = generateInviteKey();
     
-    // Set default expiration if not provided
     const expiresAt = expires ? new Date(expires) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     const invitation = await db.invite.create({
@@ -39,7 +36,6 @@ async function createInvitation(invitationData) {
   }
 }
 
-// Get all invitations for a user
 async function getUserInvitations(userId) {
   try {
     const invitations = await db.invite.findMany({
@@ -64,12 +60,10 @@ async function getUserInvitations(userId) {
   }
 }
 
-// Get all invitations with admin/user filtering
 async function getAllInvitations(page = 1, limit = 20, isAdmin = false, userId = null) {
   try {
     const skip = (page - 1) * limit;
     
-    // Build where clause based on admin status
     const where = isAdmin ? {} : { inviterId: userId };
     
     const [invitations, total] = await Promise.all([
@@ -113,7 +107,6 @@ async function getAllInvitations(page = 1, limit = 20, isAdmin = false, userId =
   }
 }
 
-// Get invitation by ID
 async function getInvitationById(id) {
   try {
     const invitation = await db.invite.findUnique({
@@ -145,7 +138,6 @@ async function getInvitationById(id) {
   }
 }
 
-// Delete invitation
 async function deleteInvitation(id) {
   try {
     await db.invite.delete({

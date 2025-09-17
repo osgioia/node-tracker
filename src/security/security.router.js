@@ -26,7 +26,6 @@ export const securityRouter = express.Router();
  *       204:
  *         description: Reporte recibido
  */
-// POST /api/security/csp-report - Endpoint para reportes CSP
 securityRouter.post('/csp-report', express.raw({ type: 'application/csp-report' }), (req, res) => {
   try {
     const report = JSON.parse(req.body.toString());
@@ -69,7 +68,6 @@ securityRouter.post('/csp-report', express.raw({ type: 'application/csp-report' 
  *                 security:
  *                   type: object
  */
-// GET /api/security/health - Health check de seguridad
 securityRouter.get('/health', (req, res) => {
   const securityStatus = {
     status: 'secure',

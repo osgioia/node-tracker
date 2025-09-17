@@ -1,6 +1,5 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 
-// Mock modules
 const mockDb = {
   torrent: {
     findFirst: jest.fn(),
@@ -22,7 +21,6 @@ jest.unstable_mockModule('../../utils/db.server.js', () => ({ db: mockDb }));
 jest.unstable_mockModule('../../utils/utils.js', () => ({ logMessage: mockLogMessage }));
 jest.unstable_mockModule('magnet-uri', () => ({ default: mockMagnet }));
 
-// Import after mocking
 const {
   addTorrent,
   getTorrentById,
@@ -52,7 +50,7 @@ describe('Torrents Service', () => {
         uploadedById: 1
       };
 
-      mockDb.torrent.findFirst.mockResolvedValue(null); // No existing torrent
+      mockDb.torrent.findFirst.mockResolvedValue(null); 
       mockDb.torrent.create.mockResolvedValue({
         id: 1,
         infoHash: 'abc123',
@@ -102,7 +100,7 @@ describe('Torrents Service', () => {
         uploadedById: 1
       };
 
-      mockDb.torrent.findFirst.mockResolvedValue({ id: 1 }); // Existing torrent
+      mockDb.torrent.findFirst.mockResolvedValue({ id: 1 }); 
 
       await expect(addTorrent(torrentData)).rejects.toThrow('Torrent with this infoHash already exists');
     });
@@ -130,7 +128,7 @@ describe('Torrents Service', () => {
           name: 'Test Torrent',
           uploadedById: 1,
           description: null,
-          size: 0, // Changed from null to 0
+          size: 0, 
           anonymous: false,
           freeleech: false
         }),

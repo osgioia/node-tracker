@@ -1,7 +1,6 @@
 import { db } from '../utils/db.server.js';
 import { logMessage } from '../utils/utils.js';
 
-// List all IP bans with pagination
 async function listAllIPBans(query = {}) {
   try {
     const page = parseInt(query.page) || 1;
@@ -34,7 +33,6 @@ async function listAllIPBans(query = {}) {
   }
 }
 
-// Create single IP ban
 async function createIPBan(data) {
   try {
     const ipBan = await db.IPBan.create({
@@ -49,7 +47,6 @@ async function createIPBan(data) {
   }
 }
 
-// Get IP ban by ID
 async function getIPBanById(id) {
   try {
     const ipBan = await db.IPBan.findUnique({
@@ -67,7 +64,6 @@ async function getIPBanById(id) {
   }
 }
 
-// Update IP ban
 async function updateIPBan(id, data) {
   try {
     const ipBan = await db.IPBan.update({
@@ -86,7 +82,6 @@ async function updateIPBan(id, data) {
   }
 }
 
-// Delete IP ban
 async function deleteIPBan(id) {
   try {
     await db.IPBan.delete({
@@ -103,7 +98,6 @@ async function deleteIPBan(id) {
   }
 }
 
-// Bulk create IP bans
 async function bulkCreateIPBans(data) {
   try {
     const result = await db.IPBan.createMany({

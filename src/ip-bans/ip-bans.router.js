@@ -18,7 +18,6 @@ export const ipBansRouter = express.Router();
  *   description: Gestión de IPs baneadas
  */
 
-// Prometheus counters
 const getRequestCounter = new Counter({
   name: 'get_ipban_requests',
   help: 'Count get IPBans'
@@ -39,7 +38,6 @@ const deleteRequestCounter = new Counter({
   help: 'Count delete IPBan'
 });
 
-// Routes
 
 /**
  * @swagger
@@ -98,7 +96,7 @@ ipBansRouter.get('/', async (req, res) => {
     const ipBans = await listAllIPBans(req.query);
     res.status(200).json(ipBans);
   } catch (error) {
-    res.status(500).json({ error: 'Error to get ips' }); // Ajustado para coincidir con la prueba
+    res.status(500).json({ error: 'Error to get ips' });
   }
 });
 
@@ -136,7 +134,7 @@ ipBansRouter.post('/', async (req, res) => {
     const newIPBan = await createIPBan(req.body);
     res.status(201).json(newIPBan);
   } catch (error) {
-    res.status(400).json({ error: 'Error to create ip to ban.' }); // Ajustado para coincidir con la prueba
+    res.status(400).json({ error: 'Error to create ip to ban.' });
   }
 });
 
@@ -180,7 +178,7 @@ ipBansRouter.post('/bulk', async (req, res) => {
     const result = await bulkCreateIPBans(req.body);
     res.status(201).json(result);
   } catch (error) {
-    res.status(400).json({ error: 'Error to create bulk ip to ban.' }); // Ajustado para coincidir con la prueba
+    res.status(400).json({ error: 'Error to create bulk ip to ban.' });
   }
 });
 
@@ -231,7 +229,7 @@ ipBansRouter.put('/:id', async (req, res) => {
     const updatedIPBan = await updateIPBan(req.params.id, req.body);
     res.status(200).json(updatedIPBan);
   } catch (error) {
-    res.status(400).json({ error: 'Error al update ip to ban.' }); // Ajustado para coincidir con la prueba
+    res.status(400).json({ error: 'Error al update ip to ban.' });
   }
 });
 
@@ -272,6 +270,6 @@ ipBansRouter.delete('/:id', async (req, res) => {
     await deleteIPBan(req.params.id);
     res.status(204).send();
   } catch (error) {
-    res.status(400).json({ error: 'Error to delete ip.' }); // Ajustado para coincidir con la prueba
+    res.status(400).json({ error: 'Error to delete ip.' }); 
   }
 });

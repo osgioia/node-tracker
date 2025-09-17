@@ -1,6 +1,5 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 
-// Mock modules
 const mockDb = {
   IPBan: {
     findMany: jest.fn(),
@@ -18,7 +17,6 @@ const mockLogMessage = jest.fn();
 jest.unstable_mockModule('../../utils/db.server.js', () => ({ db: mockDb }));
 jest.unstable_mockModule('../../utils/utils.js', () => ({ logMessage: mockLogMessage }));
 
-// Import after mocking
 const {
   listAllIPBans,
   createIPBan,
@@ -64,7 +62,7 @@ describe('IP Bans Service', () => {
       const result = await listAllIPBans({ page: 3, limit: 10 });
 
       expect(mockDb.IPBan.findMany).toHaveBeenCalledWith({
-        skip: 20, // (3-1) * 10
+        skip: 20,
         take: 10,
         orderBy: { id: 'desc' }
       });
@@ -169,7 +167,7 @@ describe('IP Bans Service', () => {
     it('should throw error if IP ban not found during update', async () => {
       const updateData = { reason: 'Updated reason' };
 
-      mockDb.IPBan.update.mockRejectedValue({ code: 'P2025' }); // Prisma not found error
+      mockDb.IPBan.update.mockRejectedValue({ code: 'P2025' });
 
       await expect(updateIPBan(999, updateData)).rejects.toThrow('IP ban not found');
     });
@@ -197,7 +195,7 @@ describe('IP Bans Service', () => {
     });
 
     it('should throw error if IP ban not found during deletion', async () => {
-      mockDb.IPBan.delete.mockRejectedValue({ code: 'P2025' }); // Prisma not found error
+      mockDb.IPBan.delete.mockRejectedValue({ code: 'P2025' }); 
 
       await expect(deleteIPBan(999)).rejects.toThrow('IP ban not found');
     });

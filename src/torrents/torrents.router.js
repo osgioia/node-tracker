@@ -20,7 +20,6 @@ export const torrentsRouter = express.Router();
  *   description: Gestión de torrents
  */
 
-// Prometheus metrics
 const getTorrentCounter = new Counter({
   name: 'get_torrents_requests',
   help: 'Count torrents retrieved'
@@ -41,7 +40,6 @@ const deleteTorrentCounter = new Counter({
   help: 'Count torrents deleted'
 });
 
-// Middleware to verify ownership or admin role
 const requireOwnerOrAdmin = async (req, res, next) => {
   try {
     const torrent = await getTorrentById(req.params.id);
@@ -50,14 +48,14 @@ const requireOwnerOrAdmin = async (req, res, next) => {
         error: 'Access denied. You can only modify your own torrents.'
       });
     }
-    req.torrent = torrent; // Store for later use
+    req.torrent = torrent;
     next();
   } catch (error) {
     res.status(404).json({ error: 'Torrent not found' });
   }
 };
 
-// Validations
+
 const createTorrentValidation = [
   body('infoHash')
     .notEmpty()
@@ -116,7 +114,6 @@ const updateTorrentValidation = [
     .withMessage('Freeleech must be true or false')
 ];
 
-// Apply authentication middleware to all routes
 torrentsRouter.use(authMiddleware);
 
 /**
@@ -189,7 +186,6 @@ torrentsRouter.use(authMiddleware);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// GET /api/torrents - List all torrents with pagination and filters
 torrentsRouter.get(
   '/',
   query('page')
@@ -298,7 +294,6 @@ torrentsRouter.get(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// POST /api/torrents - Create new torrent
 torrentsRouter.post('/', createTorrentValidation, async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -377,7 +372,6 @@ torrentsRouter.post('/', createTorrentValidation, async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// GET /api/torrents/:id - Get torrent by ID
 torrentsRouter.get(
   '/:id',
   param('id').isInt().withMessage('ID must be a number'),
@@ -439,7 +433,6 @@ torrentsRouter.get(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// GET /api/torrents/by-hash/:infoHash - Get torrent by infoHash (for tracker compatibility)
 torrentsRouter.get(
   '/by-hash/:infoHash',
   param('infoHash')
@@ -538,7 +531,6 @@ torrentsRouter.get(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// PUT /api/torrents/:id - Update torrent (full update)
 torrentsRouter.put(
   '/:id',
   param('id').isInt().withMessage('ID must be a number'),
@@ -637,7 +629,6 @@ torrentsRouter.put(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// PATCH /api/torrents/:id - Partial update torrent
 torrentsRouter.patch(
   '/:id',
   param('id').isInt().withMessage('ID must be a number'),
@@ -700,7 +691,6 @@ torrentsRouter.patch(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// DELETE /api/torrents/:id - Delete torrent
 torrentsRouter.delete(
   '/:id',
   param('id').isInt().withMessage('ID must be a number'),
@@ -715,7 +705,7 @@ torrentsRouter.delete(
       await deleteTorrent(req.params.id);
 
       deleteTorrentCounter.inc();
-      res.status(204).send(); // No content for successful deletion
+      res.status(204).send();
     } catch (error) {
       res.status(400).json({ error: error.message });
     }

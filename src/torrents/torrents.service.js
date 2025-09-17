@@ -2,7 +2,6 @@ import { db } from '../utils/db.server.js';
 import { logMessage } from '../utils/utils.js';
 import magnet from 'magnet-uri';
 
-// Generate magnet URI
 function generateMagnetURI(infoHash, name, hostname) {
   try {
     const port = process.env.PORT || 3000;
@@ -20,12 +19,10 @@ function generateMagnetURI(infoHash, name, hostname) {
   }
 }
 
-// Add new torrent
 async function addTorrent(torrentData) {
   try {
     const { infoHash, name, category, tags, description, size, anonymous, freeleech, uploadedById } = torrentData;
     
-    // Check if torrent already exists
     const existingTorrent = await db.torrent.findFirst({
       where: { infoHash }
     });
@@ -39,12 +36,11 @@ async function addTorrent(torrentData) {
       name,
       uploadedById,
       description: description || null,
-      size: size || 0, // Default to 0 instead of null
+      size: size || 0, 
       anonymous: anonymous || false,
       freeleech: freeleech || false
     };
 
-    // Add category if provided
     if (category) {
       torrentCreateData.category = {
         connectOrCreate: {
@@ -54,7 +50,6 @@ async function addTorrent(torrentData) {
       };
     }
 
-    // Add tags if provided
     if (tags && tags.trim()) {
       torrentCreateData.tags = {
         connectOrCreate: tags.split(',').map((tag) => ({
@@ -86,7 +81,6 @@ async function addTorrent(torrentData) {
   }
 }
 
-// Get torrent by ID
 async function getTorrentById(id) {
   try {
     const torrent = await db.torrent.findUnique({
@@ -114,7 +108,6 @@ async function getTorrentById(id) {
   }
 }
 
-// Get torrent by infoHash (for tracker compatibility)
 async function getTorrentByInfoHash(infoHash, hostname) {
   try {
     const torrent = await db.torrent.findFirst({
@@ -143,13 +136,11 @@ async function getTorrentByInfoHash(infoHash, hostname) {
   }
 }
 
-// Get all torrents with pagination and filters
 async function getAllTorrents(page = 1, limit = 20, filters = {}) {
   try {
     const skip = (page - 1) * limit;
     const { category, search } = filters;
 
-    // Build where clause
     const where = {};
     
     if (category) {
@@ -202,14 +193,12 @@ async function getAllTorrents(page = 1, limit = 20, filters = {}) {
   }
 }
 
-// Update torrent
 async function updateTorrent(id, data) {
   try {
     const { category, tags, ...otherData } = data;
     
     const updateData = { ...otherData };
 
-    // Handle category update
     if (category) {
       updateData.category = {
         connectOrCreate: {
@@ -219,19 +208,16 @@ async function updateTorrent(id, data) {
       };
     }
 
-    // Handle tags update
     if (tags !== undefined) {
       if (tags && tags.trim()) {
-        // Disconnect all existing tags and connect new ones
         updateData.tags = {
-          set: [], // Clear existing
+          set: [], 
           connectOrCreate: tags.split(',').map((tag) => ({
             where: { name: tag.trim() },
             create: { name: tag.trim() }
           }))
         };
       } else {
-        // Clear all tags
         updateData.tags = {
           set: []
         };
@@ -261,7 +247,6 @@ async function updateTorrent(id, data) {
   }
 }
 
-// Delete torrent
 async function deleteTorrent(id) {
   try {
     await db.torrent.delete({

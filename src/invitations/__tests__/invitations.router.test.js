@@ -2,7 +2,6 @@ import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 
-// Mock the invitations service
 const mockInvitationsService = {
   getAllInvitations: jest.fn(),
   getUserInvitations: jest.fn(),
@@ -11,7 +10,6 @@ const mockInvitationsService = {
   deleteInvitation: jest.fn()
 };
 
-// Mock auth middleware
 const mockAuthMiddleware = jest.fn((req, res, next) => {
   req.user = { id: 1, username: 'testuser', role: 'USER' };
   next();
@@ -22,7 +20,6 @@ jest.unstable_mockModule('../../middleware/auth.js', () => ({
   authMiddleware: mockAuthMiddleware
 }));
 
-// Mock prometheus
 jest.unstable_mockModule('prom-client', () => ({
   Counter: jest.fn().mockImplementation(() => ({
     inc: jest.fn()
@@ -39,7 +36,6 @@ describe('Invitations Router', () => {
     app.use(express.json());
     app.use('/api/invitations', invitationsRouter);
     jest.clearAllMocks();
-    // Restaurar el mock del usuario por defecto antes de cada test
     mockAuthMiddleware.mockImplementation((req, res, next) => {
       req.user = { id: 1, username: 'testuser', role: 'USER' };
       next();
@@ -48,7 +44,6 @@ describe('Invitations Router', () => {
 
   describe('GET /api/invitations', () => {
     it('should list all invitations for admin', async () => {
-      // Mock admin user
       mockAuthMiddleware.mockImplementation((req, res, next) => {
         req.user = { id: 1, username: 'admin', role: 'ADMIN' };
         next();
@@ -78,7 +73,6 @@ describe('Invitations Router', () => {
     });
 
     it('should list only own invitations for regular user', async () => {
-      // Mock regular user
       mockAuthMiddleware.mockImplementation((req, res, next) => {
         req.user = { id: 2, username: 'user', role: 'USER' };
         next();
@@ -195,7 +189,7 @@ describe('Invitations Router', () => {
       const invalidData = {
         email: 'test@example.com',
         reason: 'Friend invitation',
-        expiresInDays: 50 // Too many days
+        expiresInDays: 50
       };
 
       const response = await request(app)
@@ -210,7 +204,7 @@ describe('Invitations Router', () => {
       const invalidData = {
         email: 'test@example.com',
         reason: 'Friend invitation',
-        expiresInDays: 0 // Invalid
+        expiresInDays: 0
       };
 
       const response = await request(app)
@@ -262,7 +256,7 @@ describe('Invitations Router', () => {
         id: 1,
         inviteKey: 'key1',
         email: 'test@example.com',
-        inviter: { id: 2, username: 'otheruser' } // Different user
+        inviter: { id: 2, username: 'otheruser' }
       };
 
       mockInvitationsService.getInvitationById.mockResolvedValue(mockInvitation);
@@ -275,7 +269,6 @@ describe('Invitations Router', () => {
     });
 
     it('should allow admin to access any invitation', async () => {
-      // Mock admin user
       mockAuthMiddleware.mockImplementation((req, res, next) => {
         req.user = { id: 1, username: 'admin', role: 'ADMIN' };
         next();
@@ -338,7 +331,6 @@ describe('Invitations Router', () => {
     });
 
     it('should allow admin to delete any invitation', async () => {
-      // Mock admin user
       mockAuthMiddleware.mockImplementation((req, res, next) => {
         req.user = { id: 1, username: 'admin', role: 'ADMIN' };
         next();

@@ -1,6 +1,5 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 
-// Mock modules
 const mockJwt = {
   verify: jest.fn()
 };
@@ -21,10 +20,8 @@ jest.unstable_mockModule('../../utils/db.server.js', () => ({
   db: mockDb
 }));
 
-// Set up environment variables
 process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-purposes-at-least-32-characters-long-and-secure';
 
-// Import after mocking
 const { authMiddleware } = await import('../auth.js');
 
 describe('Auth Middleware', () => {
@@ -249,12 +246,11 @@ describe('Auth Middleware', () => {
     });
 
     it('should handle case-sensitive authorization header', async () => {
-      req.headers.Authorization = 'Bearer valid_token'; // Capital A
+      req.headers.Authorization = 'Bearer valid_token'; 
       mockJwt.verify.mockReturnValue({ id: 1, username: 'testuser' });
 
       await authMiddleware(req, res, next);
 
-      // Should fail because we check for lowercase 'authorization'
       expect(mockLogMessage).toHaveBeenCalledWith(
         'warn',
         `Access without token from IP: ${req.ip}`

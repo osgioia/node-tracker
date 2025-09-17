@@ -19,7 +19,6 @@ export const invitationsRouter = express.Router();
  *   description: Gestión de invitaciones
  */
 
-// Prometheus metrics
 const createInvitationCounter = new Counter({
   name: 'create_invitations_requests',
   help: 'Count invitation creations'
@@ -30,7 +29,6 @@ const getInvitationCounter = new Counter({
   help: 'Count get invitation requests'
 });
 
-// Middleware to verify admin role
 const requireAdmin = (req, res, next) => {
   if (req.user.role !== 'ADMIN') {
     return res.status(403).json({ error: 'Access denied. Administrator role required.' });
@@ -38,7 +36,6 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
-// Validations
 const createInvitationValidation = [
   body('email')
     .isEmail()
@@ -52,7 +49,6 @@ const createInvitationValidation = [
     .withMessage('Expiration days must be between 1 and 30')
 ];
 
-// Apply authentication middleware to all routes
 invitationsRouter.use(authMiddleware);
 
 /**
@@ -136,7 +132,6 @@ invitationsRouter.use(authMiddleware);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// GET /api/invitations - Get user's own invitations or all invitations (admin)
 invitationsRouter.get('/',
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive number'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
@@ -152,10 +147,8 @@ invitationsRouter.get('/',
 
       let result;
       if (req.user.role === 'ADMIN') {
-        // Admin can see all invitations
         result = await getAllInvitations(page, limit);
       } else {
-        // Regular users see only their own invitations
         const invitations = await getUserInvitations(req.user.id);
         result = { invitations };
       }
@@ -227,7 +220,6 @@ invitationsRouter.get('/',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// POST /api/invitations - Create new invitation
 invitationsRouter.post('/',
   createInvitationValidation,
   async (req, res) => {
@@ -325,7 +317,6 @@ invitationsRouter.post('/',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// GET /api/invitations/:id - Get invitation by ID
 invitationsRouter.get('/:id',
   param('id').isInt().withMessage('ID must be a number'),
   async (req, res) => {
@@ -337,7 +328,6 @@ invitationsRouter.get('/:id',
 
       const invitation = await getInvitationById(req.params.id);
       
-      // Only admin or invitation owner can view
       if (req.user.role !== 'ADMIN' && invitation.inviter.id !== req.user.id) {
         return res.status(403).json({ error: 'Access denied' });
       }
@@ -394,7 +384,6 @@ invitationsRouter.get('/:id',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// DELETE /api/invitations/:id - Delete invitation
 invitationsRouter.delete('/:id',
   param('id').isInt().withMessage('ID must be a number'),
   async (req, res) => {

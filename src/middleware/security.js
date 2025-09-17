@@ -1,26 +1,22 @@
 import { logMessage } from '../utils/utils.js';
 
-// Middleware para sanitizar inputs
 export const sanitizeInput = (req, res, next) => {
   try {
-    // Excluir rutas del tracker
     if (req.url.startsWith('/announce') || req.url.startsWith('/scrape')) {
       return next();
     }
 
-    // Función para limpiar strings de caracteres peligrosos
     const sanitizeString = (str) => {
       if (typeof str !== 'string') {return str;}
 
       return str
         .trim()
-        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
-        .replace(/javascript:/gi, '') // Remove javascript: protocol
-        .replace(/on\w+\s*=/gi, '') // Remove event handlers
-        .replace(/[<>]/g, ''); // Remove < and > characters
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') 
+        .replace(/javascript:/gi, '') 
+        .replace(/on\w+\s*=/gi, '') 
+        .replace(/[<>]/g, ''); 
     };
 
-    // Función recursiva para sanitizar objetos
     const sanitizeObject = (obj) => {
       if (obj === null || obj === undefined) {return obj;}
 
@@ -38,19 +34,17 @@ export const sanitizeInput = (req, res, next) => {
       return obj;
     };
 
-    // Sanitizar body
+    
     if (req.body) {
       req.body = sanitizeObject(req.body);
     }
 
-    // Sanitizar query (modificar propiedades, no reemplazar el objeto)
     if (req.query) {
       for (const key of Object.keys(req.query)) {
         req.query[key] = sanitizeObject(req.query[key]);
       }
     }
 
-    // Sanitizar params (modificar propiedades)
     if (req.params) {
       for (const key of Object.keys(req.params)) {
         req.params[key] = sanitizeObject(req.params[key]);
@@ -64,7 +58,6 @@ export const sanitizeInput = (req, res, next) => {
   }
 };
 
-// Middleware para validar Content-Type
 export const validateContentType = (req, res, next) => {
   if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
     const contentType = req.get('Content-Type');
@@ -81,17 +74,15 @@ export const validateContentType = (req, res, next) => {
   next();
 };
 
-// Middleware para prevenir ataques de timing
 export const addRandomDelay = (req, res, next) => {
-  // Agregar delay aleatorio pequeño para prevenir timing attacks
-  const delay = Math.random() * 100; // 0-100ms
+  const delay = Math.random() * 100; 
   
   setTimeout(() => {
     next();
   }, delay);
 };
 
-// Middleware para validar User-Agent
+
 export const validateUserAgent = (req, res, next) => {
   const userAgent = req.get('User-Agent');
   
@@ -103,7 +94,6 @@ export const validateUserAgent = (req, res, next) => {
     });
   }
   
-  // Detectar bots maliciosos conocidos
   const suspiciousPatterns = [
     /sqlmap/i,
     /nikto/i,
@@ -124,11 +114,9 @@ export const validateUserAgent = (req, res, next) => {
   next();
 };
 
-// Middleware para logging de seguridad
 export const securityLogger = (req, res, next) => {
   const startTime = Date.now();
   
-  // Log request details
   const requestInfo = {
     method: req.method,
     url: req.url,
@@ -137,12 +125,10 @@ export const securityLogger = (req, res, next) => {
     timestamp: new Date().toISOString()
   };
   
-  // Log suspicious activity
   if (req.url.includes('..') || req.url.includes('<script>') || req.url.includes('SELECT')) {
     logMessage('warn', `Suspicious request: ${JSON.stringify(requestInfo)}`);
   }
   
-  // Override res.json to log responses
   const originalJson = res.json;
   res.json = function(data) {
     const responseTime = Date.now() - startTime;
@@ -157,9 +143,7 @@ export const securityLogger = (req, res, next) => {
   next();
 };
 
-// Middleware para prevenir ataques de enumeración
 export const preventEnumeration = (req, res, next) => {
-  // Agregar headers para prevenir información leakage
   res.set({
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',

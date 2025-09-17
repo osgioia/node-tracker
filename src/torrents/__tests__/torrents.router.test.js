@@ -2,7 +2,6 @@ import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 
-// Mock the torrents service
 const mockTorrentsService = {
   addTorrent: jest.fn(),
   getTorrentById: jest.fn(),
@@ -12,7 +11,6 @@ const mockTorrentsService = {
   deleteTorrent: jest.fn()
 };
 
-// Mock auth middleware
 const mockAuthMiddleware = jest.fn((req, res, next) => {
   req.user = { id: 1, username: 'testuser', role: 'USER' };
   next();
@@ -23,7 +21,6 @@ jest.unstable_mockModule('../../middleware/auth.js', () => ({
   authMiddleware: mockAuthMiddleware
 }));
 
-// Mock prometheus
 jest.unstable_mockModule('prom-client', () => ({
   Counter: jest.fn().mockImplementation(() => ({
     inc: jest.fn()
@@ -204,7 +201,7 @@ describe('Torrents Router', () => {
     });
 
     it('should return 404 for non-existent torrent hash', async () => {
-      const nonExistentHash = '1234567890123456789012345678901234567890'; // Exactly 40 chars
+      const nonExistentHash = '1234567890123456789012345678901234567890'; 
       mockTorrentsService.getTorrentByInfoHash.mockRejectedValue(new Error('Torrent not found'));
 
       const response = await request(app)
@@ -229,7 +226,6 @@ describe('Torrents Router', () => {
         uploadedById: 1
       };
 
-      // Mock torrent ownership check
       mockTorrentsService.getTorrentById.mockResolvedValue({
         id: 1,
         uploadedById: 1
@@ -247,10 +243,9 @@ describe('Torrents Router', () => {
     });
 
     it('should deny access to update other users torrent for non-admin', async () => {
-      // Mock torrent owned by different user
       mockTorrentsService.getTorrentById.mockResolvedValue({
         id: 1,
-        uploadedById: 2 // Different user
+        uploadedById: 2 
       });
 
       const response = await request(app)
@@ -262,7 +257,7 @@ describe('Torrents Router', () => {
     });
 
     it('should allow admin to update any torrent', async () => {
-      // Mock admin user
+      
       mockAuthMiddleware.mockImplementation((req, res, next) => {
         req.user = { id: 1, username: 'admin', role: 'ADMIN' };
         next();
@@ -273,7 +268,7 @@ describe('Torrents Router', () => {
 
       mockTorrentsService.getTorrentById.mockResolvedValue({
         id: 1,
-        uploadedById: 2 // Different user
+        uploadedById: 2 
       });
       mockTorrentsService.updateTorrent.mockResolvedValue(mockUpdatedTorrent);
 
@@ -323,7 +318,6 @@ describe('Torrents Router', () => {
     });
 
     it('should deny access to delete other users torrent for non-admin', async () => {
-      // Reset to regular user (not admin)
       mockAuthMiddleware.mockImplementation((req, res, next) => {
         req.user = { id: 1, username: 'testuser', role: 'USER' };
         next();
@@ -331,7 +325,7 @@ describe('Torrents Router', () => {
 
       mockTorrentsService.getTorrentById.mockResolvedValue({
         id: 1,
-        uploadedById: 2 // Different user
+        uploadedById: 2 
       });
 
       const response = await request(app)

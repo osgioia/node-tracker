@@ -1,6 +1,5 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 
-// Mock modules
 const mockDb = {
   invite: {
     findMany: jest.fn(),
@@ -20,7 +19,6 @@ jest.unstable_mockModule('../../utils/utils.js', () => ({
   generateInviteKey: mockGenerateInviteKey
 }));
 
-// Import after mocking
 const {
   getAllInvitations,
   createInvitation,
@@ -43,7 +41,7 @@ describe('Invitations Service', () => {
       mockDb.invite.findMany.mockResolvedValue(mockInvitations);
       mockDb.invite.count.mockResolvedValue(2);
 
-      const result = await getAllInvitations(1, 20, true); // isAdmin = true
+      const result = await getAllInvitations(1, 20, true); 
 
       expect(mockDb.invite.findMany).toHaveBeenCalledWith({
         where: {},
@@ -79,7 +77,7 @@ describe('Invitations Service', () => {
       mockDb.invite.findMany.mockResolvedValue(mockInvitations);
       mockDb.invite.count.mockResolvedValue(1);
 
-      const result = await getAllInvitations(1, 20, false, 1); // isAdmin = false, userId = 1
+      const result = await getAllInvitations(1, 20, false, 1);
 
       expect(mockDb.invite.findMany).toHaveBeenCalledWith({
         where: { inviterId: 1 },
@@ -113,7 +111,7 @@ describe('Invitations Service', () => {
 
       expect(mockDb.invite.findMany).toHaveBeenCalledWith({
         where: {},
-        skip: 20, // (3-1) * 10
+        skip: 20, 
         take: 10,
         select: {
           id: true,
@@ -142,7 +140,7 @@ describe('Invitations Service', () => {
     it('should create invitation successfully', async () => {
       const invitationData = {
         inviterId: 1,
-        expires: new Date(Date.now() + 86400000) // Tomorrow
+        expires: new Date(Date.now() + 86400000) 
       };
 
       const mockCreatedInvitation = {
@@ -269,7 +267,7 @@ describe('Invitations Service', () => {
     });
 
     it('should throw error if invitation not found during deletion', async () => {
-      mockDb.invite.delete.mockRejectedValue({ code: 'P2025' }); // Prisma not found error
+      mockDb.invite.delete.mockRejectedValue({ code: 'P2025' }); 
 
       await expect(deleteInvitation(999)).rejects.toThrow('Invitation not found');
     });
