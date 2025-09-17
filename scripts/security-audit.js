@@ -6,9 +6,7 @@
  */
 
 import fs from 'fs';
-import path from 'path';
 import { execSync } from 'child_process';
-import crypto from 'crypto';
 
 const COLORS = {
   RED: '\x1b[31m',
@@ -182,9 +180,6 @@ class SecurityAuditor {
   // Verificar archivos sensibles
   checkSensitiveFiles() {
     this.log('\n📁 Verificando archivos sensibles...', 'info');
-    
-    const sensitiveFiles = ['.env', '.env.local', '.env.production'];
-    const shouldNotExist = ['.env.example.local', 'config/database.yml'];
     
     // Verificar que .env existe
     if (fs.existsSync('.env')) {

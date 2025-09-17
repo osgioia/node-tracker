@@ -8,7 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// Modelo para representar un torrent.
 model Torrent {
   id           Int       @id @default(autoincrement())
   name         String
@@ -26,21 +25,18 @@ model Torrent {
   categoryId   Int?
 }
 
-/// Modelo para representar una categoría de torrents.
 model Category {
   id       Int       @id @default(autoincrement())
   name     String
   torrents Torrent[]
 }
 
-/// Modelo para representar una etiqueta de torrents.
 model Tag {
   id       Int       @id @default(autoincrement())
   name     String
   torrents Torrent[]
 }
 
-/// Modelo para representar un marcador de usuario.
 model Bookmark {
   id     Int      @id @default(autoincrement())
   user   User     @relation(fields: [userId], references: [id])
@@ -51,7 +47,6 @@ model Bookmark {
   @@unique([userId, id], name: "unique_user_bookmark")
 }
 
-/// Modelo para representar un usuario.
 model User {
   id               Int              @id @default(autoincrement())
   username         String
@@ -70,13 +65,11 @@ model User {
   Progress         Progress[]
   InviteTreeNode   InviteTreeNode[]
   userBans         UserBan[]
-  // Campos para funcionalidad de ratio
   uploaded         BigInt           @default(0)
   downloaded       BigInt           @default(0)
-  seedtime         BigInt           @default(0) // tiempo total de seed en segundos
+  seedtime         BigInt           @default(0)
 }
 
-/// Modelo para representar el progreso de descarga de un usuario.
 model Progress {
   infoHash String
   user     User   @relation(fields: [userId], references: [id])
@@ -88,7 +81,6 @@ model Progress {
   @@id([infoHash, userId])
 }
 
-/// Modelo para representar un rango de IPs geolocalizadas.
 model GeoIP {
   startIP BigInt
   endIP   BigInt
@@ -97,7 +89,6 @@ model GeoIP {
   @@id([startIP, endIP])
 }
 
-/// Modelo para representar un nodo en el árbol de invitaciones.
 model InviteTreeNode {
   userId    Int  @unique @map("userID")
   inviter   User @relation(fields: [inviterId], references: [id])
@@ -107,7 +98,6 @@ model InviteTreeNode {
   @@index([userId], name: "UserIDIndex")
 }
 
-/// Modelo para representar una invitación.
 model Invite {
   id        Int      @id @default(autoincrement())
   inviter   User     @relation("InviteCreator", fields: [inviterId], references: [id])
@@ -122,7 +112,6 @@ model Invite {
   @@index([inviterId], name: "InviterIdInviteIndex")
 }
 
-/// Modelo para representar un rango de IPs baneadas.
 model IPBan {
   id     Int     @id @default(autoincrement())
   fromIP BigInt
@@ -133,15 +122,14 @@ model IPBan {
   @@index([toIP], name: "ToIPIndex")
 }
 
-/// Modelo para representar un baneo específico de usuario.
 model UserBan {
   id        Int       @id @default(autoincrement())
   user      User      @relation(fields: [userId], references: [id])
   userId    Int
   reason    String    @db.VarChar(500)
-  bannedBy  String // username del admin/moderador que aplicó el ban
+  bannedBy  String
   bannedAt  DateTime  @default(now())
-  expiresAt DateTime? // null para ban permanente
+  expiresAt DateTime?
   active    Boolean   @default(true)
 
   @@index([userId], name: "UserBanUserIdIndex")
@@ -149,7 +137,7 @@ model UserBan {
   @@index([active], name: "UserBanActiveIndex")
 }
 
-/// Roles de usuario.
+
 enum Role {
   USER
   ADMIN

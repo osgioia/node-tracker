@@ -2,8 +2,10 @@ import { db } from '../utils/db.server.js';
 import { logMessage } from '../utils/utils.js';
 
 // List all IP bans with pagination
-async function listAllIPBans(page = 1, limit = 20) {
+async function listAllIPBans(query = {}) {
   try {
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 20;
     const skip = (page - 1) * limit;
     
     const [ipBans, total] = await Promise.all([

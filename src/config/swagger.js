@@ -422,7 +422,7 @@ const options = {
       }
     ]
   },
-  apis: ['./src/**/*.js'] // Rutas a los archivos que contienen anotaciones de Swagger
+  apis: ['./src/**/*.js']
 };
 
 const specs = swaggerJsdoc(options);

@@ -43,7 +43,7 @@ describe('IP Bans Service', () => {
       mockDb.IPBan.findMany.mockResolvedValue(mockIPBans);
       mockDb.IPBan.count.mockResolvedValue(2);
 
-      const result = await listAllIPBans(1, 20);
+      const result = await listAllIPBans({ page: 1, limit: 20 });
 
       expect(mockDb.IPBan.findMany).toHaveBeenCalledWith({
         skip: 0,
@@ -61,7 +61,7 @@ describe('IP Bans Service', () => {
       mockDb.IPBan.findMany.mockResolvedValue([]);
       mockDb.IPBan.count.mockResolvedValue(50);
 
-      const result = await listAllIPBans(3, 10);
+      const result = await listAllIPBans({ page: 3, limit: 10 });
 
       expect(mockDb.IPBan.findMany).toHaveBeenCalledWith({
         skip: 20, // (3-1) * 10

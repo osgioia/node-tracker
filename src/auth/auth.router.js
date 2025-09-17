@@ -13,7 +13,6 @@ export const authRouter = express.Router();
  *   description: Autenticación y registro de usuarios
  */
 
-// Prometheus metrics
 const registerCounter = new Counter({
   name: 'auth_register_requests',
   help: 'Count user registrations'
@@ -24,7 +23,6 @@ const loginCounter = new Counter({
   help: 'Count user logins'
 });
 
-// Validations
 const registerValidation = [
   body('username')
     .isLength({ min: 3, max: 20 })
@@ -89,7 +87,6 @@ const loginValidation = [
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// POST /api/auth/register
 authRouter.post('/register', registerValidation, async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -161,7 +158,6 @@ authRouter.post('/register', registerValidation, async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// POST /api/auth/login
 authRouter.post('/login', loginValidation, async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -215,12 +211,10 @@ authRouter.post('/login', loginValidation, async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// POST /api/auth/logout
 authRouter.post('/logout', authMiddleware, async (req, res) => {
   try {
     const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
     
-    // Revocar el token
     revokeToken(req.token);
     
     const result = await logoutUser(req.token, clientIP);
@@ -264,7 +258,6 @@ authRouter.post('/logout', authMiddleware, async (req, res) => {
  *                   items:
  *                     type: string
  */
-// POST /api/auth/validate-password
 authRouter.post('/validate-password', [
   body('password').notEmpty().withMessage('Password is required')
 ], async (req, res) => {

@@ -2,12 +2,10 @@ import { db } from '../utils/db.server.js';
 import { logMessage, generateToken } from '../utils/utils.js';
 import bcrypt from 'bcrypt';
 
-// Contador de intentos de login fallidos (en producción usar Redis)
 const loginAttempts = new Map();
 const MAX_LOGIN_ATTEMPTS = 5;
-const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutos
+const LOCKOUT_TIME = 15 * 60 * 1000;
 
-// Función para validar fortaleza de contraseña
 function validatePasswordStrength(password) {
   const minLength = 8;
   const hasUpperCase = /[A-Z]/.test(password);
@@ -39,7 +37,6 @@ function validatePasswordStrength(password) {
   };
 }
 
-// Función para verificar si una IP está bloqueada
 function isIPBlocked(ip) {
   const attempts = loginAttempts.get(ip);
   if (!attempts) {return false;}
@@ -49,7 +46,6 @@ function isIPBlocked(ip) {
     if (timeSinceLastAttempt < LOCKOUT_TIME) {
       return true;
     } else {
-      // Reset attempts after lockout period
       loginAttempts.delete(ip);
       return false;
     }
@@ -58,7 +54,6 @@ function isIPBlocked(ip) {
   return false;
 }
 
-// Función para registrar intento de login fallido
 function recordFailedLogin(ip) {
   const attempts = loginAttempts.get(ip) || { count: 0, lastAttempt: 0 };
   attempts.count++;
@@ -68,27 +63,22 @@ function recordFailedLogin(ip) {
   logMessage('warn', `Failed login attempt ${attempts.count}/${MAX_LOGIN_ATTEMPTS} from IP: ${ip}`);
 }
 
-// Función para limpiar intentos exitosos
 function clearFailedAttempts(ip) {
   loginAttempts.delete(ip);
 }
 
-// Register new user
-async function registerUser(userData, clientIP = 'unknown') {
+async function registerUser(userData, _clientIP = 'unknown') {
   try {
     const { username, email, password, inviteKey } = userData;
     
-    // Validar fortaleza de contraseña
     const passwordValidation = validatePasswordStrength(password);
     if (!passwordValidation.isValid) {
       throw new Error(`Password requirements not met: ${passwordValidation.errors.join(', ')}`);
     }
     
-    // Sanitizar inputs
     const sanitizedUsername = username.trim().toLowerCase();
     const sanitizedEmail = email.trim().toLowerCase();
     
-    // Validaciones adicionales
     if (sanitizedUsername.length < 3 || sanitizedUsername.length > 20) {
       throw new Error('Username must be between 3 and 20 characters');
     }
@@ -101,7 +91,6 @@ async function registerUser(userData, clientIP = 'unknown') {
       throw new Error('Invalid email format');
     }
     
-    // Check if user already exists
     const existingUser = await db.user.findFirst({
       where: {
         OR: [
@@ -115,15 +104,13 @@ async function registerUser(userData, clientIP = 'unknown') {
       throw new Error('User or email already exists');
     }
 
-    // Verify invitation if provided, or allow bootstrap for first user
     let inviteData = null;
     const userCount = await db.user.count();
     
     if (inviteKey) {
-      // Special case: allow "bootstrap" key for first user
       if (inviteKey === 'bootstrap' && userCount === 0) {
         logMessage('info', 'Bootstrap registration for first admin user');
-        inviteData = null; // No invitation needed for bootstrap
+        inviteData = null;
       } else {
         inviteData = await db.invite.findFirst({
           where: {
@@ -140,14 +127,11 @@ async function registerUser(userData, clientIP = 'unknown') {
         }
       }
     } else if (userCount > 0) {
-      // If there are existing users, invitation is required
       throw new Error('Invitation required for registration');
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user - first user (bootstrap) gets ADMIN role
     const isFirstUser = userCount === 0 && inviteKey === 'bootstrap';
     const newUser = await db.user.create({
       data: {
@@ -156,21 +140,20 @@ async function registerUser(userData, clientIP = 'unknown') {
         password: hashedPassword,
         created: new Date(),
         banned: false,
-        remainingInvites: isFirstUser ? 10 : 0, // Give admin some invites
-        emailVerified: isFirstUser, // Auto-verify bootstrap user
+        remainingInvites: isFirstUser ? 10 : 0, 
+        emailVerified: isFirstUser,
         invitedById: inviteData?.inviterId || null,
         role: isFirstUser ? 'ADMIN' : 'USER'
       }
     });
 
-    // Mark invitation as used
+    
     if (inviteData) {
       await db.invite.update({
         where: { id: inviteData.id },
         data: { used: true }
       });
 
-      // Create invitation tree node
       await db.inviteTreeNode.create({
         data: {
           userId: newUser.id,
@@ -187,10 +170,8 @@ async function registerUser(userData, clientIP = 'unknown') {
   }
 }
 
-// Authenticate user login
 async function loginUser(username, password, clientIP = 'unknown') {
   try {
-    // Verificar si la IP está bloqueada
     if (isIPBlocked(clientIP)) {
       const attempts = loginAttempts.get(clientIP);
       const timeRemaining = Math.ceil((LOCKOUT_TIME - (Date.now() - attempts.lastAttempt)) / 1000 / 60);
@@ -198,10 +179,8 @@ async function loginUser(username, password, clientIP = 'unknown') {
       throw new Error(`Too many failed attempts. Try again in ${timeRemaining} minutes.`);
     }
 
-    // Sanitizar input
     const sanitizedUsername = username.trim().toLowerCase();
     
-    // Buscar usuario (timing attack protection - siempre hacer bcrypt.compare)
     const user = await db.user.findFirst({
       where: {
         OR: [
@@ -211,7 +190,6 @@ async function loginUser(username, password, clientIP = 'unknown') {
       }
     });
 
-    // Siempre hacer hash comparison para evitar timing attacks
     const dummyHash = '$2b$10$dummy.hash.to.prevent.timing.attacks.dummy.hash.value';
     const passwordToCheck = user ? user.password : dummyHash;
     const isValidPassword = await bcrypt.compare(password, passwordToCheck);
@@ -220,7 +198,6 @@ async function loginUser(username, password, clientIP = 'unknown') {
       recordFailedLogin(clientIP);
       logMessage('warn', `Failed login attempt for username: ${sanitizedUsername} from IP: ${clientIP}`);
       
-      // Generic error message to prevent user enumeration
       throw new Error('Invalid credentials');
     }
 
@@ -230,20 +207,16 @@ async function loginUser(username, password, clientIP = 'unknown') {
       throw new Error('Account is suspended');
     }
 
-    // Login exitoso - limpiar intentos fallidos
     clearFailedAttempts(clientIP);
 
     const token = generateToken(user);
     
-    // Log successful login with security info
     logMessage('info', `Successful login: ${user.username} from IP: ${clientIP}`);
     
-    // Update last login timestamp
     await db.user.update({
       where: { id: user.id },
       data: { 
-        // Agregar campo lastLogin si no existe en el schema
-        // lastLogin: new Date()
+        
       }
     });
     
@@ -263,11 +236,9 @@ async function loginUser(username, password, clientIP = 'unknown') {
   }
 }
 
-// Función para logout seguro
 async function logoutUser(token, clientIP = 'unknown') {
   try {
-    // En una implementación completa, agregar el token a una blacklist
-    // Por ahora solo loggeamos el evento
+
     logMessage('info', `User logged out from IP: ${clientIP}`);
     return { message: 'Logged out successfully' };
   } catch (error) {

@@ -9,14 +9,14 @@ export default {
     'src/**/*.js',
     '!src/**/*.test.js',
     '!src/**/__tests__/**',
-    '!src/utils/db.server.js' // Exclude database connection file
+    '!src/utils/db.server.js'
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  testTimeout: 15000, // Increased timeout for integration tests
+  testTimeout: 15000,
   moduleFileExtensions: ['js', 'json'],
   testPathIgnorePatterns: ['/node_modules/'],
   transform: {},
-  maxWorkers: 1, // Run tests sequentially to avoid conflicts
+  maxWorkers: 1,
   verbose: true
 };

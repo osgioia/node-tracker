@@ -1,12 +1,10 @@
-// Configure environment variables first
 process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-purposes-at-least-32-characters-long-and-secure';
 process.env.NODE_ENV = 'test';
 
-import { jest, describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { jest, describe, it, expect, beforeAll, _afterAll, beforeEach } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 
-// Mock all external dependencies
 const mockDb = {
   user: {
     findFirst: jest.fn(),
@@ -52,7 +50,9 @@ const mockDb = {
 
 const mockBcrypt = {
   hash: jest.fn().mockResolvedValue('hashed_password'),
-  compare: jest.fn().mockResolvedValue(true)
+  compare: jest.fn().mockResolvedValue(true),
+  hashSync: jest.fn().mockReturnValue('hashed_password'),
+  compareSync: jest.fn().mockReturnValue(true)
 };
 
 const mockJwt = {
@@ -64,11 +64,9 @@ const mockMagnet = {
   encode: jest.fn().mockReturnValue('magnet:?xt=urn:btih:test&dn=test&tr=test')
 };
 
-// Set up additional environment variables before importing modules
 process.env.JWT_EXPIRES_IN = '1h';
 process.env.PORT = '3000';
 
-// Mock modules
 jest.unstable_mockModule('../utils/db.server.js', () => ({ db: mockDb }));
 jest.unstable_mockModule('bcrypt', () => ({ default: mockBcrypt }));
 jest.unstable_mockModule('jsonwebtoken', () => ({ default: mockJwt }));
@@ -88,21 +86,18 @@ describe('Integration Tests', () => {
   let authToken;
 
   beforeAll(async () => {
-    // Import router after environment is configured
     const router = await import('../router.js');
     
     app = express();
     app.use(express.json());
     app.use('/', router.default);
     
-    // Mock a valid auth token
     authToken = 'Bearer mock_jwt_token';
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Setup default user mock for auth middleware
     mockDb.user.findUnique.mockResolvedValue({
       id: 1,
       username: 'testuser',
@@ -115,14 +110,16 @@ describe('Integration Tests', () => {
 
   describe('User Authentication Flow', () => {
     it('should complete full user registration and login flow', async () => {
-      // 1. Register user
-      mockDb.user.findFirst.mockResolvedValue(null); // No existing user
-      mockDb.user.count.mockResolvedValue(0); // No existing users with same email/username
+      mockDb.user.findFirst.mockResolvedValue(null);
+      mockDb.user.count.mockResolvedValue(0); 
       mockDb.user.create.mockResolvedValue({
         id: 1,
         username: 'testuser',
-        email: 'test@example.com'
+        email: 'test@example.com',
+        password: 'hashed_password'
       });
+      
+      mockBcrypt.hash.mockResolvedValue('hashed_password');
 
       const registerResponse = await request(app)
         .post('/api/auth/register')
@@ -135,7 +132,6 @@ describe('Integration Tests', () => {
       expect(registerResponse.status).toBe(201);
       expect(registerResponse.body.message).toBe('User registered successfully');
 
-      // 2. Login user
       mockDb.user.findFirst.mockResolvedValue({
         id: 1,
         username: 'testuser',
@@ -157,7 +153,6 @@ describe('Integration Tests', () => {
       expect(loginResponse.body.message).toBe('Login successful');
       expect(loginResponse.body.token).toBeDefined();
 
-      // 3. Access protected profile
       mockDb.user.findUnique.mockResolvedValue({
         id: 1,
         username: 'testuser',
@@ -186,7 +181,7 @@ describe('Integration Tests', () => {
         password: 'hashed_password',
         banned: false
       });
-      mockBcrypt.compare.mockResolvedValue(false); // Invalid password
+      mockBcrypt.compare.mockResolvedValue(false); 
 
       const response = await request(app)
         .post('/api/auth/login')
@@ -202,7 +197,6 @@ describe('Integration Tests', () => {
 
   describe('Torrent Management Flow', () => {
     it('should complete full torrent lifecycle', async () => {
-      // 1. Add torrent
       const mockTorrent = {
         id: 1,
         infoHash: 'abc123def456789012345678901234567890abcd',
@@ -213,13 +207,9 @@ describe('Integration Tests', () => {
         uploadedBy: { id: 1, username: 'testuser' }
       };
 
-      // Mock torrent doesn't exist yet
       mockDb.torrent.findFirst.mockResolvedValueOnce(null);
-      // Mock category operations
       mockDb.category.findFirst.mockResolvedValue({ id: 1, name: 'Movies' });
-      // Mock tag operations
       mockDb.tag.findMany.mockResolvedValue([{ id: 1, name: 'action' }]);
-      // Mock torrent creation
       mockDb.torrent.create.mockResolvedValue(mockTorrent);
 
       const addResponse = await request(app)
@@ -239,7 +229,6 @@ describe('Integration Tests', () => {
       expect(addResponse.body.message).toBe('Torrent created successfully');
       expect(addResponse.body.torrent).toBeDefined();
 
-      // 2. Get torrent
       mockDb.torrent.findFirst.mockResolvedValue(mockTorrent);
 
       const getResponse = await request(app)
@@ -249,9 +238,8 @@ describe('Integration Tests', () => {
       expect(getResponse.status).toBe(200);
       expect(getResponse.body.magnetUri).toBeDefined();
 
-      // 3. Update torrent
       const updatedTorrent = { ...mockTorrent, name: 'Updated Torrent' };
-      mockDb.torrent.findUnique.mockResolvedValue(mockTorrent); // Mock finding the torrent to update
+      mockDb.torrent.findUnique.mockResolvedValue(mockTorrent);
       mockDb.torrent.update.mockResolvedValue(updatedTorrent);
 
       const updateResponse = await request(app)
@@ -264,7 +252,6 @@ describe('Integration Tests', () => {
       expect(updateResponse.status).toBe(200);
       expect(updateResponse.body.message).toBe('Torrent updated successfully');
 
-      // 4. Delete torrent
       mockDb.torrent.delete.mockResolvedValue(mockTorrent);
 
       const deleteResponse = await request(app)
@@ -288,7 +275,6 @@ describe('Integration Tests', () => {
 
   describe('IP Ban Management Flow', () => {
     it('should complete full IP ban lifecycle', async () => {
-      // 1. List IP bans
       const mockBans = [
         {
           id: 1,
@@ -299,7 +285,6 @@ describe('Integration Tests', () => {
       ];
 
       mockDb.IPBan.findMany.mockResolvedValue(mockBans);
-
       mockDb.IPBan.count.mockResolvedValue(1);
 
       const listResponse = await request(app)
@@ -310,7 +295,6 @@ describe('Integration Tests', () => {
       expect(listResponse.body).toHaveProperty('ipBans');
       expect(Array.isArray(listResponse.body.ipBans)).toBe(true);
 
-      // 2. Create IP ban
       const newBan = {
         id: 2,
         fromIP: '10.0.0.1',
@@ -332,7 +316,6 @@ describe('Integration Tests', () => {
       expect(createResponse.status).toBe(201);
       expect(createResponse.body).toHaveProperty('id');
 
-      // 3. Update IP ban
       const updatedBan = { ...newBan, reason: 'Updated reason' };
       mockDb.IPBan.update.mockResolvedValue(updatedBan);
 
@@ -348,11 +331,48 @@ describe('Integration Tests', () => {
       expect(updateResponse.status).toBe(200);
       expect(updateResponse.body).toHaveProperty('id');
 
-      // 4. Delete IP ban
       mockDb.IPBan.delete.mockResolvedValue(newBan);
 
       const deleteResponse = await request(app)
         .delete('/api/ip-bans/2')
+        .set('Authorization', authToken);
+
+      expect(deleteResponse.status).toBe(204);
+    });
+
+    it('should handle IPv6 addresses in IP bans', async () => {
+      const newBan = {
+        id: 3,
+        fromIP: '2001:db8::1',
+        toIP: '2001:db8::ff',
+        reason: 'IPv6 spam'
+      };
+
+      mockDb.IPBan.create.mockResolvedValue(newBan);
+
+      const createResponse = await request(app)
+        .post('/api/ip-bans')
+        .set('Authorization', authToken)
+        .send(newBan);
+
+      expect(createResponse.status).toBe(201);
+      expect(createResponse.body).toHaveProperty('id');
+
+      const updatedBan = { ...newBan, reason: 'Updated IPv6 reason' };
+      mockDb.IPBan.update.mockResolvedValue(updatedBan);
+
+      const updateResponse = await request(app)
+        .put('/api/ip-bans/3')
+        .set('Authorization', authToken)
+        .send(updatedBan);
+
+      expect(updateResponse.status).toBe(200);
+      expect(updateResponse.body).toHaveProperty('id');
+
+      mockDb.IPBan.delete.mockResolvedValue(newBan);
+
+      const deleteResponse = await request(app)
+        .delete('/api/ip-bans/3')
         .set('Authorization', authToken);
 
       expect(deleteResponse.status).toBe(204);
@@ -389,9 +409,9 @@ describe('Integration Tests', () => {
       const response = await request(app)
         .post('/api/auth/register')
         .send({
-          username: 'ab', // Too short
+          username: 'ab', 
           email: 'invalid-email',
-          password: '123' // Too short
+          password: '123' 
         });
 
       expect(response.status).toBe(400);
@@ -418,7 +438,6 @@ describe('Integration Tests', () => {
         .post('/api/torrents')
         .set('Authorization', authToken)
         .send({
-          // Missing infoHash and name
           category: 'Movies'
         });
 
@@ -461,7 +480,6 @@ describe('Integration Tests', () => {
     });
 
     it('should allow admin access to all user data', async () => {
-      // Mock admin token
       mockJwt.verify.mockReturnValue({ id: 1, username: 'admin', role: 'ADMIN' });
 
       mockDb.user.findUnique.mockResolvedValue({
@@ -500,7 +518,6 @@ describe('Integration Tests', () => {
     });
 
     it('should handle malformed JWT tokens', async () => {
-      // Mock JWT to throw error for invalid token
       mockJwt.verify.mockImplementation((token) => {
         if (token === 'invalid.jwt.token') {
           throw new Error('Invalid token');

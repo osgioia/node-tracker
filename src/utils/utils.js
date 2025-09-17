@@ -16,17 +16,29 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 // Convertir IP a número (IPv4 o IPv6)
 function ipToNumber(ip) {
   try {
+    // Handle IPv4-mapped IPv6 addresses (e.g., ::ffff:192.168.1.1)
     if (ip.includes(':')) {
-      // IPv6
       const addr6 = new Address6(ip);
+      if (addr6.isV4()) {
+        // Convert to IPv4 representation
+        const v4 = addr6.to4().address;
+        const parts = v4.split('.').map(Number);
+        return BigInt(parts[0]) * 16777216n +
+               BigInt(parts[1]) * 65536n +
+               BigInt(parts[2]) * 256n +
+               BigInt(parts[3]);
+      }
       return BigInt(addr6.bigInteger());
     } else {
-      // IPv4 - convertir manualmente usando BigInt para evitar overflow
+      // IPv4
       const parts = ip.split('.').map(Number);
       if (parts.length !== 4 || parts.some(part => part < 0 || part > 255)) {
         throw new Error('Invalid IPv4 address');
       }
-      return BigInt(parts[0]) * 16777216n + BigInt(parts[1]) * 65536n + BigInt(parts[2]) * 256n + BigInt(parts[3]);
+      return BigInt(parts[0]) * 16777216n +
+             BigInt(parts[1]) * 65536n +
+             BigInt(parts[2]) * 256n +
+             BigInt(parts[3]);
     }
   } catch (error) {
     logMessage('error', `Error converting IP: ${error.message}`);

@@ -3,10 +3,15 @@ import { logMessage } from '../utils/utils.js';
 // Middleware para sanitizar inputs
 export const sanitizeInput = (req, res, next) => {
   try {
+    // Excluir rutas del tracker
+    if (req.url.startsWith('/announce') || req.url.startsWith('/scrape')) {
+      return next();
+    }
+
     // Función para limpiar strings de caracteres peligrosos
     const sanitizeString = (str) => {
       if (typeof str !== 'string') {return str;}
-      
+
       return str
         .trim()
         .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
@@ -18,37 +23,38 @@ export const sanitizeInput = (req, res, next) => {
     // Función recursiva para sanitizar objetos
     const sanitizeObject = (obj) => {
       if (obj === null || obj === undefined) {return obj;}
-      
-      if (typeof obj === 'string') {
-        return sanitizeString(obj);
-      }
-      
-      if (Array.isArray(obj)) {
-        return obj.map(sanitizeObject);
-      }
-      
+
+      if (typeof obj === 'string') {return sanitizeString(obj);}
+
+      if (Array.isArray(obj)) {return obj.map(sanitizeObject);}
+
       if (typeof obj === 'object') {
-        const sanitized = {};
-        for (const [key, value] of Object.entries(obj)) {
-          sanitized[key] = sanitizeObject(value);
+        for (const key of Object.keys(obj)) {
+          obj[key] = sanitizeObject(obj[key]);
         }
-        return sanitized;
+        return obj;
       }
-      
+
       return obj;
     };
 
-    // Sanitizar body, query y params
+    // Sanitizar body
     if (req.body) {
       req.body = sanitizeObject(req.body);
     }
-    
+
+    // Sanitizar query (modificar propiedades, no reemplazar el objeto)
     if (req.query) {
-      req.query = sanitizeObject(req.query);
+      for (const key of Object.keys(req.query)) {
+        req.query[key] = sanitizeObject(req.query[key]);
+      }
     }
-    
+
+    // Sanitizar params (modificar propiedades)
     if (req.params) {
-      req.params = sanitizeObject(req.params);
+      for (const key of Object.keys(req.params)) {
+        req.params[key] = sanitizeObject(req.params[key]);
+      }
     }
 
     next();
