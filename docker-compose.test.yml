@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  test-db:
+    image: postgres:14
+    restart: always
+    environment:
+      - POSTGRES_USER=testuser
+      - POSTGRES_PASSWORD=testpass
+      - POSTGRES_DB=testdb
+    ports:
+      - '5433:5432' # Map container port 5432 to host port 5433
+    volumes:
+      - test-db-data:/var/lib/postgresql/data
+
+  test-redis:
+    image: redis:7
+    restart: always
+    ports:
+      - '6380:6379' # Map container port 6379 to host port 6380
+    volumes:
+      - test-redis-data:/data
+
+volumes:
+  test-db-data:
+  test-redis-data:

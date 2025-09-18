@@ -191,4 +191,30 @@ describe('User Ban Router', () => {
       expect(userBanService.banUserPermanently).not.toHaveBeenCalled();
     });
   });
+
+  describe('GET /api/user-bans/user/:userId/status', () => {
+    it('should return { isBanned: true } for a banned user', async () => {
+      const userId = '123';
+      userBanService.isUserBanned.mockResolvedValue(true);
+
+      const response = await request(app)
+        .get(`/api/user-bans/user/${userId}/status`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ userId: 123, isBanned: true });
+      expect(userBanService.isUserBanned).toHaveBeenCalledWith(userId);
+    });
+
+    it('should return { isBanned: false } for a non-banned user', async () => {
+      const userId = '456';
+      userBanService.isUserBanned.mockResolvedValue(false);
+
+      const response = await request(app)
+        .get(`/api/user-bans/user/${userId}/status`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ userId: 456, isBanned: false });
+      expect(userBanService.isUserBanned).toHaveBeenCalledWith(userId);
+    });
+  });
 });

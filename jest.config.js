@@ -1,6 +1,8 @@
 export default {
   testEnvironment: 'node',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  globalSetup: '<rootDir>/jest.globalSetup.js',
+  globalTeardown: '<rootDir>/jest.globalTeardown.js',
+  setupFiles: ['dotenv/config'],
   testMatch: [
     '**/__tests__/**/*.test.js',
     '**/?(*.)+(spec|test).js'

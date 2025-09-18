@@ -1,6 +1,7 @@
 import { db } from '../utils/db.server.js';
 import { logMessage } from '../utils/utils.js';
 import bcrypt from 'bcrypt';
+import redisClient from '../config/redis-client.js';
 
 // Create new user (admin only)
 async function createUser(userData) {
@@ -49,6 +50,20 @@ async function createUser(userData) {
 // Get user by ID
 async function getUserById(id) {
   try {
+    const cacheKey = `user:${id}`;
+
+    // 1. Intentar obtener el usuario desde la caché de Redis
+    const cachedUser = await redisClient.get(cacheKey);
+    if (cachedUser) {
+      logMessage('info', `User ${id} found in cache.`);
+      // El dato en Redis es un string, hay que parsearlo
+      const user = JSON.parse(cachedUser);
+      // Redis no almacena BigInt, así que lo convertimos de nuevo si es necesario
+      user.uploaded = BigInt(user.uploaded);
+      user.downloaded = BigInt(user.downloaded);
+      return user;
+    }
+
     const user = await db.user.findUnique({
       where: { id: parseInt(id) },
       select: {
@@ -94,14 +109,22 @@ async function getUserById(id) {
     const downloaded = Number(user.downloaded);
     const ratio = downloaded > 0 ? uploaded / downloaded : 0;
     const seedtime = Number(user.seedtime);
-
-    return {
+    
+    const result = {
       ...user,
       uploaded,
       downloaded,
       seedtime,
       ratio: parseFloat(ratio.toFixed(2))
     };
+
+    // 2. Guardar el resultado en la caché de Redis con una expiración (e.g., 1 hora)
+    // Convertimos BigInt a string para guardarlo en Redis
+    const userToCache = { ...result, uploaded: result.uploaded.toString(), downloaded: result.downloaded.toString() };
+    await redisClient.setEx(cacheKey, 3600, JSON.stringify(userToCache));
+    logMessage('info', `User ${id} stored in cache.`);
+
+    return result;
   } catch (error) {
     logMessage('error', `Error getting user: ${error.message}`);
     throw error;
@@ -200,6 +223,11 @@ async function updateUser(id, updateData) {
       }
     });
 
+    // 3. Invalidar la caché del usuario actualizado
+    const cacheKey = `user:${id}`;
+    await redisClient.del(cacheKey);
+    logMessage('info', `Cache invalidated for user ${id}.`);
+
     logMessage('info', `User updated: ${updatedUser.username}`);
     return updatedUser;
   } catch (error) {
@@ -224,6 +252,11 @@ async function toggleUserBan(id, banned, reason = null) {
     const action = banned ? 'banned' : 'unbanned';
     logMessage('info', `User ${action}: ${updatedUser.username}${reason ? ` - Reason: ${reason}` : ''}`);
     
+    // Invalidate cache for the user
+    const cacheKey = `user:${id}`;
+    await redisClient.del(cacheKey);
+    logMessage('info', `Cache invalidated for user ${id} due to ban status change.`);
+
     return updatedUser;
   } catch (error) {
     logMessage('error', `Error changing ban status: ${error.message}`);
