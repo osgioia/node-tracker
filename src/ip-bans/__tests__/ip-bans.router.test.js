@@ -2,7 +2,6 @@ import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 
-// Mock the ip-bans service completely
 const mockIPBansService = {
   listAllIPBans: jest.fn(),
   createIPBan: jest.fn(),
@@ -11,18 +10,15 @@ const mockIPBansService = {
   bulkCreateIPBans: jest.fn()
 };
 
-// Mock prometheus
 const mockPrometheus = {
   Counter: jest.fn().mockImplementation(() => ({
     inc: jest.fn()
   }))
 };
 
-// Set up mocks before importing the router
 jest.unstable_mockModule('../ip-bans.service.js', () => mockIPBansService);
 jest.unstable_mockModule('prom-client', () => mockPrometheus);
 
-// Import the router after setting up mocks
 const { ipBansRouter } = await import('../ip-bans.router.js');
 
 describe('IP Bans Router', () => {
