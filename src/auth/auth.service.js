@@ -2,9 +2,55 @@ import { db } from '../utils/db.server.js';
 import { logMessage, generateToken } from '../utils/utils.js';
 import bcrypt from 'bcrypt';
 
-const loginAttempts = new Map();
+import redisClient from '../utils/redis.js';
+
 const MAX_LOGIN_ATTEMPTS = 5;
-const LOCKOUT_TIME = 15 * 60 * 1000;
+const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutos en ms
+
+// Clave Redis: login_attempts:<ip>
+async function isIPBlocked(ip) {
+  const attemptsKey = `login_attempts:${ip}`;
+  const attempts = await redisClient.hGetAll(attemptsKey);
+  
+  if (!attempts || !attempts.count) return false;
+  
+  const count = parseInt(attempts.count);
+  const lastAttempt = parseInt(attempts.lastAttempt);
+  
+  if (count >= MAX_LOGIN_ATTEMPTS) {
+    const timeSinceLastAttempt = Date.now() - lastAttempt;
+    if (timeSinceLastAttempt < LOCKOUT_TIME) {
+      return true;
+    } else {
+      await redisClient.del(attemptsKey);
+      return false;
+    }
+  }
+  
+  return false;
+}
+
+async function recordFailedLogin(ip) {
+  const attemptsKey = `login_attempts:${ip}`;
+  const attempts = await redisClient.hGetAll(attemptsKey);
+  
+  let count = attempts?.count ? parseInt(attempts.count) + 1 : 1;
+  
+  await redisClient.hSet(attemptsKey, {
+    count: count.toString(),
+    lastAttempt: Date.now().toString()
+  });
+  
+  // Establecer TTL para autoeliminación
+  await redisClient.expire(attemptsKey, LOCKOUT_TIME / 1000);
+  
+  logMessage('warn', `Failed login attempt ${count}/${MAX_LOGIN_ATTEMPTS} from IP: ${ip}`);
+}
+
+async function clearFailedAttempts(ip) {
+  const attemptsKey = `login_attempts:${ip}`;
+  await redisClient.del(attemptsKey);
+}
 
 function validatePasswordStrength(password) {
   const minLength = 8;
@@ -37,35 +83,6 @@ function validatePasswordStrength(password) {
   };
 }
 
-function isIPBlocked(ip) {
-  const attempts = loginAttempts.get(ip);
-  if (!attempts) {return false;}
-  
-  if (attempts.count >= MAX_LOGIN_ATTEMPTS) {
-    const timeSinceLastAttempt = Date.now() - attempts.lastAttempt;
-    if (timeSinceLastAttempt < LOCKOUT_TIME) {
-      return true;
-    } else {
-      loginAttempts.delete(ip);
-      return false;
-    }
-  }
-  
-  return false;
-}
-
-function recordFailedLogin(ip) {
-  const attempts = loginAttempts.get(ip) || { count: 0, lastAttempt: 0 };
-  attempts.count++;
-  attempts.lastAttempt = Date.now();
-  loginAttempts.set(ip, attempts);
-  
-  logMessage('warn', `Failed login attempt ${attempts.count}/${MAX_LOGIN_ATTEMPTS} from IP: ${ip}`);
-}
-
-function clearFailedAttempts(ip) {
-  loginAttempts.delete(ip);
-}
 
 async function registerUser(userData, _clientIP = 'unknown') {
   try {

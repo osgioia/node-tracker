@@ -13,7 +13,7 @@ export default {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  testTimeout: 15000,
+  testTimeout: 30000, // Aumentado para pruebas de integración
   moduleFileExtensions: ['js', 'json'],
   testPathIgnorePatterns: ['/node_modules/'],
   transform: {},

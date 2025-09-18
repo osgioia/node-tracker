@@ -1,7 +1,6 @@
 import express from 'express';
 import http from 'http';
 import dotenv from 'dotenv';
-import rateLimit from 'express-rate-limit';
 import slowDown from 'express-slow-down';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -10,6 +9,8 @@ import { register } from 'prom-client';
 import apiRouter from './src/router.js';
 import { specs, swaggerUi } from './src/config/swagger.js';
 import { db } from './src/utils/db.server.js';
+import { apiRateLimiter, authRateLimiter } from './src/middleware/rateLimit.js';
+import './src/utils/redis.js';
 import {
   securityConfig,
   validateSecurityConfig
@@ -64,35 +65,12 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 setupMorgan(app);
 
-const globalLimiter = rateLimit({
-  windowMs: securityConfig.rateLimit.global.windowMs,
-  max: securityConfig.rateLimit.global.max,
-  message: {
-    error: 'Too many requests from this IP, please try again later.',
-    retryAfter: '15 minutes'
-  },
-  standardHeaders: true,
-  legacyHeaders: false
-});
-
 const speedLimiter = slowDown({
   windowMs: 15 * 60 * 1000,
   delayAfter: 100,
   delayMs: () => 500,
   maxDelayMs: 20000,
   validate: { delayMs: false }
-});
-
-const authLimiter = rateLimit({
-  windowMs: securityConfig.rateLimit.auth.windowMs,
-  max: securityConfig.rateLimit.auth.max,
-  message: {
-    error: 'Too many authentication attempts, please try again later.',
-    retryAfter: '15 minutes'
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-  skipSuccessfulRequests: true
 });
 
 const trackerRateLimiter = rateLimit({
@@ -128,8 +106,9 @@ app.use(validateUserAgent);
 app.use(validateContentType);
 app.use(sanitizeInput);
 
-app.use(globalLimiter);
 app.use(speedLimiter);
+app.use(apiRateLimiter);
+app.use(authRateLimiter);
 
 app.use('/api-docs', rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -141,7 +120,6 @@ app.use('/api-docs', rateLimit({
   customSiteTitle: 'Node Tracker API Documentation'
 }));
 
-app.use('/api/auth', authLimiter);
 
 app.get('/health', async (req, res) => {
   try {
