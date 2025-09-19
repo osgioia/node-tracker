@@ -12,7 +12,7 @@ export async function blocklistToken(token, exp) {
   try {
     const key = `${TOKEN_BLACKLIST_PREFIX}${token}`;
     const now = Math.floor(Date.now() / 1000);
-    const ttl = exp - now; // Time-to-live en segundos
+    const ttl = exp - now;
 
     if (ttl > 0) {
       await redisClient.setEx(key, ttl, 'blocked');
@@ -35,8 +35,6 @@ export async function isTokenBlocklisted(token) {
     return result === 'blocked';
   } catch (error) {
     logMessage('error', `Error checking token blocklist: ${error.message}`);
-    // En caso de error de Redis, es más seguro asumir que el token no está bloqueado
-    // para no denegar el servicio a usuarios legítimos.
     return false;
   }
 }

@@ -9,7 +9,6 @@ import { authMiddleware } from '../middleware/auth.js';
 
 const app = express();
 app.use(express.json());
-// Ruta protegida de ejemplo para verificar el token
 app.get('/api/me', authMiddleware, (req, res) => res.json(req.user));
 app.use('/api/auth', authRouter);
 
@@ -18,11 +17,9 @@ describe('Auth Router (Integration)', () => {
   let token;
 
   beforeEach(async () => {
-    // Limpiar la base de datos y Redis antes de cada test
     await db.user.deleteMany();
     await redisClient.flushDb();
 
-    // Crear un usuario de prueba y generar un token
     const createdUser = await createUser({
       username: 'logout-test',
       email: 'logout@test.com',
@@ -33,7 +30,6 @@ describe('Auth Router (Integration)', () => {
   });
 
   afterAll(async () => {
-    // Desconectar clientes al final de todos los tests
     await db.$disconnect();
     await redisClient.quit();
   });
@@ -48,7 +44,6 @@ describe('Auth Router (Integration)', () => {
   });
 
   it('should invalidate a token on logout and block subsequent requests', async () => {
-    // 1. Hacer logout para invalidar el token
     const logoutResponse = await request(app)
       .post('/api/auth/logout')
       .set('Authorization', `Bearer ${token}`);
@@ -56,16 +51,13 @@ describe('Auth Router (Integration)', () => {
     expect(logoutResponse.status).toBe(200);
     expect(logoutResponse.body.message).toBe('Successfully logged out');
 
-    // 2. Verificar que el token está en la denylist de Redis
     const isBlocked = await redisClient.get(`blacklist:${token}`);
     expect(isBlocked).toBe('blocked');
 
-    // 3. Intentar acceder a la ruta protegida de nuevo con el mismo token
     const blockedResponse = await request(app)
       .get('/api/me')
       .set('Authorization', `Bearer ${token}`);
 
-    // 4. Esperar un error de autorización
     expect(blockedResponse.status).toBe(401);
     expect(blockedResponse.body.error).toBe('Token has been invalidated. Please log in again.');
   });

@@ -3,12 +3,10 @@ import { logMessage } from '../utils/utils.js';
 import bcrypt from 'bcrypt';
 import redisClient from '../config/redis-client.js';
 
-// Create new user (admin only)
 async function createUser(userData) {
   try {
     const { username, email, password, role = 'USER', remainingInvites = 0 } = userData;
     
-    // Check if user already exists
     const existingUser = await db.user.findFirst({
       where: {
         OR: [
@@ -22,10 +20,8 @@ async function createUser(userData) {
       throw new Error('User or email already exists');
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const newUser = await db.user.create({
       data: {
         username,
@@ -47,18 +43,14 @@ async function createUser(userData) {
   }
 }
 
-// Get user by ID
 async function getUserById(id) {
   try {
     const cacheKey = `user:${id}`;
 
-    // 1. Intentar obtener el usuario desde la caché de Redis
     const cachedUser = await redisClient.get(cacheKey);
     if (cachedUser) {
       logMessage('info', `User ${id} found in cache.`);
-      // El dato en Redis es un string, hay que parsearlo
       const user = JSON.parse(cachedUser);
-      // Redis no almacena BigInt, así que lo convertimos de nuevo si es necesario
       user.uploaded = BigInt(user.uploaded);
       user.downloaded = BigInt(user.downloaded);
       return user;
@@ -76,7 +68,6 @@ async function getUserById(id) {
         role: true,
         remainingInvites: true,
         emailVerified: true,
-        // Campos de ratio
         uploaded: true,
         downloaded: true,
         seedtime: true,
@@ -104,7 +95,6 @@ async function getUserById(id) {
       throw new Error('User not found');
     }
 
-    // Calcular ratio
     const uploaded = Number(user.uploaded);
     const downloaded = Number(user.downloaded);
     const ratio = downloaded > 0 ? uploaded / downloaded : 0;
@@ -118,8 +108,6 @@ async function getUserById(id) {
       ratio: parseFloat(ratio.toFixed(2))
     };
 
-    // 2. Guardar el resultado en la caché de Redis con una expiración (e.g., 1 hora)
-    // Convertimos BigInt a string para guardarlo en Redis
     const userToCache = { ...result, uploaded: result.uploaded.toString(), downloaded: result.downloaded.toString() };
     await redisClient.setEx(cacheKey, 3600, JSON.stringify(userToCache));
     logMessage('info', `User ${id} stored in cache.`);
@@ -131,7 +119,6 @@ async function getUserById(id) {
   }
 }
 
-// List all users with pagination (admin only)
 async function getAllUsers(page = 1, limit = 20) {
   try {
     const skip = (page - 1) * limit;
@@ -149,7 +136,6 @@ async function getAllUsers(page = 1, limit = 20) {
           role: true,
           emailVerified: true,
           remainingInvites: true,
-          // Campos de ratio
           uploaded: true,
           downloaded: true,
           seedtime: true,
@@ -166,7 +152,6 @@ async function getAllUsers(page = 1, limit = 20) {
       db.user.count()
     ]);
 
-    // Calcular ratio para cada usuario
     const users = usersData.map(user => {
       const uploaded = Number(user.uploaded);
       const downloaded = Number(user.downloaded);
@@ -197,7 +182,6 @@ async function getAllUsers(page = 1, limit = 20) {
   }
 }
 
-// Update user
 async function updateUser(id, updateData) {
   try {
     const { password, ...otherData } = updateData;
@@ -223,7 +207,6 @@ async function updateUser(id, updateData) {
       }
     });
 
-    // 3. Invalidar la caché del usuario actualizado
     const cacheKey = `user:${id}`;
     await redisClient.del(cacheKey);
     logMessage('info', `Cache invalidated for user ${id}.`);
@@ -236,7 +219,6 @@ async function updateUser(id, updateData) {
   }
 }
 
-// Ban/unban user
 async function toggleUserBan(id, banned, reason = null) {
   try {
     const updatedUser = await db.user.update({
@@ -252,7 +234,6 @@ async function toggleUserBan(id, banned, reason = null) {
     const action = banned ? 'banned' : 'unbanned';
     logMessage('info', `User ${action}: ${updatedUser.username}${reason ? ` - Reason: ${reason}` : ''}`);
     
-    // Invalidate cache for the user
     const cacheKey = `user:${id}`;
     await redisClient.del(cacheKey);
     logMessage('info', `Cache invalidated for user ${id} due to ban status change.`);
@@ -264,13 +245,11 @@ async function toggleUserBan(id, banned, reason = null) {
   }
 }
 
-// Get user statistics
 async function getUserStats(userId) {
   try {
     const stats = await db.user.findUnique({
       where: { id: parseInt(userId) },
       select: {
-        // Campos de ratio directos del usuario
         uploaded: true,
         downloaded: true,
         seedtime: true,
@@ -287,7 +266,6 @@ async function getUserStats(userId) {
       throw new Error('User not found');
     }
 
-    // Usar los campos directos del usuario
     const totalUploaded = Number(stats.uploaded);
     const totalDownloaded = Number(stats.downloaded);
     const seedtime = Number(stats.seedtime);

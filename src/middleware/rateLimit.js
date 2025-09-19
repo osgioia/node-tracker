@@ -4,12 +4,11 @@ import redisClient from '../config/redis-client.js';
 import { logMessage } from '../utils/utils.js';
 
 export const apiRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // Límite por IP
+  windowMs: 15 * 60 * 1000,
+  max: 100, 
   standardHeaders: true,
   legacyHeaders: false,
   store: new RedisStore({
-    // El cliente de redis v4+ requiere este método `sendCommand`
     sendCommand: (...args) => redisClient.sendCommand(args),
   }),
   handler: (req, res) => {
@@ -23,7 +22,7 @@ export const apiRateLimiter = rateLimit({
 
 export const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5, // Solo 5 intentos de login
+  max: 5, 
   standardHeaders: true,
   legacyHeaders: false,
   store: new RedisStore({

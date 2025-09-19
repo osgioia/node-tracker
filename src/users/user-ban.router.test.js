@@ -4,10 +4,8 @@ import { userBanRouter } from './user-ban.router.js';
 import * as userBanService from './user-ban.service.js';
 import { authMiddleware } from '../middleware/auth.js';
 
-// Mock de los módulos. Jest interceptará estas llamadas.
 jest.mock('./user-ban.service.js');
 jest.mock('../middleware/auth.js', () => ({
-  // Exportamos una función mock que podemos manipular en cada test
   authMiddleware: jest.fn((req, res, next) => {
     req.user = { id: 1, username: 'test-admin', role: 'ADMIN' };
     next();
@@ -19,13 +17,10 @@ app.use(express.json());
 app.use('/api/user-bans', userBanRouter);
 
 describe('User Ban Router', () => {
-  // Guardamos la implementación original del mock de auth
   const originalAuthImplementation = authMiddleware.getMockImplementation();
 
   afterEach(() => {
     jest.clearAllMocks();
-    // Restauramos la implementación original después de cada test para evitar
-    // que un test afecte a otro.
     authMiddleware.mockImplementation(originalAuthImplementation);
   });
 

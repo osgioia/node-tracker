@@ -27,7 +27,6 @@ export const userBanRouter = express.Router();
  *   description: Gestión de baneos de usuarios
  */
 
-// Prometheus metrics
 const createBanCounter = new Counter({
   name: 'create_user_ban_requests',
   help: 'Count create user ban requests'
@@ -43,7 +42,6 @@ const deactivateBanCounter = new Counter({
   help: 'Count deactivate user ban requests'
 });
 
-// Middleware to verify admin or moderator role
 const requireAdminOrModerator = (req, res, next) => {
   if (req.user.role !== 'ADMIN' && req.user.role !== 'MODERATOR') {
     return res.status(403).json({ error: 'Access denied. Administrator or Moderator role required.' });
@@ -51,7 +49,6 @@ const requireAdminOrModerator = (req, res, next) => {
   next();
 };
 
-// Middleware to verify admin role (for sensitive operations)
 const requireAdmin = (req, res, next) => {
   if (req.user.role !== 'ADMIN') {
     return res.status(403).json({ error: 'Access denied. Administrator role required.' });
@@ -59,7 +56,6 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
-// Validations
 const createBanValidation = [
   body('userId')
     .isInt({ min: 1 })
@@ -94,7 +90,6 @@ const quickBanValidation = [
     .withMessage('Reason must be between 5 and 500 characters')
 ];
 
-// Apply authentication middleware to all routes
 userBanRouter.use(authMiddleware);
 
 /**
@@ -144,7 +139,6 @@ userBanRouter.use(authMiddleware);
  *       500:
  *         description: Error interno del servidor
  */
-// GET /api/user-bans - List all user bans
 userBanRouter.get('/',
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive number'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
@@ -229,7 +223,6 @@ userBanRouter.get('/',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// POST /api/user-bans - Create new user ban
 userBanRouter.post('/',
   createBanValidation,
   requireAdminOrModerator,
@@ -308,7 +301,6 @@ userBanRouter.post('/',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// POST /api/user-bans/quick/7-days - Ban user for 7 days
 userBanRouter.post('/quick/7-days',
   quickBanValidation,
   requireAdminOrModerator,
@@ -382,7 +374,6 @@ userBanRouter.post('/quick/7-days',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// POST /api/user-bans/quick/15-days - Ban user for 15 days
 userBanRouter.post('/quick/15-days',
   quickBanValidation,
   requireAdminOrModerator,
@@ -456,7 +447,6 @@ userBanRouter.post('/quick/15-days',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// POST /api/user-bans/quick/30-days - Ban user for 30 days
 userBanRouter.post('/quick/30-days',
   quickBanValidation,
   requireAdminOrModerator,
@@ -530,10 +520,9 @@ userBanRouter.post('/quick/30-days',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// POST /api/user-bans/quick/permanent - Ban user permanently
 userBanRouter.post('/quick/permanent',
   quickBanValidation,
-  requireAdmin, // Only admin can apply permanent bans
+  requireAdmin,
   async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -604,7 +593,6 @@ userBanRouter.post('/quick/permanent',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// POST /api/user-bans/custom - Ban user for custom number of days
 userBanRouter.post('/custom',
   banForDaysValidation,
   requireAdminOrModerator,
@@ -674,7 +662,6 @@ userBanRouter.post('/custom',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// GET /api/user-bans/:id - Get user ban by ID
 userBanRouter.get('/:id',
   param('id').isInt({ min: 1 }).withMessage('ID must be a positive integer'),
   requireAdminOrModerator,
@@ -744,7 +731,6 @@ userBanRouter.get('/:id',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// PATCH /api/user-bans/:id/deactivate - Deactivate user ban
 userBanRouter.patch('/:id/deactivate',
   param('id').isInt({ min: 1 }).withMessage('ID must be a positive integer'),
   requireAdminOrModerator,
@@ -814,7 +800,6 @@ userBanRouter.patch('/:id/deactivate',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// GET /api/user-bans/user/:userId - Get all bans for a specific user
 userBanRouter.get('/user/:userId',
   param('userId').isInt({ min: 1 }).withMessage('User ID must be a positive integer'),
   requireAdminOrModerator,
@@ -888,7 +873,6 @@ userBanRouter.get('/user/:userId',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// GET /api/user-bans/user/:userId/active - Get active ban for a user
 userBanRouter.get('/user/:userId/active',
   param('userId').isInt({ min: 1 }).withMessage('User ID must be a positive integer'),
   requireAdminOrModerator,
@@ -956,7 +940,6 @@ userBanRouter.get('/user/:userId/active',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// GET /api/user-bans/user/:userId/status - Check if user is banned
 userBanRouter.get('/user/:userId/status',
   param('userId').isInt({ min: 1 }).withMessage('User ID must be a positive integer'),
   requireAdminOrModerator,
@@ -1009,7 +992,6 @@ userBanRouter.get('/user/:userId/status',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// POST /api/user-bans/cleanup - Clean up expired bans
 userBanRouter.post('/cleanup',
   requireAdmin,
   async (req, res) => {

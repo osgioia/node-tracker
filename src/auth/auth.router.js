@@ -4,9 +4,6 @@ import { authMiddleware } from '../middleware/auth.js';
 import { blocklistToken } from './auth.service.js';
 import { logMessage } from '../utils/utils.js';
 import { authRateLimiter } from '../middleware/rateLimit.js';
-// Asumimos que tienes un servicio para verificar credenciales
-// import { verifyUserCredentials } from './auth.service.js';
-// import { generateToken } from '../utils/utils.js';
 
 export const authRouter = express.Router();
 
@@ -34,9 +31,7 @@ export const authRouter = express.Router();
  *         description: Credenciales inválidas
  */
 authRouter.post('/login', authRateLimiter, async (req, res) => {
-  // Aquí iría tu lógica de login existente para verificar email/password
-  // y generar un token con generateToken(user)
-  res.status(501).json({ message: 'Login endpoint not implemented yet' });
+  res.status(501).json({ message: 'Login endpoint not implemented' });
 });
 
 /**
@@ -56,7 +51,7 @@ authRouter.post('/login', authRateLimiter, async (req, res) => {
  */
 authRouter.post('/logout', authMiddleware, async (req, res) => {
   try {
-    const token = req.token; // Token adjuntado por el authMiddleware
+    const { token } = req;
     const decoded = jwt.decode(token);
 
     if (decoded && decoded.exp) {
