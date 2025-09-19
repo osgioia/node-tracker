@@ -1,122 +1,41 @@
 import jwt from 'jsonwebtoken';
+import { getUserById } from '../users/users.service.js';
+import { isTokenBlocklisted } from '../auth/auth.service.js';
 import { logMessage } from '../utils/utils.js';
-import { db } from '../utils/db.server.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-if (!JWT_SECRET || JWT_SECRET.length < 32) {
-  throw new Error('JWT_SECRET must be at least 32 characters long for security');
-}
-
-const tokenBlacklist = new Set();
-
 export const authMiddleware = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication token required' });
+  }
+
+  const token = authHeader.split(' ')[1];
+
   try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      logMessage('warn', `Access without token from IP: ${req.ip}`);
-      return res.status(401).json({ 
-        error: 'Access denied',
-        code: 'NO_TOKEN'
-      });
+    // 1. Verificar si el token está en la lista de bloqueo
+    if (await isTokenBlocklisted(token)) {
+      logMessage('warn', `Attempt to use a blocklisted token from IP: ${req.ip}`);
+      return res.status(401).json({ error: 'Token has been invalidated. Please log in again.' });
     }
 
-    const token = authHeader.split(' ')[1];
-
-    if (tokenBlacklist.has(token)) {
-      logMessage('warn', `Blacklisted token used from IP: ${req.ip}`);
-      return res.status(401).json({ 
-        error: 'Token has been revoked',
-        code: 'TOKEN_REVOKED'
-      });
-    }
-
+    // 2. Verificar la firma y expiración del token
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    const user = await db.user.findUnique({
-      where: { id: decoded.id },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        role: true,
-        banned: true,
-        emailVerified: true
-      }
-    });
-
-    if (!user) {
-      logMessage('warn', `Token for non-existent user: ${decoded.id} from IP: ${req.ip}`);
-      return res.status(401).json({ 
-        error: 'User not found',
-        code: 'USER_NOT_FOUND'
-      });
+    // 3. Obtener el usuario de la base de datos (o caché)
+    const user = await getUserById(decoded.id);
+    if (!user || user.banned) {
+      return res.status(401).json({ error: 'User not found or is banned' });
     }
 
-    if (user.banned) {
-      logMessage('warn', `Banned user attempted access: ${user.username} from IP: ${req.ip}`);
-      return res.status(403).json({ 
-        error: 'User account is banned',
-        code: 'USER_BANNED'
-      });
-    }
-
+    // 4. Adjuntar el usuario y el token a la petición
     req.user = user;
     req.token = token;
-
     next();
   } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      logMessage('warn', `Expired token from IP: ${req.ip}`);
-      return res.status(401).json({ 
-        error: 'Token expired',
-        code: 'TOKEN_EXPIRED'
-      });
-    }
-    
-    if (error.name === 'JsonWebTokenError') {
-      logMessage('warn', `Invalid token from IP: ${req.ip}`);
-      return res.status(401).json({ 
-        error: 'Invalid token',
-        code: 'TOKEN_INVALID'
-      });
-    }
-
-    logMessage('error', `Auth middleware error: ${error.message} from IP: ${req.ip}`);
-    res.status(401).json({ 
-      error: 'Authentication failed',
-      code: 'AUTH_ERROR'
-    });
+    logMessage('warn', `Invalid token provided: ${error.message}`);
+    return res.status(401).json({ error: 'Invalid or expired token' });
   }
-};
-
-export const revokeToken = (token) => {
-  tokenBlacklist.add(token);
-  logMessage('info', 'Token revoked');
-};
-
-export const requireRole = (roles) => {
-  return (req, res, next) => {
-    if (!req.user) {
-      return res.status(401).json({ 
-        error: 'Authentication required',
-        code: 'AUTH_REQUIRED'
-      });
-    }
-
-    const userRoles = Array.isArray(roles) ? roles : [roles];
-    
-    if (!userRoles.includes(req.user.role)) {
-      logMessage('warn', `Insufficient permissions: ${req.user.username} (${req.user.role}) tried to access ${req.path}`);
-      return res.status(403).json({ 
-        error: 'Insufficient permissions',
-        code: 'INSUFFICIENT_PERMISSIONS',
-        required: userRoles,
-        current: req.user.role
-      });
-    }
-
-    next();
-  };
 };
