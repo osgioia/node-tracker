@@ -52,7 +52,7 @@
     "winston": "^3.17.0"
   },
   "devDependencies": {
-    "jest": "^30.0.5",
+    "jest": "^30.2.0",
     "nodemon": "^3.1.10",
     "prisma": "^6.2.1",
     "supertest": "^7.1.4"
