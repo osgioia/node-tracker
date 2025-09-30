@@ -447,7 +447,8 @@ torrentsRouter.get(
 
       const torrent = await getTorrentByInfoHash(
         req.params.infoHash,
-        req.hostname
+        req.hostname, 
+        req.user.passkey
       );
 
       getTorrentCounter.inc();

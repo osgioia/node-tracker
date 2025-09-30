@@ -2,10 +2,10 @@ import { db } from '../utils/db.server.js';
 import { logMessage } from '../utils/utils.js';
 import magnet from 'magnet-uri';
 
-function generateMagnetURI(infoHash, name, hostname) {
+function generateMagnetURI(infoHash, name, hostname,passkey) {
   try {
     const port = process.env.PORT || 3000;
-    const trackerUrl = `${hostname}:${port}/announce`;
+    const trackerUrl = `${hostname}:${port}/announce?passkey=${passkey}`;
     
     const magnetUri = magnet.encode({
       xt: `urn:btih:${infoHash}`,
@@ -108,7 +108,7 @@ async function getTorrentById(id) {
   }
 }
 
-async function getTorrentByInfoHash(infoHash, hostname) {
+async function getTorrentByInfoHash(infoHash, hostname, userPasskey) {
   try {
     const torrent = await db.torrent.findFirst({
       where: { infoHash },
@@ -128,7 +128,7 @@ async function getTorrentByInfoHash(infoHash, hostname) {
       throw new Error('Torrent not found');
     }
 
-    const uri = generateMagnetURI(infoHash, torrent.name, hostname);
+    const uri = generateMagnetURI(infoHash, torrent.name, hostname, userPasskey);
     return uri;
   } catch (error) {
     logMessage('error', `Error getting torrents: ${error.message}`);
