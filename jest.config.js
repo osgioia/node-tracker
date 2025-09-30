@@ -15,7 +15,7 @@ export default {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  testTimeout: 30000, // Aumentado para pruebas de integración
+  testTimeout: 30000, 
   moduleFileExtensions: ['js', 'json'],
   testPathIgnorePatterns: ['/node_modules/'],
   transform: {},

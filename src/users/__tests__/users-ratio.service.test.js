@@ -1,6 +1,5 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 
-// Mock the database
 const mockDb = {
   user: {
     findUnique: jest.fn(),
@@ -11,7 +10,6 @@ const mockDb = {
   }
 };
 
-// Mock utils
 const mockLogMessage = jest.fn();
 
 jest.unstable_mockModule('../../utils/db.server.js', () => ({

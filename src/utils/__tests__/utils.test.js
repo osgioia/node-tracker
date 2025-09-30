@@ -1,6 +1,5 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 
-// Mock modules
 const mockDb = {
   torrent: {
     findUnique: jest.fn()
@@ -42,11 +41,9 @@ jest.unstable_mockModule('winston', () => ({
   }
 }));
 
-// Set up environment variables
 process.env.JWT_SECRET = 'test-secret';
 process.env.JWT_EXPIRES_IN = '1h';
 
-// Import after mocking
 const {
   checkTorrent,
   bannedIPs,
@@ -101,7 +98,7 @@ describe('Utils', () => {
 
   describe('bannedIPs', () => {
     beforeEach(() => {
-      // Mock IP address conversion
+      
       mockAddress4.mockImplementation((ip) => ({
         bigInteger: () => {
           if (ip === '192.168.1.100') {return BigInt('3232235876');}
@@ -180,7 +177,6 @@ describe('Utils', () => {
 
       await bannedIPs(params, callback);
 
-      // Should not ban due to invalid IP conversion
       expect(callback).toHaveBeenCalledWith(null);
     });
 
@@ -216,7 +212,7 @@ describe('Utils', () => {
     });
 
     it('should throw error for invalid user data', () => {
-      const invalidUser = { id: 1 }; // Missing username
+      const invalidUser = { id: 1 }; 
 
       expect(() => generateToken(invalidUser)).toThrow('Invalid user data for token generation');
     });
@@ -226,7 +222,7 @@ describe('Utils', () => {
     });
 
     it('should throw error for user without id', () => {
-      const invalidUser = { username: 'testuser' }; // Missing id
+      const invalidUser = { username: 'testuser' }; 
 
       expect(() => generateToken(invalidUser)).toThrow('Invalid user data for token generation');
     });

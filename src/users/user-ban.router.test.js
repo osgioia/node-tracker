@@ -58,7 +58,6 @@ describe('User Ban Router', () => {
     });
 
     it('should return 403 if user is not admin or moderator', async () => {
-      // Sobreescribimos el mock de autenticación para este test específico
       authMiddleware.mockImplementation((req, res, next) => {
         req.user = { id: 3, username: 'test-user', role: 'USER' };
         next();

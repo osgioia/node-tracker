@@ -1,6 +1,5 @@
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 
-// Mock the database
 const mockDb = {
   user: {
     findUnique: jest.fn(),
@@ -17,7 +16,6 @@ const mockDb = {
   }
 };
 
-// Mock utils
 const mockLogMessage = jest.fn();
 
 jest.unstable_mockModule('../../utils/db.server.js', () => ({
@@ -327,7 +325,7 @@ describe('UserBan Service', () => {
 
       mockDb.userBan.findUnique.mockResolvedValue(mockUserBan);
       mockDb.userBan.update.mockResolvedValue({ ...mockUserBan, active: false });
-      mockDb.userBan.findFirst.mockResolvedValue(null); // No other active bans
+      mockDb.userBan.findFirst.mockResolvedValue(null); 
       mockDb.user.update.mockResolvedValue({ id: 1, banned: false });
 
       const result = await deactivateUserBan(1, 'admin');
@@ -406,7 +404,7 @@ describe('UserBan Service', () => {
 
       mockDb.userBan.findMany.mockResolvedValue(expiredBans);
       mockDb.userBan.updateMany.mockResolvedValue({ count: 2 });
-      mockDb.userBan.findFirst.mockResolvedValue(null); // No other active bans
+      mockDb.userBan.findFirst.mockResolvedValue(null); 
       mockDb.user.update.mockResolvedValue({});
 
       const result = await cleanupExpiredBans();

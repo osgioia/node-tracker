@@ -6,21 +6,17 @@ import path from 'path';
 import morgan from 'morgan';
 import jwt from 'jsonwebtoken';
 
-// Validar JWT_SECRET
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET is not defined in environment variables');
 }
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 
-// Convertir IP a número (IPv4 o IPv6)
 function ipToNumber(ip) {
   try {
-    // Handle IPv4-mapped IPv6 addresses (e.g., ::ffff:192.168.1.1)
     if (ip.includes(':')) {
       const addr6 = new Address6(ip);
       if (addr6.isV4()) {
-        // Convert to IPv4 representation
         const v4 = addr6.to4().address;
         const parts = v4.split('.').map(Number);
         return BigInt(parts[0]) * 16777216n +
@@ -30,7 +26,6 @@ function ipToNumber(ip) {
       }
       return BigInt(addr6.bigInteger());
     } else {
-      // IPv4
       const parts = ip.split('.').map(Number);
       if (parts.length !== 4 || parts.some(part => part < 0 || part > 255)) {
         throw new Error('Invalid IPv4 address');
@@ -46,7 +41,6 @@ function ipToNumber(ip) {
   }
 }
 
-// Configurar Morgan para logging de HTTP
 function setupMorgan(app) {
   let accessLogStream;
 
@@ -60,7 +54,6 @@ function setupMorgan(app) {
   app.use(morgan('combined', { stream: accessLogStream || process.stdout }));
 }
 
-// Configuración de Winston para logging estructurado
 const logger = createLogger({
   level: 'info',
   format: format.combine(
@@ -75,12 +68,10 @@ const logger = createLogger({
   ]
 });
 
-// Función helper para logging
 function logMessage(level, message) {
   logger.log({ level, message });
 }
 
-// Verificar si un torrent existe en la base de datos
 async function checkTorrent(infoHash, callback) {
   try {
     const torrent = await db.torrent.findUnique({
@@ -97,7 +88,6 @@ async function checkTorrent(infoHash, callback) {
   }
 }
 
-// Verificar si una IP está en un rango baneado
 async function bannedIPs(params, callback) {
   try {
     const bannedIPs = await db.IPBan.findMany();
@@ -127,7 +117,27 @@ async function bannedIPs(params, callback) {
   }
 }
 
-// Generar un token JWT para autenticación
+async function checkPassKey(params, callback) {
+  try {
+    const { passkey } = params;
+    if (!passkey) {
+      return callback(new Error('Missing passkey'));
+    }
+
+    const user = await db.user.findUnique({ where: { passkey } });
+    if (!user) {
+      return callback(new Error('Invalid passkey'));
+    }
+
+    logMessage('info', `Announce OK for user ${user.username}`);
+    callback(null);
+  }
+  catch ( error ) {
+    logMessage('error', `Error in checkPasskey: ${error.message}`);
+    callback(error);
+  }
+}
+
 function generateToken(user) {
   if (!user || !user.id || !user.username) {
     throw new Error('Invalid user data for token generation');
@@ -140,10 +150,8 @@ function generateToken(user) {
   );
 }
 
-// Generar una clave de invitación única
 function generateInviteKey() {
   return `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-// Exportar funciones
-export { checkTorrent, bannedIPs, setupMorgan, logMessage, generateToken, generateInviteKey, ipToNumber };
+export { checkTorrent, bannedIPs, setupMorgan, logMessage, generateToken, generateInviteKey, ipToNumber, checkPassKey };

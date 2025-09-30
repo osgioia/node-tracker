@@ -2,7 +2,6 @@ import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 
-// Mock the user-ban service
 const mockUserBanService = {
   createUserBan: jest.fn(),
   banUserForDays: jest.fn(),
@@ -19,7 +18,6 @@ const mockUserBanService = {
   cleanupExpiredBans: jest.fn()
 };
 
-// Mock auth middleware
 const mockAuthMiddleware = jest.fn((req, res, next) => {
   req.user = { id: 1, username: 'testuser', role: 'USER' };
   next();
@@ -30,7 +28,6 @@ jest.unstable_mockModule('../../middleware/auth.js', () => ({
   authMiddleware: mockAuthMiddleware
 }));
 
-// Mock prometheus
 jest.unstable_mockModule('prom-client', () => ({
   Counter: jest.fn().mockImplementation(() => ({
     inc: jest.fn()
@@ -51,7 +48,7 @@ describe('UserBan Router', () => {
 
   describe('GET /api/user-bans', () => {
     it('should list all user bans for admin', async () => {
-      // Mock admin user
+      
       mockAuthMiddleware.mockImplementation((req, res, next) => {
         req.user = { id: 1, username: 'admin', role: 'ADMIN' };
         next();
@@ -196,7 +193,7 @@ describe('UserBan Router', () => {
         .post('/api/user-bans')
         .send({
           userId: 1,
-          reason: 'abc' // Too short
+          reason: 'abc' 
         })
         .expect(400);
     });
@@ -384,7 +381,7 @@ describe('UserBan Router', () => {
         .send({
           userId: 2,
           reason: 'Custom ban reason',
-          days: 500 // Too many days
+          days: 500 
         })
         .expect(400);
     });

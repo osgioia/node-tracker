@@ -2,7 +2,6 @@ import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 
-// Mock the users service
 const mockUsersService = {
   createUser: jest.fn(),
   getUserById: jest.fn(),
@@ -12,7 +11,6 @@ const mockUsersService = {
   getUserStats: jest.fn()
 };
 
-// Mock auth middleware
 const mockAuthMiddleware = jest.fn((req, res, next) => {
   req.user = { id: 1, username: 'testuser', role: 'USER' };
   next();
@@ -23,7 +21,6 @@ jest.unstable_mockModule('../../middleware/auth.js', () => ({
   authMiddleware: mockAuthMiddleware
 }));
 
-// Mock prometheus
 jest.unstable_mockModule('prom-client', () => ({
   Counter: jest.fn().mockImplementation(() => ({
     inc: jest.fn()
@@ -44,7 +41,7 @@ describe('Users Router', () => {
 
   describe('GET /api/users', () => {
     it('should list all users for admin with ratio data', async () => {
-      // Mock admin user
+      
       mockAuthMiddleware.mockImplementation((req, res, next) => {
         req.user = { id: 1, username: 'admin', role: 'ADMIN' };
         next();
@@ -90,7 +87,7 @@ describe('Users Router', () => {
     });
 
     it('should deny access for non-admin users', async () => {
-      // Mock regular user
+      
       mockAuthMiddleware.mockImplementation((req, res, next) => {
         req.user = { id: 1, username: 'user', role: 'USER' };
         next();
@@ -238,7 +235,7 @@ describe('Users Router', () => {
     });
 
     it('should deny access to update other users profile for non-admin', async () => {
-      // Reset to regular user (not admin, different ID)
+      
       mockAuthMiddleware.mockImplementation((req, res, next) => {
         req.user = { id: 1, username: 'testuser', role: 'USER' };
         next();
@@ -278,7 +275,7 @@ describe('Users Router', () => {
     });
 
     it('should deny access for non-admin', async () => {
-      // Reset to regular user (not admin)
+      
       mockAuthMiddleware.mockImplementation((req, res, next) => {
         req.user = { id: 1, username: 'testuser', role: 'USER' };
         next();
@@ -318,7 +315,7 @@ describe('Users Router', () => {
     });
 
     it('should deny access for non-admin', async () => {
-      // Reset to regular user (not admin)
+      
       mockAuthMiddleware.mockImplementation((req, res, next) => {
         req.user = { id: 1, username: 'testuser', role: 'USER' };
         next();

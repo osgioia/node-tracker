@@ -1,12 +1,10 @@
 import { db } from '../utils/db.server.js';
 import { logMessage } from '../utils/utils.js';
 
-// Create a new user ban
 async function createUserBan(banData) {
   try {
     const { userId, reason, bannedBy, expiresAt = null } = banData;
     
-    // Check if user exists
     const user = await db.user.findUnique({
       where: { id: parseInt(userId) },
       select: { id: true, username: true, banned: true }
@@ -16,7 +14,6 @@ async function createUserBan(banData) {
       throw new Error('User not found');
     }
 
-    // Create the ban record
     const userBan = await db.userBan.create({
       data: {
         userId: parseInt(userId),
@@ -35,7 +32,6 @@ async function createUserBan(banData) {
       }
     });
 
-    // Update user banned status
     await db.user.update({
       where: { id: parseInt(userId) },
       data: { banned: true }
@@ -50,7 +46,6 @@ async function createUserBan(banData) {
   }
 }
 
-// Ban user for specific number of days
 async function banUserForDays(userId, reason, bannedBy, days) {
   try {
     const expiresAt = new Date();
@@ -72,22 +67,18 @@ async function banUserForDays(userId, reason, bannedBy, days) {
   }
 }
 
-// Ban user for 7 days
 async function banUserFor7Days(userId, reason, bannedBy) {
   return await banUserForDays(userId, reason, bannedBy, 7);
 }
 
-// Ban user for 15 days
 async function banUserFor15Days(userId, reason, bannedBy) {
   return await banUserForDays(userId, reason, bannedBy, 15);
 }
 
-// Ban user for 30 days
 async function banUserFor30Days(userId, reason, bannedBy) {
   return await banUserForDays(userId, reason, bannedBy, 30);
 }
 
-// Ban user permanently
 async function banUserPermanently(userId, reason, bannedBy) {
   try {
     const banData = {
@@ -106,7 +97,6 @@ async function banUserPermanently(userId, reason, bannedBy) {
   }
 }
 
-// Get user ban by ID
 async function getUserBanById(banId) {
   try {
     const userBan = await db.userBan.findUnique({
@@ -133,7 +123,6 @@ async function getUserBanById(banId) {
   }
 }
 
-// Get all bans for a specific user
 async function getUserBans(userId) {
   try {
     const userBans = await db.userBan.findMany({
@@ -156,7 +145,6 @@ async function getUserBans(userId) {
   }
 }
 
-// Get active ban for a user
 async function getActiveUserBan(userId) {
   try {
     const activeBan = await db.userBan.findFirst({
@@ -185,7 +173,6 @@ async function getActiveUserBan(userId) {
   }
 }
 
-// List all user bans with pagination
 async function getAllUserBans(page = 1, limit = 20, filters = {}) {
   try {
     const skip = (page - 1) * limit;
@@ -239,7 +226,6 @@ async function getAllUserBans(page = 1, limit = 20, filters = {}) {
   }
 }
 
-// Deactivate a user ban (unban)
 async function deactivateUserBan(banId, unbannedBy) {
   try {
     const userBan = await db.userBan.findUnique({
@@ -262,13 +248,11 @@ async function deactivateUserBan(banId, unbannedBy) {
       throw new Error('User ban is already inactive');
     }
 
-    // Deactivate the ban
     const updatedBan = await db.userBan.update({
       where: { id: parseInt(banId) },
       data: { active: false }
     });
 
-    // Check if user has any other active bans
     const otherActiveBans = await db.userBan.findFirst({
       where: {
         userId: userBan.userId,
@@ -297,7 +281,6 @@ async function deactivateUserBan(banId, unbannedBy) {
   }
 }
 
-// Check if a user is currently banned
 async function isUserBanned(userId) {
   try {
     const activeBan = await getActiveUserBan(userId);
@@ -308,7 +291,6 @@ async function isUserBanned(userId) {
   }
 }
 
-// Clean up expired bans (utility function)
 async function cleanupExpiredBans() {
   try {
     const expiredBans = await db.userBan.findMany({
@@ -330,7 +312,6 @@ async function cleanupExpiredBans() {
       return { cleaned: 0 };
     }
 
-    // Deactivate expired bans
     await db.userBan.updateMany({
       where: {
         active: true,
@@ -339,7 +320,6 @@ async function cleanupExpiredBans() {
       data: { active: false }
     });
 
-    // Check each user to see if they should be unbanned
     for (const ban of expiredBans) {
       const otherActiveBans = await db.userBan.findFirst({
         where: {

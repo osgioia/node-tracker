@@ -22,7 +22,7 @@ import {
   securityLogger,
   preventEnumeration
 } from './src/middleware/security.js';
-import { checkTorrent, bannedIPs, setupMorgan, logMessage } from './src/utils/utils.js';
+import { checkTorrent, bannedIPs, setupMorgan, logMessage, checkPasskey } from './src/utils/utils.js';
 
 dotenv.config();
 
@@ -88,8 +88,9 @@ const tracker = new TrackerServer({
   trustProxy: process.env.TRUST_PROXY === 'true',
   filter: async (infoHash, params, callback) => {
     try {
-      await checkTorrent(infoHash, callback);
+      await checkPasskey(params, callback);
       await bannedIPs(params, callback);
+      await checkTorrent(infoHash, callback);      
     } catch (error) {
       logMessage('error', `Error en filtro del tracker: ${error.message}`);
       callback(error);

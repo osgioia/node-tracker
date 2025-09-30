@@ -188,7 +188,6 @@ async function updateUser(id, updateData) {
     
     const dataToUpdate = { ...otherData };
     
-    // Hash new password if provided
     if (password) {
       dataToUpdate.password = await bcrypt.hash(password, 10);
     }

@@ -103,7 +103,6 @@ const updateUserValidation = [
     .withMessage('Banned must be true or false')
 ];
 
-// Apply authentication middleware to all routes
 usersRouter.use(authMiddleware);
 
 /**
@@ -610,7 +609,6 @@ usersRouter.patch('/:id',
 
       const { banned, reason, ...otherUpdates } = req.body;
       
-      // Handle ban/unban separately if provided
       if (banned !== undefined) {
         const updatedUser = await toggleUserBan(req.params.id, banned, reason);
         return res.json({
@@ -619,7 +617,6 @@ usersRouter.patch('/:id',
         });
       }
 
-      // Handle other partial updates
       const updatedUser = await updateUser(req.params.id, otherUpdates);
       
       updateUserCounter.inc();
