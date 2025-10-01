@@ -1,5 +1,4 @@
-import { checkPasskey, bannedIPs, checkTorrent } from '../utils/utils.js';
-import { logMessage } from '../utils/utils.js';
+import { checkPasskey, bannedIPs, checkTorrent, logMessage } from '../utils/utils.js';
 
 export async function applyTrackerFilters(infoHash, params, callback) {
   try {
