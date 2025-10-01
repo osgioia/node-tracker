@@ -109,8 +109,8 @@ const httpServer = http.createServer(app);
 for (const tracker of trackers) {
   if (tracker instanceof WsTracker) tracker.start(httpServer);
   else if (tracker instanceof HttpTracker) tracker.start(app);
-  else if (tracker instanceof UdpTracker) tracker.start(); 
-});
+  else if (tracker instanceof UdpTracker) tracker.start();
+}
 
 app.use(securityLogger);
 app.use(preventEnumeration);
