@@ -5,6 +5,11 @@ import slowDown from 'express-slow-down';
 import helmet from 'helmet';
 import cors from 'cors';
 import { Server as TrackerServer } from 'bittorrent-tracker';
+import { HttpTracker } from './src/tracker/http-strategy.js';
+import { UdpTracker } from './src/tracker/udp-strategy.js';
+import { WsTracker } from './src/tracker/ws-strategy.js';
+import { applyTrackerFilters } from './src/tracker/tracker-filter.js';
+import rateLimit from 'express-rate-limit';
 import { register } from 'prom-client';
 import apiRouter from './src/router.js';
 import { specs, swaggerUi } from './src/config/swagger.js';
@@ -79,27 +84,35 @@ const trackerRateLimiter = rateLimit({
   message: 'Demasiadas solicitudes, inténtalo de nuevo más tarde.'
 });
 
-const tracker = new TrackerServer({
+const trackerServer = new TrackerServer({
   udp: process.env.UDP === 'true',
-  http: true,
+  http: false,  
   ws: process.env.WS === 'true',
   interval: Number(process.env.ANNOUNCE_INTERVAL) || 300,
   stats: process.env.STATS === 'true',
   trustProxy: process.env.TRUST_PROXY === 'true',
-  filter: async (infoHash, params, callback) => {
-    try {
-      await checkPasskey(params, callback);
-      await bannedIPs(params, callback);
-      await checkTorrent(infoHash, callback);      
-    } catch (error) {
-      logMessage('error', `Error en filtro del tracker: ${error.message}`);
-      callback(error);
-    }
-  }
+  filter: applyTrackerFilters
 });
 
-app.use('/announce', trackerRateLimiter, (req, res) => tracker.onHttpRequest(req, res));
-app.use('/scrape', trackerRateLimiter, (req, res) => tracker.onHttpRequest(req, res));
+const trackers = [];
+
+trackers.push(new HttpTracker({ server: trackerServer, rateLimiter: trackerRateLimiter }));
+if (process.env.UDP === 'true') {
+  trackers.push(new UdpTracker({ server: trackerServer }));
+}
+if (process.env.WS === 'true') {
+  trackers.push(new WsTracker({ server: trackerServer }));
+}
+
+const httpServer = http.createServer(app);
+
+trackers.forEach(tracker => {
+  if (tracker instanceof WsTracker) tracker.start(httpServer);
+  else if (tracker instanceof HttpTracker) tracker.start(app);
+  else if (tracker instanceof UdpTracker) tracker.start();
+});
+
+
 
 app.use(securityLogger);
 app.use(preventEnumeration);
@@ -144,7 +157,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal Server Error.' });
 });
 
-const httpServer = http.createServer(app);
 
 const expressPort = process.env.PORT || 3000;
 httpServer.listen(expressPort, () => {
