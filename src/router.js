@@ -40,14 +40,14 @@ router.get('/health', async (req, res) => {
 });
 
 // Metrics
-router.get('/metrics', async (req, res) => {
+router.get('/metrics', authMiddleware, async (req, res) => {
   res.set("Content-Type", register.contentType);
   res.end(await register.metrics());
 });
 
 // Swagger docs
 router.use(
-  '/api-docs',
+  '/api-docs', authMiddleware,
   rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 50,
