@@ -1,9 +1,9 @@
-import { checkPasskey, bannedIPs, checkTorrent, logMessage } from '../utils/utils.js';
+import { checkPassKey, bannedIPs, checkTorrent, logMessage } from '../utils/utils.js';
 
 export async function applyTrackerFilters(infoHash, params, callback) {
   try {
     // Valida passkey
-    await checkPasskey(params, callback);
+    await checkPassKey(params, callback);
 
     // IPs bloqueadas
     await bannedIPs(params, callback);

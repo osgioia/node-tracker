@@ -27,7 +27,7 @@ import {
   securityLogger,
   preventEnumeration
 } from './src/middleware/security.js';
-import { checkTorrent, bannedIPs, setupMorgan, logMessage, checkPasskey } from './src/utils/utils.js';
+import { setupMorgan, logMessage } from './src/utils/utils.js';
 
 dotenv.config();
 
@@ -96,7 +96,7 @@ const trackerServer = new TrackerServer({
 
 const trackers = [];
 
-trackers.push(new HttpTracker({ server: trackerServer, rateLimiter: trackerRateLimiter }));
+trackers.push(new HttpTracker(trackerServer, trackerRateLimiter));
 if (process.env.UDP === 'true') {
   trackers.push(new UdpTracker({ server: trackerServer }));
 }

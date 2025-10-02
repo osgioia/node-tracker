@@ -5,19 +5,28 @@ import path from 'path';
 export default async () => {
   console.log('\n\nSetting up test environment...');
 
-  // Load .env.test variables
+  // Cargar variables de entorno de .env.test
   config({ path: path.resolve(process.cwd(), '.env.test') });
 
-  // Start Docker containers
+  // Arrancar contenedores Docker
   console.log('Starting test database and Redis containers...');
-  execSync('docker-compose -f docker-compose.test.yml up -d', { stdio: 'inherit' });
 
-  // Wait a bit for the database to be ready
+  try {
+    // Intenta usar Docker Compose v2 (docker compose)
+    execSync('docker compose -f docker-compose.test.yml up -d', { stdio: 'inherit' });
+  } catch (err) {
+    console.warn('Docker Compose v2 not found, trying v1 (docker-compose)...');
+    execSync('docker-compose -f docker-compose.test.yml up -d', { stdio: 'inherit' });
+  }
+
+  // Espera para que la base de datos esté lista
+  console.log('Waiting for database to be ready...');
   await new Promise(res => setTimeout(res, 5000));
 
-  // Run Prisma migrations on the test database
+  // Aplicar migraciones de Prisma en la base de datos de test
   console.log('Applying database migrations...');
   execSync('npx prisma migrate deploy', { stdio: 'inherit' });
 
   console.log('Test environment setup complete.');
 };
+
