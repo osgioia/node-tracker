@@ -1,4 +1,9 @@
-import { checkPassKey, bannedIPs, checkTorrent, logMessage } from '../utils/utils.js';
+import {
+  checkPassKey,
+  bannedIPs,
+  checkTorrent,
+  logMessage,
+} from "../utils/utils.js";
 
 export async function applyTrackerFilters(infoHash, params, callback) {
   try {
@@ -10,9 +15,8 @@ export async function applyTrackerFilters(infoHash, params, callback) {
 
     // Torrent permitido
     await checkTorrent(infoHash, callback);
-
   } catch (error) {
-    logMessage('error', `Error en filtros del tracker: ${error.message}`);
+    logMessage("error", `Error en filtros del tracker: ${error.message}`);
     callback(error);
   }
 }
