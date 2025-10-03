@@ -7,9 +7,6 @@ import YAML from 'yaml';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const path = require('path');
-const YAML = require('yaml');
-
 // Load Swagger YAML file from project root
 // This file contains all API documentation in OpenAPI 3.0 format
 const swaggerYamlPath = join(__dirname, '../../swagger.yaml');

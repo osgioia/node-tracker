@@ -11,11 +11,24 @@ export default async () => {
 
   console.log('Stopping test database and Redis containers...');
   try {
-    execSync('docker compose -f docker-compose.test.yml down', { stdio: 'inherit' });
-  } catch (err) {
-    console.warn('Docker Compose v2 not found, trying v1 (docker-compose)...');
-    execSync('docker-compose -f docker-compose.test.yml down', { stdio: 'inherit' });
+    // Check if Docker is available
+    execSync('docker --version', { stdio: 'pipe' });
+    
+    try {
+      // Try Docker Compose v2 first
+      execSync('docker compose -f docker-compose.test.yml down', { stdio: 'inherit' });
+      console.log('✅ Docker containers stopped successfully');
+    } catch (composeErr) {
+      try {
+        execSync('docker-compose -f docker-compose.test.yml down', { stdio: 'inherit' });
+        console.log('✅ Docker containers stopped with v1');
+      } catch (v1Err) {
+        console.warn('⚠️  Failed to stop Docker containers');
+      }
+    }
+  } catch (dockerErr) {
+    console.warn('⚠️  Docker not available, skipping container cleanup');
   }
 
-  console.log('Test environment teardown complete.');
+  console.log('✅ Test environment teardown complete.');
 };

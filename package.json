@@ -10,6 +10,7 @@
     "build": "npx prisma generate  --schema=./prisma/schema.prisma && npx prisma migrate deploy",
     "seed": "node prisma/seed.js",
     "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --detectOpenHandles",
+    "test:unit": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --config jest.unit.config.js",
     "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
     "test:coverage": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage",
     "test:verbose": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --verbose",
