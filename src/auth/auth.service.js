@@ -25,7 +25,7 @@ export async function blocklistToken(token, exp) {
 
 /**
  * Verifica si un token está en la lista de bloqueo.
- * @param {string} token - El token JWT a verificar.
+ * @param {string} token - The JWT token to verify.
  * @returns {Promise<boolean>} - True si el token está bloqueado, false en caso contrario.
  */
 export async function isTokenBlocklisted(token) {

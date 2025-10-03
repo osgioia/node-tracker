@@ -1,0 +1,1123 @@
+openapi: 3.0.0
+info:
+  title: Node Tracker API
+  version: 1.0.0
+  description: REST API for a private BitTorrent tracker with user management, torrents, and IP bans.
+  contact:
+    name: API Support
+    email: support@nodetracker.com
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique user ID
+        username:
+          type: string
+          description: Username
+        email:
+          type: string
+          format: email
+          description: User email
+        role:
+          type: string
+          enum: [USER, MODERATOR, ADMIN]
+          description: User role
+        banned:
+          type: boolean
+          description: Whether the user is banned
+        emailVerified:
+          type: boolean
+          description: Whether the email is verified
+        created:
+          type: string
+          format: date-time
+          description: Creation date
+        uploaded:
+          type: integer
+          description: Total bytes uploaded by the user
+        downloaded:
+          type: integer
+          description: Total bytes downloaded by the user
+        seedtime:
+          type: integer
+          description: Total seed time in seconds
+        ratio:
+          type: number
+          format: float
+          description: Upload/download ratio (uploaded/downloaded)
+
+    Torrent:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique torrent ID
+        name:
+          type: string
+          description: Torrent name
+        description:
+          type: string
+          description: Torrent description
+        infoHash:
+          type: string
+          description: Unique torrent hash
+        size:
+          type: integer
+          description: Size in bytes
+        completed:
+          type: integer
+          description: Number of completed downloads
+        downloads:
+          type: integer
+          description: Total number of downloads
+        anonymous:
+          type: boolean
+          description: Whether the torrent is anonymous
+        freeleech:
+          type: boolean
+          description: Whether the torrent is freeleech
+
+    IPBan:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique ban ID
+        fromIP:
+          type: string
+          description: Start IP of range (as BigInt string)
+        toIP:
+          type: string
+          description: End IP of range (as BigInt string)
+        reason:
+          type: string
+          description: Ban reason
+
+    Invitation:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique invitation ID
+        inviteKey:
+          type: string
+          description: Unique invitation key
+        email:
+          type: string
+          format: email
+          description: Invitee email
+        reason:
+          type: string
+          description: Invitation reason
+        expires:
+          type: string
+          format: date-time
+          description: Expiration date
+        used:
+          type: boolean
+          description: Whether the invitation has been used
+        inviter:
+          type: object
+          properties:
+            id:
+              type: integer
+            username:
+              type: string
+
+    UserBan:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique ban ID
+        userId:
+          type: integer
+          description: Banned user ID
+        reason:
+          type: string
+          description: Ban reason
+        bannedBy:
+          type: string
+          description: Username of admin/moderator who applied the ban
+        bannedAt:
+          type: string
+          format: date-time
+          description: Ban date and time
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Expiration date (null for permanent ban)
+        active:
+          type: boolean
+          description: Whether the ban is active
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+            username:
+              type: string
+            email:
+              type: string
+              format: email
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique category ID
+        name:
+          type: string
+          description: Category name
+
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique tag ID
+        name:
+          type: string
+          description: Tag name
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          description: Username or email
+        password:
+          type: string
+          description: Password
+
+    RegisterRequest:
+      type: object
+      required: [username, email, password]
+      properties:
+        username:
+          type: string
+          description: Username
+        email:
+          type: string
+          format: email
+          description: User email
+        password:
+          type: string
+          description: Password
+        inviteKey:
+          type: string
+          description: Invitation key (optional)
+
+    IPBanRequest:
+      type: object
+      required: [fromIP, toIP]
+      properties:
+        fromIP:
+          type: string
+          description: Start IP of range
+        toIP:
+          type: string
+          description: End IP of range
+        reason:
+          type: string
+          description: Ban reason
+
+    UserBanRequest:
+      type: object
+      required: [userId, reason]
+      properties:
+        userId:
+          type: integer
+          minimum: 1
+          description: ID of user to ban
+        reason:
+          type: string
+          minLength: 5
+          maxLength: 500
+          description: Ban reason
+        expiresAt:
+          type: string
+          format: date-time
+          description: Expiration date (optional, null for permanent)
+
+    QuickBanRequest:
+      type: object
+      required: [userId, reason]
+      properties:
+        userId:
+          type: integer
+          minimum: 1
+          description: ID of user to ban
+        reason:
+          type: string
+          minLength: 5
+          maxLength: 500
+          description: Ban reason
+
+    CustomBanRequest:
+      type: object
+      required: [userId, reason, days]
+      properties:
+        userId:
+          type: integer
+          minimum: 1
+          description: ID of user to ban
+        reason:
+          type: string
+          minLength: 5
+          maxLength: 500
+          description: Ban reason
+        days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          description: Number of ban days
+
+    UserBanStatus:
+      type: object
+      properties:
+        userId:
+          type: integer
+          description: User ID
+        isBanned:
+          type: boolean
+          description: Whether the user is banned
+
+    CleanupResult:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Result message
+        cleaned:
+          type: integer
+          description: Number of bans cleaned
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        pages:
+          type: integer
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+    description: User authentication
+  - name: Users
+    description: User management
+  - name: Torrents
+    description: Torrent management
+  - name: Invitations
+    description: Invitation management
+  - name: IP Bans
+    description: IP ban management
+  - name: UserBans
+    description: User ban management
+  - name: Security
+    description: Security endpoints
+  - name: Health
+    description: System health checks
+  - name: Monitoring
+    description: Metrics and monitoring
+
+paths:
+  /api/auth/login:
+    post:
+      summary: User login
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        200:
+          description: Successful login, returns JWT token
+        401:
+          description: Invalid credentials
+
+  /api/auth/logout:
+    post:
+      summary: User logout
+      description: Invalidates the current user's JWT token.
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Successful logout
+        401:
+          description: Unauthorized
+
+  /api/users:
+    get:
+      summary: List all users (admin only)
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Results limit per page
+      responses:
+        200:
+          description: User list with pagination
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        403:
+          description: Access denied
+
+  /api/users/{id}:
+    get:
+      summary: Get specific user information
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        200:
+          description: User information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        404:
+          description: User not found
+
+  /api/torrents:
+    get:
+      summary: List all torrents with pagination and filters
+      tags: [Torrents]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Results limit per page
+        - in: query
+          name: category
+          schema:
+            type: string
+          description: Filter by category
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search by name
+      responses:
+        200:
+          description: Torrent list with pagination
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  torrents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Torrent'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      summary: Create a new torrent
+      tags: [Torrents]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [infoHash, name]
+              properties:
+                infoHash:
+                  type: string
+                  minLength: 40
+                  maxLength: 40
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                description:
+                  type: string
+                category:
+                  type: string
+                tags:
+                  type: string
+                size:
+                  type: integer
+                  minimum: 0
+                anonymous:
+                  type: boolean
+                freeleech:
+                  type: boolean
+      responses:
+        201:
+          description: Torrent created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Torrent'
+
+  /api/torrents/{id}:
+    get:
+      summary: Get specific torrent information
+      tags: [Torrents]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Torrent ID
+      responses:
+        200:
+          description: Torrent information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Torrent'
+
+    put:
+      summary: Update a torrent
+      tags: [Torrents]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Torrent ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                description:
+                  type: string
+                category:
+                  type: string
+                tags:
+                  type: string
+                anonymous:
+                  type: boolean
+                freeleech:
+                  type: boolean
+      responses:
+        200:
+          description: Torrent updated successfully
+
+    delete:
+      summary: Delete a torrent
+      tags: [Torrents]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Torrent ID
+      responses:
+        200:
+          description: Torrent deleted successfully
+        404:
+          description: Torrent not found
+
+  /api/invitations:
+    get:
+      summary: Get own invitations or all invitations (admin)
+      tags: [Invitations]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number (admin only)
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Results limit per page (admin only)
+      responses:
+        200:
+          description: Invitation list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invitations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Invitation'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      summary: Create a new invitation
+      tags: [Invitations]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, reason]
+              properties:
+                email:
+                  type: string
+                  format: email
+                reason:
+                  type: string
+                expiresInDays:
+                  type: integer
+                  minimum: 1
+                  maximum: 30
+      responses:
+        201:
+          description: Invitation created successfully
+
+  /api/invitations/{id}:
+    get:
+      summary: Get specific invitation information
+      tags: [Invitations]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Invitation ID
+      responses:
+        200:
+          description: Invitation information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invitation'
+
+    delete:
+      summary: Delete an invitation
+      tags: [Invitations]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Invitation ID
+      responses:
+        200:
+          description: Invitation deleted successfully
+
+  /api/ip-bans:
+    get:
+      summary: List all banned IPs
+      tags: [IP Bans]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+          description: Results limit per page
+      responses:
+        200:
+          description: Banned IP list with pagination
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ipBans:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/IPBan'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      summary: Create a new IP ban
+      tags: [IP Bans]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IPBanRequest'
+      responses:
+        201:
+          description: IP ban created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IPBan'
+
+  /api/ip-bans/bulk:
+    post:
+      summary: Create multiple IP bans in bulk
+      tags: [IP Bans]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/IPBanRequest'
+      responses:
+        201:
+          description: IPs banned successfully in bulk
+
+  /api/ip-bans/{id}:
+    put:
+      summary: Update an IP ban
+      tags: [IP Bans]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: IP ban ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IPBanRequest'
+      responses:
+        200:
+          description: IP ban updated successfully
+
+    delete:
+      summary: Delete an IP ban
+      tags: [IP Bans]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: IP ban ID
+      responses:
+        200:
+          description: IP ban deleted successfully
+
+  /api/user-bans:
+    get:
+      summary: List all user bans
+      tags: [UserBans]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Results limit per page
+        - in: query
+          name: active
+          schema:
+            type: boolean
+          description: Filter by active bans
+        - in: query
+          name: userId
+          schema:
+            type: integer
+          description: Filter by user ID
+        - in: query
+          name: bannedBy
+          schema:
+            type: string
+          description: Filter by who applied the ban
+      responses:
+        200:
+          description: Ban list with pagination
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userBans:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserBan'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      summary: Create a new user ban
+      tags: [UserBans]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserBanRequest'
+      responses:
+        201:
+          description: User ban created successfully
+
+  /api/user-bans/quick/7-days:
+    post:
+      summary: Ban user for 7 days
+      tags: [UserBans]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuickBanRequest'
+      responses:
+        201:
+          description: User banned for 7 days
+
+  /api/user-bans/quick/15-days:
+    post:
+      summary: Ban user for 15 days
+      tags: [UserBans]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuickBanRequest'
+      responses:
+        201:
+          description: User banned for 15 days
+
+  /api/user-bans/quick/30-days:
+    post:
+      summary: Ban user for 30 days
+      tags: [UserBans]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuickBanRequest'
+      responses:
+        201:
+          description: User banned for 30 days
+
+  /api/user-bans/quick/permanent:
+    post:
+      summary: Ban user permanently
+      tags: [UserBans]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuickBanRequest'
+      responses:
+        201:
+          description: User banned permanently
+
+  /api/user-bans/custom:
+    post:
+      summary: Ban user for specific days
+      tags: [UserBans]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomBanRequest'
+      responses:
+        201:
+          description: User banned for specific period
+
+  /api/user-bans/{id}:
+    get:
+      summary: Get specific ban information
+      tags: [UserBans]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Ban ID
+      responses:
+        200:
+          description: Ban information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserBan'
+
+    delete:
+      summary: Deactivate a user ban
+      tags: [UserBans]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Ban ID
+      responses:
+        200:
+          description: Ban deactivated successfully
+
+  /api/user-bans/user/{userId}:
+    get:
+      summary: Get bans for a specific user
+      tags: [UserBans]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        200:
+          description: User ban list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserBan'
+
+  /api/user-bans/check/{userId}:
+    get:
+      summary: Check if a user is banned
+      tags: [UserBans]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        200:
+          description: User ban status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserBanStatus'
+
+  /api/user-bans/cleanup:
+    post:
+      summary: Clean up expired bans
+      tags: [UserBans]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Cleanup completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CleanupResult'
+
+  /api/security/csp-report:
+    post:
+      summary: Receive CSP violation reports
+      tags: [Security]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        204:
+          description: Report received
+
+  /api/security/health:
+    get:
+      summary: Security health check
+      tags: [Security]
+      responses:
+        200:
+          description: System secure
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  timestamp:
+                    type: string
+                  security:
+                    type: object
+
+  /health:
+    get:
+      summary: General service health check
+      tags: [Health]
+      responses:
+        200:
+          description: Service running correctly
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: Database error
+
+  /metrics:
+    get:
+      summary: Prometheus metrics
+      tags: [Monitoring]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Metrics in Prometheus format
+          content:
+            text/plain:
+              schema:
+                type: string

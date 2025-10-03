@@ -20,13 +20,6 @@ import {
 
 export const userBanRouter = express.Router();
 
-/**
- * @swagger
- * tags:
- *   name: UserBans
- *   description: Gestión de baneos de usuarios
- */
-
 const createBanCounter = new Counter({
   name: 'create_user_ban_requests',
   help: 'Count create user ban requests'
@@ -92,53 +85,6 @@ const quickBanValidation = [
 
 userBanRouter.use(authMiddleware);
 
-/**
- * @swagger
- * /api/user-bans:
- *   get:
- *     summary: Listar todos los baneos de usuarios
- *     tags: [UserBans]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Número de página
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 20
- *         description: Límite de resultados por página
- *       - in: query
- *         name: active
- *         schema:
- *           type: boolean
- *         description: Filtrar por baneos activos
- *       - in: query
- *         name: userId
- *         schema:
- *           type: integer
- *         description: Filtrar por ID de usuario
- *       - in: query
- *         name: bannedBy
- *         schema:
- *           type: string
- *         description: Filtrar por quien aplicó el ban
- *     responses:
- *       200:
- *         description: Lista de baneos con paginación
- *       403:
- *         description: Acceso denegado
- *       500:
- *         description: Error interno del servidor
- */
 userBanRouter.get('/',
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive number'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
@@ -177,52 +123,6 @@ userBanRouter.get('/',
   }
 );
 
-/**
- * @swagger
- * /api/user-bans:
- *   post:
- *     summary: Crear un nuevo baneo de usuario
- *     tags: [UserBans]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/UserBanRequest'
- *     responses:
- *       201:
- *         description: Baneo creado exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: 'User ban created successfully'
- *                 userBan:
- *                   $ref: '#/components/schemas/UserBan'
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Acceso denegado - Se requiere rol de administrador o moderador
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Usuario no encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 userBanRouter.post('/',
   createBanValidation,
   requireAdminOrModerator,
@@ -254,53 +154,6 @@ userBanRouter.post('/',
   }
 );
 
-/**
- * @swagger
- * /api/user-bans/quick/7-days:
- *   post:
- *     summary: Banear usuario por 7 días
- *     description: Aplica un ban temporal de 7 días a un usuario específico
- *     tags: [UserBans]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/QuickBanRequest'
- *     responses:
- *       201:
- *         description: Usuario baneado por 7 días exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: 'User banned for 7 days successfully'
- *                 userBan:
- *                   $ref: '#/components/schemas/UserBan'
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Acceso denegado - Se requiere rol de administrador o moderador
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Usuario no encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 userBanRouter.post('/quick/7-days',
   quickBanValidation,
   requireAdminOrModerator,
@@ -327,53 +180,6 @@ userBanRouter.post('/quick/7-days',
   }
 );
 
-/**
- * @swagger
- * /api/user-bans/quick/15-days:
- *   post:
- *     summary: Banear usuario por 15 días
- *     description: Aplica un ban temporal de 15 días a un usuario específico
- *     tags: [UserBans]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/QuickBanRequest'
- *     responses:
- *       201:
- *         description: Usuario baneado por 15 días exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: 'User banned for 15 days successfully'
- *                 userBan:
- *                   $ref: '#/components/schemas/UserBan'
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Acceso denegado - Se requiere rol de administrador o moderador
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Usuario no encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 userBanRouter.post('/quick/15-days',
   quickBanValidation,
   requireAdminOrModerator,
@@ -400,53 +206,6 @@ userBanRouter.post('/quick/15-days',
   }
 );
 
-/**
- * @swagger
- * /api/user-bans/quick/30-days:
- *   post:
- *     summary: Banear usuario por 30 días
- *     description: Aplica un ban temporal de 30 días a un usuario específico
- *     tags: [UserBans]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/QuickBanRequest'
- *     responses:
- *       201:
- *         description: Usuario baneado por 30 días exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: 'User banned for 30 days successfully'
- *                 userBan:
- *                   $ref: '#/components/schemas/UserBan'
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Acceso denegado - Se requiere rol de administrador o moderador
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Usuario no encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 userBanRouter.post('/quick/30-days',
   quickBanValidation,
   requireAdminOrModerator,
@@ -473,53 +232,6 @@ userBanRouter.post('/quick/30-days',
   }
 );
 
-/**
- * @swagger
- * /api/user-bans/quick/permanent:
- *   post:
- *     summary: Banear usuario permanentemente
- *     description: Aplica un ban permanente a un usuario específico (solo administradores)
- *     tags: [UserBans]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/QuickBanRequest'
- *     responses:
- *       201:
- *         description: Usuario baneado permanentemente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: 'User banned permanently'
- *                 userBan:
- *                   $ref: '#/components/schemas/UserBan'
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Acceso denegado - Se requiere rol de administrador
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Usuario no encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 userBanRouter.post('/quick/permanent',
   quickBanValidation,
   requireAdmin,
@@ -546,53 +258,6 @@ userBanRouter.post('/quick/permanent',
   }
 );
 
-/**
- * @swagger
- * /api/user-bans/custom:
- *   post:
- *     summary: Banear usuario por número personalizado de días
- *     description: Aplica un ban temporal por un número específico de días (1-365)
- *     tags: [UserBans]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/CustomBanRequest'
- *     responses:
- *       201:
- *         description: Usuario baneado por número personalizado de días
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: 'User banned for 5 days successfully'
- *                 userBan:
- *                   $ref: '#/components/schemas/UserBan'
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Acceso denegado - Se requiere rol de administrador o moderador
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Usuario no encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 userBanRouter.post('/custom',
   banForDaysValidation,
   requireAdminOrModerator,
@@ -619,49 +284,6 @@ userBanRouter.post('/custom',
   }
 );
 
-/**
- * @swagger
- * /api/user-bans/{id}:
- *   get:
- *     summary: Obtener baneo por ID
- *     description: Obtiene los detalles de un baneo específico por su ID
- *     tags: [UserBans]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *           minimum: 1
- *         description: ID del baneo
- *     responses:
- *       200:
- *         description: Detalles del baneo
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UserBan'
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Acceso denegado - Se requiere rol de administrador o moderador
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Baneo no encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 userBanRouter.get('/:id',
   param('id').isInt({ min: 1 }).withMessage('ID must be a positive integer'),
   requireAdminOrModerator,
@@ -682,55 +304,6 @@ userBanRouter.get('/:id',
   }
 );
 
-/**
- * @swagger
- * /api/user-bans/{id}/deactivate:
- *   patch:
- *     summary: Desactivar baneo (desbanear usuario)
- *     description: Desactiva un baneo específico, desbaneando al usuario si no tiene otros bans activos
- *     tags: [UserBans]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *           minimum: 1
- *         description: ID del baneo a desactivar
- *     responses:
- *       200:
- *         description: Baneo desactivado exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: 'User ban deactivated successfully'
- *                 userBan:
- *                   $ref: '#/components/schemas/UserBan'
- *       400:
- *         description: Error de validación o baneo ya inactivo
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Acceso denegado - Se requiere rol de administrador o moderador
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Baneo no encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 userBanRouter.patch('/:id/deactivate',
   param('id').isInt({ min: 1 }).withMessage('ID must be a positive integer'),
   requireAdminOrModerator,
@@ -755,51 +328,6 @@ userBanRouter.patch('/:id/deactivate',
   }
 );
 
-/**
- * @swagger
- * /api/user-bans/user/{userId}:
- *   get:
- *     summary: Obtener todos los baneos de un usuario específico
- *     description: Obtiene el historial completo de baneos de un usuario específico
- *     tags: [UserBans]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: integer
- *           minimum: 1
- *         description: ID del usuario
- *     responses:
- *       200:
- *         description: Lista de baneos del usuario
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/UserBan'
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Acceso denegado - Se requiere rol de administrador o moderador
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Error interno del servidor
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 userBanRouter.get('/user/:userId',
   param('userId').isInt({ min: 1 }).withMessage('User ID must be a positive integer'),
   requireAdminOrModerator,
@@ -820,59 +348,6 @@ userBanRouter.get('/user/:userId',
   }
 );
 
-/**
- * @swagger
- * /api/user-bans/user/{userId}/active:
- *   get:
- *     summary: Obtener baneo activo de un usuario
- *     description: Obtiene el baneo activo actual de un usuario específico (si existe)
- *     tags: [UserBans]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: integer
- *           minimum: 1
- *         description: ID del usuario
- *     responses:
- *       200:
- *         description: Baneo activo del usuario
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UserBan'
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Acceso denegado - Se requiere rol de administrador o moderador
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: No se encontró baneo activo para este usuario
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: 'No active ban found for this user'
- *       500:
- *         description: Error interno del servidor
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 userBanRouter.get('/user/:userId/active',
   param('userId').isInt({ min: 1 }).withMessage('User ID must be a positive integer'),
   requireAdminOrModerator,
@@ -897,49 +372,6 @@ userBanRouter.get('/user/:userId/active',
   }
 );
 
-/**
- * @swagger
- * /api/user-bans/user/{userId}/status:
- *   get:
- *     summary: Verificar si un usuario está baneado
- *     description: Verifica el estado de ban de un usuario específico
- *     tags: [UserBans]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: integer
- *           minimum: 1
- *         description: ID del usuario
- *     responses:
- *       200:
- *         description: Estado de ban del usuario
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UserBanStatus'
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Acceso denegado - Se requiere rol de administrador o moderador
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Error interno del servidor
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 userBanRouter.get('/user/:userId/status',
   param('userId').isInt({ min: 1 }).withMessage('User ID must be a positive integer'),
   requireAdminOrModerator,
@@ -963,35 +395,6 @@ userBanRouter.get('/user/:userId/status',
   }
 );
 
-/**
- * @swagger
- * /api/user-bans/cleanup:
- *   post:
- *     summary: Limpiar baneos expirados (solo admin)
- *     description: Limpia automáticamente todos los baneos expirados y desbanea usuarios si no tienen otros bans activos
- *     tags: [UserBans]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Limpieza de baneos completada exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/CleanupResult'
- *       403:
- *         description: Acceso denegado - Se requiere rol de administrador
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Error interno del servidor
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 userBanRouter.post('/cleanup',
   requireAdmin,
   async (req, res) => {

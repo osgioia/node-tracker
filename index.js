@@ -124,7 +124,7 @@ app.use("/", apiRouter);
 
 // ----------------- Error handler -----------------
 app.use((err, req, res, next) => {
-  logMessage("error", `Error no manejado: ${err.message}`);
+  logMessage("error", `Unhandled error: ${err.message}`);
   res.status(500).json({ error: "Internal Server Error." });
 });
 
@@ -136,12 +136,12 @@ httpServer.listen(PORT, () => {
 
 // ----------------- Graceful shutdown -----------------
 process.on("SIGINT", async () => {
-  logMessage("info", "Cerrando servidor...");
+  logMessage("info", "Shutting down server...");
   try {
     await db.$disconnect();
-    logMessage("info", "Base de datos desconectada.");
+    logMessage("info", "Database disconnected.");
   } catch (error) {
-    logMessage("error", `Error al desconectar la base de datos: ${error.message}`);
+    logMessage("error", `Error disconnecting database: ${error.message}`);
   }
   process.exit(0);
 });

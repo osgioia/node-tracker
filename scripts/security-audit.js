@@ -8,7 +8,7 @@
 import fs from 'fs';
 import { execSync } from 'child_process';
 
-const COLORS = {
+con    this.log('\n😦 Verifying rate limiting...', 'info');t COLORS = {
   RED: '\x1b[31m',
   GREEN: '\x1b[32m',
   YELLOW: '\x1b[33m',
@@ -56,16 +56,16 @@ class SecurityAuditor {
     }
   }
 
-  // Verificar configuración de JWT
+  // Verify JWT configuration
   checkJWTSecurity() {
-    this.log('\n🔐 Verificando seguridad JWT...', 'info');
+    this.log('\n🔐 Verifying JWT security...', 'info');
     
     try {
       const envContent = fs.readFileSync('.env', 'utf8');
       const jwtSecret = envContent.match(/JWT_SECRET\s*=\s*(.+)/)?.[1]?.trim();
       
       if (!jwtSecret) {
-        this.addResult('JWT Secret', false, 'JWT_SECRET no encontrado en .env', 'critical');
+        this.addResult('JWT Secret', false, 'JWT_SECRET not found in .env', 'critical');
         return;
       }
 
@@ -77,7 +77,7 @@ class SecurityAuditor {
         this.addResult('JWT Secret', true, `JWT_SECRET tiene longitud segura (${jwtSecret.length} chars)`);
       }
 
-      // Verificar entropía del secret
+      // Verify secret entropy
       const entropy = this.calculateEntropy(jwtSecret);
       if (entropy < 4.0) {
         this.addResult('JWT Entropy', false, `Baja entropía en JWT_SECRET (${entropy.toFixed(2)})`, 'high');
@@ -86,11 +86,11 @@ class SecurityAuditor {
       }
 
     } catch (error) {
-      this.addResult('JWT Config', false, `Error leyendo configuración JWT: ${error.message}`, 'critical');
+      this.addResult('JWT Config', false, `Error reading JWT configuration: ${error.message}`, 'critical');
     }
   }
 
-  // Calcular entropía de una cadena
+  // Calculate entropy of a string
   calculateEntropy(str) {
     const freq = {};
     for (const char of str) {
@@ -110,7 +110,7 @@ class SecurityAuditor {
 
   // Verificar dependencias vulnerables
   checkVulnerableDependencies() {
-    this.log('\n📦 Verificando dependencias vulnerables...', 'info');
+    this.log('\n📦 Verifying vulnerable dependencies...', 'info');
     
     try {
       const auditResult = execSync('npm audit --json', { encoding: 'utf8' });
@@ -138,23 +138,23 @@ class SecurityAuditor {
     }
   }
 
-  // Verificar configuración de seguridad
+  // Verify security configuration
   checkSecurityConfig() {
-    this.log('\n⚙️ Verificando configuración de seguridad...', 'info');
+    this.log('\n⚙️ Verifying security configuration...', 'info');
     
     try {
-      // Verificar que existe el archivo de configuración de seguridad
+      // Verify that security configuration file exists
       if (fs.existsSync('src/config/security.js')) {
-        this.addResult('Security Config', true, 'Archivo de configuración de seguridad encontrado');
+        this.addResult('Security Config', true, 'Security configuration file found');
       } else {
-        this.addResult('Security Config', false, 'Archivo de configuración de seguridad no encontrado', 'high');
+        this.addResult('Security Config', false, 'Security configuration file not found', 'high');
       }
 
       // Verificar middleware de seguridad
       if (fs.existsSync('src/middleware/security.js')) {
-        this.addResult('Security Middleware', true, 'Middleware de seguridad encontrado');
+        this.addResult('Security Middleware', true, 'Security middleware found');
       } else {
-        this.addResult('Security Middleware', false, 'Middleware de seguridad no encontrado', 'high');
+        this.addResult('Security Middleware', false, 'Security middleware not found', 'high');
       }
 
       // Verificar helmet en package.json
@@ -162,28 +162,28 @@ class SecurityAuditor {
       if (packageJson.dependencies.helmet) {
         this.addResult('Helmet.js', true, 'Helmet.js instalado para headers de seguridad');
       } else {
-        this.addResult('Helmet.js', false, 'Helmet.js no encontrado', 'medium');
+        this.addResult('Helmet.js', false, 'Helmet.js not found', 'medium');
       }
 
       // Verificar CORS
       if (packageJson.dependencies.cors) {
-        this.addResult('CORS', true, 'CORS configurado');
+        this.addResult('CORS', true, 'CORS configured');
       } else {
-        this.addResult('CORS', false, 'CORS no configurado', 'medium');
+        this.addResult('CORS', false, 'CORS not configured', 'medium');
       }
 
     } catch (error) {
-      this.addResult('Security Config', false, `Error verificando configuración: ${error.message}`, 'medium');
+      this.addResult('Security Config', false, `Error verifying configuration: ${error.message}`, 'medium');
     }
   }
 
   // Verificar archivos sensibles
   checkSensitiveFiles() {
-    this.log('\n📁 Verificando archivos sensibles...', 'info');
+    this.log('\n📁 Verifying sensitive files...', 'info');
     
     // Verificar que .env existe
     if (fs.existsSync('.env')) {
-      this.addResult('Environment File', true, 'Archivo .env encontrado');
+      this.addResult('Environment File', true, 'Environment file found');
       
       // Verificar permisos de .env (solo en sistemas Unix)
       if (process.platform !== 'win32') {
@@ -196,11 +196,11 @@ class SecurityAuditor {
             this.addResult('Env Permissions', false, `Permisos de .env inseguros: ${mode.toString(8)}`, 'medium');
           }
         } catch (error) {
-          this.addResult('Env Permissions', false, `Error verificando permisos: ${error.message}`, 'low');
+          this.addResult('Env Permissions', false, `Error verifying permissions: ${error.message}`, 'low');
         }
       }
     } else {
-      this.addResult('Environment File', false, 'Archivo .env no encontrado', 'critical');
+      this.addResult('Environment File', false, 'Environment file not found', 'critical');
     }
 
     // Verificar .gitignore
@@ -214,7 +214,7 @@ class SecurityAuditor {
     }
   }
 
-  // Verificar configuración de rate limiting
+  // Verify rate limiting configuration
   checkRateLimiting() {
     this.log('\n🚦 Verificando rate limiting...', 'info');
     
@@ -222,9 +222,9 @@ class SecurityAuditor {
       const indexContent = fs.readFileSync('index.js', 'utf8');
       
       if (indexContent.includes('express-rate-limit')) {
-        this.addResult('Rate Limiting', true, 'Rate limiting configurado');
+        this.addResult('Rate Limiting', true, 'Rate limiting configured');
       } else {
-        this.addResult('Rate Limiting', false, 'Rate limiting no encontrado', 'high');
+        this.addResult('Rate Limiting', false, 'Rate limiting not found', 'high');
       }
 
       if (indexContent.includes('express-slow-down')) {
@@ -273,7 +273,7 @@ class SecurityAuditor {
     }
   }
 
-  // Verificar validación de entrada
+  // Verify input validation
   checkInputValidation() {
     this.log('\n🔍 Verificando validación de entrada...', 'info');
     
@@ -286,7 +286,7 @@ class SecurityAuditor {
         this.addResult('Input Validation', false, 'Express-validator no encontrado', 'high');
       }
 
-      // Verificar middleware de sanitización
+      // Verify sanitization middleware
       if (fs.existsSync('src/middleware/security.js')) {
         const securityContent = fs.readFileSync('src/middleware/security.js', 'utf8');
         if (securityContent.includes('sanitizeInput')) {
@@ -332,7 +332,7 @@ class SecurityAuditor {
     this.log(`\n🛡️  NIVEL DE SEGURIDAD: ${securityLevel}`, 'info');
     this.log(`💡 RECOMENDACIÓN: ${recommendation}`, 'info');
     
-    // Mostrar issues críticos
+    // Show critical issues
     const criticalIssues = this.results.issues.filter(i => !i.passed && i.severity === 'critical');
     if (criticalIssues.length > 0) {
       this.log('\n🚨 ISSUES CRÍTICOS A CORREGIR:', 'error');
@@ -341,7 +341,7 @@ class SecurityAuditor {
       });
     }
     
-    // Mostrar próximos pasos
+    // Show next steps
     this.log('\n📋 PRÓXIMOS PASOS:', 'info');
     if (this.results.failed > 0) {
       this.log(`   1. Corregir ${this.results.failed} issues críticos`, 'error');
@@ -357,7 +357,7 @@ class SecurityAuditor {
     return score;
   }
 
-  // Ejecutar auditoría completa
+  // Run complete audit
   async runAudit() {
     this.log(`${COLORS.BOLD}🔒 INICIANDO AUDITORÍA DE SEGURIDAD OWASP${COLORS.RESET}`, 'info');
     this.log(`Fecha: ${new Date().toISOString()}`, 'info');
@@ -381,7 +381,7 @@ class SecurityAuditor {
   }
 }
 
-// Ejecutar auditoría si se llama directamente
+// Run audit if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const auditor = new SecurityAuditor();
   auditor.runAudit().catch(console.error);

@@ -4,9 +4,9 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Iniciando seed de la base de datos...');
+  console.log('🌱 Starting database seed...');
 
-  // Limpiar datos existentes (opcional)
+  // Clean existing data (optional)
   await prisma.progress.deleteMany();
   await prisma.bookmark.deleteMany();
   await prisma.torrent.deleteMany();
@@ -19,9 +19,9 @@ async function main() {
   await prisma.iPBan.deleteMany();
   await prisma.geoIP.deleteMany();
 
-  console.log('🧹 Datos existentes eliminados');
+  console.log('🧹 Existing data deleted');
 
-  // Crear categorías
+  // Create categories
   const categories = await Promise.all([
     prisma.category.create({
       data: { name: 'Películas' }
@@ -43,26 +43,26 @@ async function main() {
     })
   ]);
 
-  console.log('📂 Categorías creadas');
+  console.log('📂 Categories created');
 
-  // Crear tags
+  // Create tags
   const tags = await Promise.all([
     prisma.tag.create({ data: { name: 'HD' } }),
     prisma.tag.create({ data: { name: '4K' } }),
     prisma.tag.create({ data: { name: 'Subtitulado' } }),
     prisma.tag.create({ data: { name: 'Latino' } }),
-    prisma.tag.create({ data: { name: 'Inglés' } }),
+    prisma.tag.create({ data: { name: 'English' } }),
     prisma.tag.create({ data: { name: 'Clásico' } }),
     prisma.tag.create({ data: { name: 'Nuevo' } }),
     prisma.tag.create({ data: { name: 'Popular' } })
   ]);
 
-  console.log('🏷️ Tags creados');
+  console.log('🏷️ Tags created');
 
-  // Hash para contraseñas
+  // Hash for passwords
   const hashedPassword = await bcrypt.hash('password123', 10);
 
-  // Crear usuarios
+  // Create users
   const users = await Promise.all([
     prisma.user.create({
       data: {
@@ -76,7 +76,7 @@ async function main() {
         emailVerified: true,
         uploaded: BigInt(1000000000), // 1GB
         downloaded: BigInt(500000000), // 500MB
-        seedtime: BigInt(86400) // 1 día en segundos
+        seedtime: BigInt(86400) // 1 day in seconds
       }
     }),
     prisma.user.create({
@@ -96,8 +96,8 @@ async function main() {
     }),
     prisma.user.create({
       data: {
-        username: 'usuario1',
-        email: 'usuario1@example.com',
+        username: 'user1',
+        email: 'user1@example.com',
         password: hashedPassword,
         created: new Date(),
         banned: false,
@@ -111,8 +111,8 @@ async function main() {
     }),
     prisma.user.create({
       data: {
-        username: 'usuario2',
-        email: 'usuario2@example.com',
+        username: 'user2',
+        email: 'user2@example.com',
         password: hashedPassword,
         created: new Date(),
         banned: false,
@@ -126,7 +126,7 @@ async function main() {
     })
   ]);
 
-  console.log('👥 Usuarios creados'); // Crear Torrents
+  console.log('👥 Users created'); // Create Torrents
   const torrents = await Promise.all([
     prisma.torrent.create({
       data: {
@@ -204,7 +204,7 @@ async function main() {
         categoryId: categories[3].id,
         tags: {
           connect: [
-            { id: tags[4].id }, // Inglés
+            { id: tags[4].id }, // English
             { id: tags[6].id } // Nuevo
           ]
         }
@@ -212,17 +212,17 @@ async function main() {
     })
   ]);
 
-  console.log('🎬 Torrents creados');
+  console.log('🎬 Torrents created');
 
-  // Crear invitaciones
+  // Create invitations
   const invites = await Promise.all([
     prisma.invite.create({
       data: {
         inviterId: users[0].id,
         inviteKey: 'invite-key-admin-001',
-        email: 'nuevo-usuario1@example.com',
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 días
-        reason: 'Usuario recomendado por la comunidad',
+        email: 'new-user1@example.com',
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        reason: 'User recommended by the community',
         used: false
       }
     }),
@@ -230,8 +230,8 @@ async function main() {
       data: {
         inviterId: users[1].id,
         inviteKey: 'invite-key-mod-002',
-        email: 'nuevo-usuario2@example.com',
-        expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 días
+        email: 'new-user2@example.com',
+        expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
         reason: 'Amigo personal',
         used: false
       }
@@ -240,7 +240,7 @@ async function main() {
       data: {
         inviterId: users[0].id,
         inviteKey: 'invite-key-used-003',
-        email: 'usuario-existente@example.com',
+        email: 'existing-user@example.com',
         expires: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // Expirada
         reason: 'Invitación de prueba',
         used: true
@@ -248,9 +248,9 @@ async function main() {
     })
   ]);
 
-  console.log('📧 Invitaciones creadas');
+  console.log('📧 Invitations created');
 
-  // Crear bookmarks
+  // Create bookmarks
   const bookmarks = await Promise.all([
     prisma.bookmark.create({
       data: {
@@ -268,9 +268,9 @@ async function main() {
     })
   ]);
 
-  console.log('🔖 Bookmarks creados');
+  console.log('🔖 Bookmarks created');
 
-  // Crear progreso de descarga
+  // Create download progress
   const progress = await Promise.all([
     prisma.progress.create({
       data: {
@@ -292,9 +292,9 @@ async function main() {
     })
   ]);
 
-  console.log('📊 Progreso de descargas creado');
+  console.log('📊 Download progress created');
 
-  // Crear algunos bans de IP de ejemplo
+  // Create some example IP bans
   const ipBans = await Promise.all([
     prisma.iPBan.create({
       data: {
@@ -312,9 +312,9 @@ async function main() {
     })
   ]);
 
-  console.log('🚫 Bans de IP creados');
+  console.log('🚫 IP bans created');
 
-  // Crear árbol de invitaciones
+  // Create invitation tree
   const inviteTree = await Promise.all([
     prisma.inviteTreeNode.create({
       data: {
@@ -330,9 +330,9 @@ async function main() {
     })
   ]);
 
-  console.log('🌳 Árbol de invitaciones creado');
+  console.log('🌳 Invitation tree created');
 
-  // Crear algunos datos de GeoIP de ejemplo
+  // Create some example GeoIP data
   const geoIPs = await Promise.all([
     prisma.geoIP.create({
       data: {
@@ -345,25 +345,25 @@ async function main() {
       data: {
         startIP: BigInt('3232235520'), // 192.168.0.0
         endIP: BigInt('3232301055'), // 192.168.255.255
-        code: 'XX' // Código para redes privadas
+        code: 'XX' // Code for private networks
       }
     })
   ]);
 
-  console.log('🌍 Datos de GeoIP creados');
+  console.log('🌍 GeoIP data created');
 
-  console.log('✅ Seed completado exitosamente!');
+  console.log('✅ Seed completed successfully!');
   console.log(`
-📊 Resumen de datos creados:
-- ${categories.length} categorías
+📊 Summary of created data:
+- ${categories.length} categories
 - ${tags.length} tags
-- ${users.length} usuarios
+- ${users.length} users
 - ${torrents.length} torrents
-- ${invites.length} invitaciones
+- ${invites.length} invitations
 - ${bookmarks.length} bookmarks
 - ${progress.length} registros de progreso
 - ${ipBans.length} bans de IP
-- ${inviteTree.length} nodos del árbol de invitaciones
+- ${inviteTree.length} invitation tree nodes
 - ${geoIPs.length} registros de GeoIP
   `);
 }

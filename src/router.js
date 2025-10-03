@@ -34,7 +34,7 @@ router.get('/health', async (req, res) => {
     await db.$queryRaw`SELECT 1`;
     res.status(200).send("OK");
   } catch (err) {
-    logMessage("error", `Error en health check: ${err.message}`);
+    logMessage("error", `Health check error: ${err.message}`);
     res.status(500).send("Database Error");
   }
 });

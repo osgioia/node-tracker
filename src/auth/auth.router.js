@@ -7,48 +7,10 @@ import { authRateLimiter } from '../middleware/rateLimit.js';
 
 export const authRouter = express.Router();
 
-/**
- * @swagger
- * /api/auth/login:
- *   post:
- *     summary: Iniciar sesión de usuario
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Login exitoso, devuelve token JWT
- *       401:
- *         description: Credenciales inválidas
- */
 authRouter.post('/login', authRateLimiter, async (req, res) => {
   res.status(501).json({ message: 'Login endpoint not implemented' });
 });
 
-/**
- * @swagger
- * /api/auth/logout:
- *   post:
- *     summary: Cerrar sesión de usuario
- *     description: Invalida el token JWT actual del usuario.
- *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Logout exitoso
- *       401:
- *         description: No autorizado
- */
 authRouter.post('/logout', authMiddleware, async (req, res) => {
   try {
     const { token } = req;

@@ -16,7 +16,7 @@ export async function applyTrackerFilters(infoHash, params, callback) {
     // Torrent permitido
     await checkTorrent(infoHash, callback);
   } catch (error) {
-    logMessage("error", `Error en filtros del tracker: ${error.message}`);
+    logMessage("error", `Tracker filter error: ${error.message}`);
     callback(error);
   }
 }

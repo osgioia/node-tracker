@@ -115,20 +115,44 @@ RATE_LIMIT_MAX=100
 
 The project includes comprehensive test coverage. Run:
 
+## 📚 API Documentation
+
+The API is fully documented using OpenAPI 3.0 specification.
+
+- **Access**: `http://localhost:3000/api-docs` (requires authentication)
+- **Format**: YAML specification in `/swagger.yaml`
+- **Guide**: See `/docs/swagger-guide.md` for documentation maintenance
+
+### Available Endpoints
+
+- **Authentication**: `/api/auth/*` - User login/logout
+- **Users**: `/api/users/*` - User management (admin)
+- **Torrents**: `/api/torrents/*` - Torrent CRUD operations
+- **Invitations**: `/api/invitations/*` - Invitation system
+- **User Bans**: `/api/user-bans/*` - User ban management
+- **IP Bans**: `/api/ip-bans/*` - IP ban management
+- **Security**: `/api/security/*` - Security endpoints
+- **Monitoring**: `/health`, `/metrics` - Health checks and metrics
+
+---
+
+## 🧪 Testing
+
 ```bash
 # Run all tests
 npm test
 
-# Run in watch mode
-npm run test:watch
-
-# Run with coverage
+# Run tests with coverage
 npm run test:coverage
 
-# Run specific tests
-npm test src/users/__tests__/user-ban.service.test.js
-npm test src/users/__tests__/users-ratio.service.test.js
+# Run tests in watch mode
+npm test:watch
+
+# Run linting
+npm run lint
 ```
+
+---
 
 ---
 

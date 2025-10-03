@@ -13,13 +13,6 @@ import {
 
 export const torrentsRouter = express.Router();
 
-/**
- * @swagger
- * tags:
- *   name: Torrents
- *   description: Gestión de torrents
- */
-
 const getTorrentCounter = new Counter({
   name: 'get_torrents_requests',
   help: 'Count torrents retrieved'
@@ -54,7 +47,6 @@ const requireOwnerOrAdmin = async (req, res, next) => {
     res.status(404).json({ error: 'Torrent not found' });
   }
 };
-
 
 const createTorrentValidation = [
   body('infoHash')
@@ -116,76 +108,6 @@ const updateTorrentValidation = [
 
 torrentsRouter.use(authMiddleware);
 
-/**
- * @swagger
- * /api/torrents:
- *   get:
- *     summary: Listar todos los torrents con paginación y filtros
- *     tags: [Torrents]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Número de página
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 20
- *         description: Límite de resultados por página
- *       - in: query
- *         name: category
- *         schema:
- *           type: string
- *         description: Filtrar por categoría
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *         description: Buscar en nombre y descripción
- *     responses:
- *       200:
- *         description: Lista de torrents con paginación
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 torrents:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Torrent'
- *                 pagination:
- *                   type: object
- *                   properties:
- *                     page:
- *                       type: integer
- *                     limit:
- *                       type: integer
- *                     total:
- *                       type: integer
- *                     pages:
- *                       type: integer
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Error interno del servidor
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 torrentsRouter.get(
   '/',
   query('page')
@@ -222,78 +144,6 @@ torrentsRouter.get(
   }
 );
 
-/**
- * @swagger
- * /api/torrents:
- *   post:
- *     summary: Crear un nuevo torrent
- *     tags: [Torrents]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - infoHash
- *               - name
- *             properties:
- *               infoHash:
- *                 type: string
- *                 minLength: 40
- *                 maxLength: 40
- *                 description: Hash único del torrent (40 caracteres)
- *               name:
- *                 type: string
- *                 minLength: 1
- *                 maxLength: 255
- *                 description: Nombre del torrent
- *               category:
- *                 type: string
- *                 description: Categoría del torrent (opcional)
- *               tags:
- *                 type: string
- *                 description: Tags del torrent separados por comas (opcional)
- *               description:
- *                 type: string
- *                 description: Descripción del torrent (opcional)
- *               size:
- *                 type: integer
- *                 minimum: 0
- *                 description: Tamaño en bytes (opcional)
- *               anonymous:
- *                 type: boolean
- *                 description: Si el torrent es anónimo (opcional)
- *               freeleech:
- *                 type: boolean
- *                 description: Si el torrent es freeleech (opcional)
- *     responses:
- *       201:
- *         description: Torrent creado exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 torrent:
- *                   $ref: '#/components/schemas/Torrent'
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       409:
- *         description: Torrent ya existe
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 torrentsRouter.post('/', createTorrentValidation, async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -337,41 +187,6 @@ torrentsRouter.post('/', createTorrentValidation, async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /api/torrents/{id}:
- *   get:
- *     summary: Obtener torrent por ID
- *     tags: [Torrents]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID del torrent
- *     responses:
- *       200:
- *         description: Torrent encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Torrent'
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Torrent no encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 torrentsRouter.get(
   '/:id',
   param('id').isInt().withMessage('ID must be a number'),
@@ -392,47 +207,6 @@ torrentsRouter.get(
   }
 );
 
-/**
- * @swagger
- * /api/torrents/by-hash/{infoHash}:
- *   get:
- *     summary: Obtener torrent por infoHash (compatibilidad con tracker)
- *     tags: [Torrents]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: infoHash
- *         required: true
- *         schema:
- *           type: string
- *           minLength: 40
- *           maxLength: 40
- *         description: InfoHash del torrent (40 caracteres)
- *     responses:
- *       200:
- *         description: Magnet URI del torrent
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 magnetUri:
- *                   type: string
- *                   description: URI magnético del torrent
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Torrent no encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 torrentsRouter.get(
   '/by-hash/:infoHash',
   param('infoHash')
@@ -459,79 +233,6 @@ torrentsRouter.get(
   }
 );
 
-/**
- * @swagger
- * /api/torrents/{id}:
- *   put:
- *     summary: Actualizar torrent completo (solo propietario o admin)
- *     tags: [Torrents]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID del torrent
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 minLength: 1
- *                 maxLength: 255
- *                 description: Nombre del torrent (opcional)
- *               description:
- *                 type: string
- *                 description: Descripción del torrent (opcional)
- *               category:
- *                 type: string
- *                 description: Categoría del torrent (opcional)
- *               tags:
- *                 type: string
- *                 description: Tags del torrent (opcional)
- *               anonymous:
- *                 type: boolean
- *                 description: Si el torrent es anónimo (opcional)
- *               freeleech:
- *                 type: boolean
- *                 description: Si el torrent es freeleech (opcional)
- *     responses:
- *       200:
- *         description: Torrent actualizado exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 torrent:
- *                   $ref: '#/components/schemas/Torrent'
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Acceso denegado - Solo propietario o admin
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Torrent no encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 torrentsRouter.put(
   '/:id',
   param('id').isInt().withMessage('ID must be a number'),
@@ -557,79 +258,6 @@ torrentsRouter.put(
   }
 );
 
-/**
- * @swagger
- * /api/torrents/{id}:
- *   patch:
- *     summary: Actualización parcial de torrent (solo propietario o admin)
- *     tags: [Torrents]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID del torrent
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 minLength: 1
- *                 maxLength: 255
- *                 description: Nombre del torrent (opcional)
- *               description:
- *                 type: string
- *                 description: Descripción del torrent (opcional)
- *               category:
- *                 type: string
- *                 description: Categoría del torrent (opcional)
- *               tags:
- *                 type: string
- *                 description: Tags del torrent (opcional)
- *               anonymous:
- *                 type: boolean
- *                 description: Si el torrent es anónimo (opcional)
- *               freeleech:
- *                 type: boolean
- *                 description: Si el torrent es freeleech (opcional)
- *     responses:
- *       200:
- *         description: Torrent actualizado exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 torrent:
- *                   $ref: '#/components/schemas/Torrent'
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Acceso denegado - Solo propietario o admin
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Torrent no encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 torrentsRouter.patch(
   '/:id',
   param('id').isInt().withMessage('ID must be a number'),
@@ -655,43 +283,6 @@ torrentsRouter.patch(
   }
 );
 
-/**
- * @swagger
- * /api/torrents/{id}:
- *   delete:
- *     summary: Eliminar torrent (solo propietario o admin)
- *     tags: [Torrents]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID del torrent
- *     responses:
- *       204:
- *         description: Torrent eliminado exitosamente
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Acceso denegado - Solo propietario o admin
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Torrent no encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 torrentsRouter.delete(
   '/:id',
   param('id').isInt().withMessage('ID must be a number'),

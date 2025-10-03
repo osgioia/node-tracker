@@ -63,7 +63,7 @@ describe('IP Bans Router', () => {
         .get('/api/ip-bans');
 
       expect(response.status).toBe(500);
-      expect(response.body).toHaveProperty('error', 'Error to get ips');
+      expect(response.body).toHaveProperty('error', 'Error retrieving IP bans');
     });
   });
 
@@ -106,7 +106,7 @@ describe('IP Bans Router', () => {
         .send(ipBanData);
 
       expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('error', 'Error to create ip to ban.');
+      expect(response.body).toHaveProperty('error', 'Error creating IP ban.');
     });
   });
 
@@ -142,7 +142,7 @@ describe('IP Bans Router', () => {
         .send(ipBansData);
 
       expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('error', 'Error to create bulk ip to ban.');
+      expect(response.body).toHaveProperty('error', 'Error creating bulk IP bans.');
     });
   });
 
@@ -184,7 +184,7 @@ describe('IP Bans Router', () => {
         .send(updateData);
 
       expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('error', 'Error al update ip to ban.');
+      expect(response.body).toHaveProperty('error', 'Error updating IP ban.');
     });
   });
 
@@ -206,7 +206,7 @@ describe('IP Bans Router', () => {
         .delete('/api/ip-bans/1');
 
       expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('error', 'Error to delete ip.');
+      expect(response.body).toHaveProperty('error', 'Error deleting IP ban.');
     });
   });
 });

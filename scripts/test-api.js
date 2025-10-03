@@ -1,8 +1,8 @@
 import fetch from 'node-fetch';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'http://localhost:3001';
 
-// Función helper para hacer requests
+// Helper function for making requests
 async function makeRequest(endpoint, options = {}) {
   try {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
@@ -30,8 +30,8 @@ async function testAPI() {
   await makeRequest('/health');
   console.log('');
 
-  // 2. Registro de usuario
-  console.log('2. Registro de Usuario');
+  // 2. User Registration
+  console.log('2. User Registration');
   const registerResult = await makeRequest('/api/user/register', {
     method: 'POST',
     body: JSON.stringify({
@@ -43,7 +43,7 @@ async function testAPI() {
   console.log('');
 
   // 3. Login
-  console.log('3. Login de Usuario');
+  console.log('3. User Login');
   const loginResult = await makeRequest('/api/user/login', {
     method: 'POST',
     body: JSON.stringify({
@@ -53,7 +53,7 @@ async function testAPI() {
   });
 
   if (loginResult.status !== 200) {
-    console.log('❌ Login falló, terminando pruebas');
+    console.log('❌ Login failed, ending tests');
     return;
   }
 
@@ -61,8 +61,8 @@ async function testAPI() {
   console.log('✅ Token obtenido:', token.substring(0, 20) + '...');
   console.log('');
 
-  // 4. Obtener perfil
-  console.log('4. Obtener Perfil');
+  // 4. Get profile
+  console.log('4. Get Profile');
   await makeRequest('/api/user/profile', {
     headers: {
       'Authorization': `Bearer ${token}`
@@ -86,9 +86,9 @@ async function testAPI() {
   });
   console.log('');
 
-  // 6. Obtener torrent
+  // 6. Get torrent
   if (addTorrentResult.status === 201) {
-    console.log('6. Obtener Torrent');
+    console.log('6. Get Torrent');
     await makeRequest('/api/torrent/abc123def456789012345678901234567890abcd', {
       headers: {
         'Authorization': `Bearer ${token}`
@@ -121,17 +121,17 @@ async function testAPI() {
   });
   console.log('');
 
-  // 9. Métricas
-  console.log('9. Métricas de Prometheus');
+  // 9. Metrics
+  console.log('9. Prometheus Metrics');
   const metricsResponse = await fetch(`${BASE_URL}/metrics`);
   const metrics = await metricsResponse.text();
-  console.log('Métricas obtenidas:', metrics.split('\n').length, 'líneas');
+  console.log('Metrics obtained:', metrics.split('\n').length, 'lines');
   console.log('');
 
-  console.log('✅ Pruebas completadas');
+  console.log('✅ Tests completed');
 }
 
-// Ejecutar pruebas solo si el archivo se ejecuta directamente
+// Execute tests only if file is run directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   testAPI().catch(console.error);
 }

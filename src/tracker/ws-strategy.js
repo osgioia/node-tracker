@@ -15,7 +15,7 @@ export class WsTracker extends TrackerStrategy {
       await applyTrackerFilters(
         infoHash,
         {
-          passkey: params.passkey, // en ws announce deberías mandar esto como parte de query o payload
+          passkey: params.passkey, // in ws announce you should send this as part of query or payload
           ip,
           ipv6: params.ipv6,
         },

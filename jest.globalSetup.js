@@ -19,11 +19,11 @@ export default async () => {
     execSync('docker-compose -f docker-compose.test.yml up -d', { stdio: 'inherit' });
   }
 
-  // Espera para que la base de datos esté lista
+  // Wait for database to be ready
   console.log('Waiting for database to be ready...');
   await new Promise(res => setTimeout(res, 5000));
 
-  // Aplicar migraciones de Prisma en la base de datos de test
+  // Apply Prisma migrations to test database
   console.log('Applying database migrations...');
   execSync('npx prisma migrate deploy', { stdio: 'inherit' });
 
