@@ -9,12 +9,17 @@ export const sanitizeInput = (req, res, next) => {
     const sanitizeString = (str) => {
       if (typeof str !== 'string') {return str;}
 
-      return str
-        .trim()
-        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') 
+      // Repeatedly remove <script>...</script> blocks until no more matches
+      let sanitized = str.trim();
+      let prev;
+      do {
+        prev = sanitized;
+        sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+      } while (sanitized !== prev);
+      return sanitized
         .replace(/(javascript:|data:|vbscript:)/gi, '') 
         .replace(/on\w+\s*=/gi, '') 
-        .replace(/[<>]/g, ''); 
+        .replace(/[<>]/g, '');
     };
 
     const sanitizeObject = (obj) => {
