@@ -1,4 +1,5 @@
 import { logMessage } from '../utils/utils.js';
+import sanitizeHtml from 'sanitize-html';
 
 export const sanitizeInput = (req, res, next) => {
   try {
@@ -9,12 +10,11 @@ export const sanitizeInput = (req, res, next) => {
     const sanitizeString = (str) => {
       if (typeof str !== 'string') {return str;}
 
-      return str
-        .trim()
-        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') 
-        .replace(/(javascript:|data:|vbscript:)/gi, '') 
-        .replace(/on\w+\s*=/gi, '') 
-        .replace(/[<>]/g, ''); 
+      // Use a well-established library to sanitize
+      return sanitizeHtml(str, {
+        allowedTags: sanitizeHtml.defaults.allowedTags, // (default policy)
+        allowedAttributes: sanitizeHtml.defaults.allowedAttributes
+      });
     };
 
     const sanitizeObject = (obj) => {
