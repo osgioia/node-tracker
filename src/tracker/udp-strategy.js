@@ -1,5 +1,5 @@
 import { TrackerStrategy } from './tracker-strategy.js';
-import { applyTrackerFilters } from "../utils/filters.js";
+import { applyTrackerFilters } from "./tracker-filter.js";
 
 export class UdpTracker extends TrackerStrategy {
   constructor(trackerServer, port) {
