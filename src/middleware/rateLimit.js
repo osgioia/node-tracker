@@ -9,7 +9,7 @@ export const apiRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: new RedisStore({
-    sendCommand: (...args) => redisClient.sendCommand(args),
+    sendCommand: (...args) => redisClient.sendCommand(args)
   }),
   handler: (req, res) => {
     logMessage('warn', `Rate limit exceeded for IP: ${req.ip}`);
@@ -26,7 +26,7 @@ export const authRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: new RedisStore({
-    sendCommand: (...args) => redisClient.sendCommand(args),
+    sendCommand: (...args) => redisClient.sendCommand(args)
   }),
   handler: (req, res) => {
     logMessage('warn', `Auth rate limit exceeded for IP: ${req.ip}`);

@@ -1,5 +1,5 @@
 import { createLogger, format, transports } from 'winston';
-import { Address6, Address4 } from 'ip-address';
+import { Address6 } from 'ip-address';
 import { db } from './db.server.js';
 import fs from 'fs';
 import path from 'path';

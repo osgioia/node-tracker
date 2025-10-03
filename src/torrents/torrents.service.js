@@ -1,6 +1,7 @@
 import { db } from '../utils/db.server.js';
 import { logMessage } from '../utils/utils.js';
 import magnet from 'magnet-uri';
+import { RedisKeys } from '../utils/redis-keys.js';
 
 function generateMagnetURI(infoHash, name, hostname,passkey) {
   try {
@@ -14,7 +15,7 @@ function generateMagnetURI(infoHash, name, hostname,passkey) {
     });
     
     return magnetUri;
-  } catch (err) {
+  } catch (_err) {
     throw new Error('Error generating magnet URI');
   }
 }
@@ -252,7 +253,8 @@ async function deleteTorrent(id) {
     await db.torrent.delete({
       where: { id: parseInt(id) }
     });
-    
+    const cacheKey = RedisKeys.cache.torrentCount();
+    await redisClient.del(cacheKey);
     logMessage('info', `Torrent deleted: ${id}`);
   } catch (error) {
     logMessage('error', `Error deleting torrent: ${error.message}`);

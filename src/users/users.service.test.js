@@ -6,15 +6,15 @@ jest.mock('../utils/db.server.js', () => ({
   db: {
     user: {
       findUnique: jest.fn(),
-      update: jest.fn(),
-    },
-  },
+      update: jest.fn()
+    }
+  }
 }));
 
 jest.mock('../config/redis-client.js', () => ({
   get: jest.fn(),
   setEx: jest.fn(),
-  del: jest.fn(),
+  del: jest.fn()
 }));
 
 describe('Users Service', () => {
@@ -30,14 +30,14 @@ describe('Users Service', () => {
       username: 'testuser',
       uploaded: 1024n, 
       downloaded: 512n, 
-      seedtime: 3600n,
+      seedtime: 3600n
     };
     const mockUserForCache = {
       ...mockUserFromDb,
       uploaded: '1024', 
       downloaded: '512', 
       seedtime: 3600,
-      ratio: 2.00,
+      ratio: 2.00
     };
 
     it('should fetch user from DB and store in cache if not cached', async () => {

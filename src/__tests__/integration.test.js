@@ -128,9 +128,10 @@ describe('Integration Tests', () => {
           email: 'test@example.com',
           password: 'Password123!'
         });
-
+      
       expect(registerResponse.status).toBe(201);
       expect(registerResponse.body.message).toBe('User registered successfully');
+      expect(registerResponse.body.user).toBeDefined();
 
       mockDb.user.findFirst.mockResolvedValue({
         id: 1,

@@ -28,13 +28,11 @@ jest.unstable_mockModule('../../utils/utils.js', () => ({
 
 const {
   createUserBan,
-  banUserForDays,
   banUserFor7Days,
   banUserFor15Days,
   banUserFor30Days,
   banUserPermanently,
   getUserBanById,
-  getUserBans,
   getActiveUserBan,
   getAllUserBans,
   deactivateUserBan,

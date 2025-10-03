@@ -109,7 +109,7 @@ describe('Utils', () => {
         }
       }));
 
-      mockAddress6.mockImplementation((ip) => ({
+      mockAddress6.mockImplementation((_ip) => ({
         bigInteger: () => BigInt('0')
       }));
     });

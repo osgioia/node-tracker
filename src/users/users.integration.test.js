@@ -17,7 +17,7 @@ describe('Users Service (Integration)', () => {
     const userData = {
       username: 'integ-test',
       email: 'integ@test.com',
-      password: 'password123',
+      password: 'password123'
     };
 
     const created = await createUser(userData);
@@ -33,7 +33,7 @@ describe('Users Service (Integration)', () => {
     const created = await createUser({
       username: 'cache-test',
       email: 'cache@test.com',
-      password: 'password123',
+      password: 'password123'
     });
 
     const userFromDb = await getUserById(created.id);
@@ -53,7 +53,7 @@ describe('Users Service (Integration)', () => {
     const created = await createUser({
       username: 'invalidate-test',
       email: 'invalidate@test.com',
-      password: 'password123',
+      password: 'password123'
     });
     await getUserById(created.id);
 

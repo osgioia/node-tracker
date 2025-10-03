@@ -36,7 +36,7 @@ ipBansRouter.get('/', async (req, res) => {
   try {
     const ipBans = await listAllIPBans(req.query);
     res.status(200).json(ipBans);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Error retrieving IP bans' });
   }
 });
@@ -46,7 +46,7 @@ ipBansRouter.post('/', async (req, res) => {
   try {
     const newIPBan = await createIPBan(req.body);
     res.status(201).json(newIPBan);
-  } catch (error) {
+  } catch (_error) {
     res.status(400).json({ error: 'Error creating IP ban.' });
   }
 });
@@ -56,7 +56,7 @@ ipBansRouter.post('/bulk', async (req, res) => {
   try {
     const result = await bulkCreateIPBans(req.body);
     res.status(201).json(result);
-  } catch (error) {
+  } catch (_error) {
     res.status(400).json({ error: 'Error creating bulk IP bans.' });
   }
 });
@@ -66,7 +66,7 @@ ipBansRouter.put('/:id', async (req, res) => {
   try {
     const updatedIPBan = await updateIPBan(req.params.id, req.body);
     res.status(200).json(updatedIPBan);
-  } catch (error) {
+  } catch (_error) {
     res.status(400).json({ error: 'Error updating IP ban.' });
   }
 });
@@ -76,7 +76,7 @@ ipBansRouter.delete('/:id', async (req, res) => {
   try {
     await deleteIPBan(req.params.id);
     res.status(204).send();
-  } catch (error) {
+  } catch (_error) {
     res.status(400).json({ error: 'Error deleting IP ban.' }); 
   }
 });

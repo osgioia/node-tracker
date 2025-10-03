@@ -7,7 +7,7 @@ export const RedisKeys = {
   // Tracker Core
   torrent: {
     peers: (infoHash) => `torrent:peers:${infoHash}`,
-    stats: (infoHash) => `torrent:stats:${infoHash}`,
+    stats: (infoHash) => `torrent:stats:${infoHash}`
   },
   peer: (infoHash, peerId) => `peer:${infoHash}:${peerId}`,
   
@@ -16,51 +16,51 @@ export const RedisKeys = {
     blacklist: (jti) => `auth:blacklist:${jti}`,
     session: (token) => `user:session:${token}`,
     attempts: (ip) => `auth:login:attempts:${ip}`,
-    blocked: (ip) => `auth:login:blocked:${ip}`,
+    blocked: (ip) => `auth:login:blocked:${ip}`
   },
   
   // Rate Limiting
   ratelimit: {
     api: (ip) => `ratelimit:api:${ip}`,
     announce: (passkey) => `ratelimit:announce:${passkey}`,
-    auth: (ip) => `ratelimit:auth:${ip}`,
+    auth: (ip) => `ratelimit:auth:${ip}`
   },
   
   // Bans
   ban: {
     userCheck: (userId) => `ban:user:check:${userId}`,
     ipCheck: (ip) => `ban:ip:check:${ip}`,
-    active: () => `ban:user:active`,
+    active: () => 'ban:user:active'
   },
   
   // User Stats
   user: {
-    stats: (userId) => `user:stats:${userId}`,
+    stats: (userId) => `user:stats:${userId}`
   },
   
   // Cache
   cache: {
     ratio: (userId) => `cache:ratio:${userId}`,
     query: (hash) => `cache:query:${hash}`,
-    torrentCount: () => `cache:torrent:count`,
+    torrentCount: () => 'cache:torrent:count'
   },
   
   // Invitations
   invite: {
     data: (inviteKey) => `invite:${inviteKey}`,
-    remaining: (userId) => `invite:remaining:${userId}`,
+    remaining: (userId) => `invite:remaining:${userId}`
   },
   
   // Temporary
   temp: {
     emailVerify: (token) => `temp:email:verify:${token}`,
-    passwordReset: (token) => `temp:password:reset:${token}`,
+    passwordReset: (token) => `temp:password:reset:${token}`
   },
   
   // Health
   health: {
-    db: () => `health:db`,
-  },
+    db: () => 'health:db'
+  }
 };
 
 // TTL constants (in seconds)
@@ -76,7 +76,7 @@ export const RedisTTL = {
   EMAIL_VERIFY: 86400,
   PASSWORD_RESET: 3600,
   SESSION: 3600,
-  HEALTH_CHECK: 30,
+  HEALTH_CHECK: 30
 };
 
 // Helper functions
@@ -96,7 +96,7 @@ export const RedisHelpers = {
   async getOrCompute(key, computeFn, ttl = 300) {
     try {
       const cached = await redisClient.get(key);
-      if (cached !== null) return JSON.parse(cached);
+      if (cached !== null) {return JSON.parse(cached);}
       
       const computed = await computeFn();
       await redisClient.set(key, JSON.stringify(computed), { EX: ttl });
@@ -112,7 +112,7 @@ export const RedisHelpers = {
     const key = RedisKeys.ban.userCheck(userId);
     try {
       const cached = await redisClient.get(key);
-      if (cached !== null) return cached === 'true';
+      if (cached !== null) {return cached === 'true';}
       
       // Fallback to database check
       const { db } = await import('./db.server.js');
@@ -122,9 +122,9 @@ export const RedisHelpers = {
           active: true,
           OR: [
             { expiresAt: null },
-            { expiresAt: { gt: new Date() } },
-          ],
-        },
+            { expiresAt: { gt: new Date() } }
+          ]
+        }
       });
       
       const isBanned = !!activeBan;
@@ -141,7 +141,7 @@ export const RedisHelpers = {
     const key = RedisKeys.ban.ipCheck(ip);
     try {
       const cached = await redisClient.get(key);
-      if (cached !== null) return cached === 'banned';
+      if (cached !== null) {return cached === 'banned';}
       
       // Fallback to database check
       const { db } = await import('./db.server.js');
@@ -151,8 +151,8 @@ export const RedisHelpers = {
       const ban = await db.iPBan.findFirst({
         where: {
           fromIP: { lte: ipLong },
-          toIP: { gte: ipLong },
-        },
+          toIP: { gte: ipLong }
+        }
       });
       
       const isBanned = !!ban;
@@ -220,7 +220,7 @@ export const RedisHelpers = {
         return {
           uploaded: BigInt(cached.uploaded || '0'),
           downloaded: BigInt(cached.downloaded || '0'),
-          seedtime: BigInt(cached.seedtime || '0'),
+          seedtime: BigInt(cached.seedtime || '0')
         };
       }
       return null;
@@ -236,13 +236,13 @@ export const RedisHelpers = {
       await redisClient.hSet(key, {
         uploaded: String(stats.uploaded),
         downloaded: String(stats.downloaded),
-        seedtime: String(stats.seedtime),
+        seedtime: String(stats.seedtime)
       });
       await redisClient.expire(key, RedisTTL.RATIO_CACHE);
     } catch (error) {
       logMessage('error', `Redis updateUserStats error: ${error.message}`);
     }
-  },
+  }
 };
 
 export default redisClient;

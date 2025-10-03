@@ -48,7 +48,7 @@ routerFiles.forEach(filePath => {
     console.log(`   ✅ ${commentsInFile} JSDoc comments removed`);
     totalFilesProcessed++;
   } else {
-    console.log(`   ℹ️  No Swagger JSDoc comments found`);
+    console.log('   ℹ️  No Swagger JSDoc comments found');
   }
 });
 

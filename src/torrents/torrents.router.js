@@ -43,7 +43,7 @@ const requireOwnerOrAdmin = async (req, res, next) => {
     }
     req.torrent = torrent;
     next();
-  } catch (error) {
+  } catch (_error) {
     res.status(404).json({ error: 'Torrent not found' });
   }
 };

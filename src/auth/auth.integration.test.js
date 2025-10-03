@@ -23,7 +23,7 @@ describe('Auth Router (Integration)', () => {
     const createdUser = await createUser({
       username: 'logout-test',
       email: 'logout@test.com',
-      password: 'password123',
+      password: 'password123'
     });
     testUser = await db.user.findUnique({ where: { id: createdUser.id } });
     token = generateToken(testUser);

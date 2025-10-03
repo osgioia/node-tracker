@@ -32,16 +32,16 @@ router.use('/api/invitations', authMiddleware, invitationsRouter);
 router.get('/health', async (req, res) => {
   try {
     await db.$queryRaw`SELECT 1`;
-    res.status(200).send("OK");
+    res.status(200).send('OK');
   } catch (err) {
-    logMessage("error", `Health check error: ${err.message}`);
-    res.status(500).send("Database Error");
+    logMessage('error', `Health check error: ${err.message}`);
+    res.status(500).send('Database Error');
   }
 });
 
 // Metrics
 router.get('/metrics', authMiddleware, async (req, res) => {
-  res.set("Content-Type", register.contentType);
+  res.set('Content-Type', register.contentType);
   res.end(await register.metrics());
 });
 
@@ -51,13 +51,13 @@ router.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 50,
-    message: { error: "Too many requests to API documentation" },
+    message: { error: 'Too many requests to API documentation' }
   }),
   swaggerUi.serve,
   swaggerUi.setup(specs, {
     explorer: true,
-    customCss: ".swagger-ui .topbar { display: none }",
-    customSiteTitle: "Node Tracker API Documentation",
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Node Tracker API Documentation'
   })
 );
 

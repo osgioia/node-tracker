@@ -1,8 +1,5 @@
-import request from 'supertest';
 import express from 'express';
 import { userBanRouter } from './user-ban.router.js';
-import * as userBanService from './user-ban.service.js';
-import { authMiddleware } from '../middleware/auth.js';
 
 jest.mock('./user-ban.service.js');
 jest.mock('../middleware/auth.js', () => ({

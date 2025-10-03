@@ -1,5 +1,5 @@
 import { TrackerStrategy } from './tracker-strategy.js';
-import { applyTrackerFilters } from "./tracker-filter.js";
+import { applyTrackerFilters } from './tracker-filter.js';
 
 export class WsTracker extends TrackerStrategy {
   constructor(trackerServer) {
@@ -8,8 +8,8 @@ export class WsTracker extends TrackerStrategy {
   }
 
   start(httpServer) {
-    this.trackerServer.on("start", async (params, cb) => {
-      const infoHash = params.info_hash?.toString("hex");
+    this.trackerServer.on('start', async (params, cb) => {
+      const infoHash = params.info_hash?.toString('hex');
       const ip = params.ip || params.peer?.ip;
 
       await applyTrackerFilters(
@@ -17,17 +17,17 @@ export class WsTracker extends TrackerStrategy {
         {
           passkey: params.passkey, // in ws announce you should send this as part of query or payload
           ip,
-          ipv6: params.ipv6,
+          ipv6: params.ipv6
         },
         (err) => {
-          if (err) return cb(err);
+          if (err) {return cb(err);}
           cb(null);
         }
       );
     });
 
     this.trackerServer.listen({ server: httpServer, ws: true });
-    console.log("Tracker WS habilitado");
+    console.log('Tracker WS habilitado');
   }
 
   handleRequest(req, res) {

@@ -7,7 +7,7 @@ export class TrackerStrategy {
     throw new Error('start() debe implementarse en la subclase');
   }
 
-  handleRequest(req, res) {
+  handleRequest() {
     throw new Error('handleRequest() debe implementarse en la subclase');
   }
 }
