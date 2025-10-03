@@ -12,7 +12,7 @@ export const sanitizeInput = (req, res, next) => {
       return str
         .trim()
         .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') 
-        .replace(/javascript:/gi, '') 
+        .replace(/(javascript:|data:|vbscript:)/gi, '') 
         .replace(/on\w+\s*=/gi, '') 
         .replace(/[<>]/g, ''); 
     };
