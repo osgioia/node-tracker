@@ -2,6 +2,7 @@ import { db } from '../utils/db.server.js';
 import { logMessage } from '../utils/utils.js';
 import magnet from 'magnet-uri';
 import { RedisKeys } from '../utils/redis-keys.js';
+import redisClient from '../utils/redis.js';
 
 function generateMagnetURI(infoHash, name, hostname,passkey) {
   try {

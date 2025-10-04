@@ -1,5 +1,7 @@
 import { db } from '../utils/db.server.js';
 import { logMessage } from '../utils/utils.js';
+import { RedisKeys } from '../utils/redis-keys.js';
+import redisClient from '../utils/redis.js';
 
 async function createUserBan(banData) {
   try {
@@ -36,6 +38,9 @@ async function createUserBan(banData) {
       where: { id: parseInt(userId) },
       data: { banned: true }
     });
+
+    const banKey = RedisKeys.ban.userCheck(userId);
+    await redisClient.del(banKey);
 
     const banType = expiresAt ? `temporary (expires: ${new Date(expiresAt).toISOString()})` : 'permanent';
     logMessage('info', `User banned (${banType}): ${user.username} by ${bannedBy} - Reason: ${reason}`);
@@ -273,6 +278,9 @@ async function deactivateUserBan(banId, unbannedBy) {
       });
     }
 
+    const banKey = RedisKeys.ban.userCheck(userBan.userId);
+    await redisClient.del(banKey);
+
     logMessage('info', `User ban deactivated: ${userBan.user.username} by ${unbannedBy}`);
     return updatedBan;
   } catch (error) {
@@ -340,6 +348,9 @@ async function cleanupExpiredBans() {
         });
         logMessage('info', `User automatically unbanned due to expired ban: ${ban.user.username}`);
       }
+
+      const banKey = RedisKeys.ban.userCheck(ban.userId);
+      await redisClient.del(banKey);
     }
 
     logMessage('info', `Cleaned up ${expiredBans.length} expired bans`);

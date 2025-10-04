@@ -121,7 +121,7 @@ for (const tracker of trackers) {
 app.use('/', apiRouter);
 
 // ----------------- Error handler -----------------
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   logMessage('error', `Unhandled error: ${err.message}`);
   res.status(500).json({ error: 'Internal Server Error.' });
 });

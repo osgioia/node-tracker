@@ -28,7 +28,7 @@ export default async () => {
       console.log('Applying database migrations...');
       execSync('npx prisma migrate deploy', { stdio: 'inherit' });
       
-    } catch (composeErr) {
+    } catch (_composeErr) {
       console.warn('Docker Compose v2 failed, trying v1...');
       try {
         execSync('docker-compose -f docker-compose.test.yml up -d', { stdio: 'inherit' });
@@ -37,12 +37,12 @@ export default async () => {
         await new Promise(res => setTimeout(res, 5000));
         execSync('npx prisma migrate deploy', { stdio: 'inherit' });
         
-      } catch (v1Err) {
+      } catch (_v1Err) {
         throw new Error('Both Docker Compose v1 and v2 failed');
       }
     }
     
-  } catch (dockerErr) {
+  } catch (_dockerErr) {
     console.warn('⚠️  Docker not available, running tests with mocked dependencies');
     console.warn('   Some integration tests may be skipped');
     

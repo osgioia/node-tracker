@@ -1,7 +1,7 @@
-const { AuthService } = require('../auth.service');
-const { createTestUser } = require('../../utils/testHelpers');
-const db = require('../../utils/db.server');
-const jwt = require('jsonwebtoken');
+import { AuthService } from '../auth.service';
+import { createTestUser } from '../../utils/testHelpers';
+import db from '../../utils/db.server';
+import jwt from 'jsonwebtoken';
 
 jest.mock('../../utils/db.server');
 jest.mock('jsonwebtoken');

@@ -1,4 +1,4 @@
-import { jest, describe, it, expect, beforeEach, beforeAll } from '@jest/globals';
+import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 
@@ -95,11 +95,11 @@ describe('Auth Router', () => {
 
       const response = await request(app)
         .post('/api/auth/logout')
-        .set('Authorization', 'Bearer mock_jwt_token');
+        .set('Authorization', 'Bearer mock_jwt_token'); // Ensure Authorization header is set
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(mockAuthService.logoutUser).toHaveBeenCalledWith(1);
+      expect(mockAuthService.logoutUser).toHaveBeenCalledWith(1); // Ensure user ID is passed
     });
   });
 });

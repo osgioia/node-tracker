@@ -1,7 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import { db } from '../utils/db.server.js';
-import redisClient from '../config/redis-client.js';
+import redisClient from '../utils/redis.js';
 import { createUser } from '../users/users.service.js';
 import { generateToken } from '../utils/utils.js';
 import { authRouter } from './auth.router.js';

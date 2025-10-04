@@ -1,7 +1,7 @@
 process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-purposes-at-least-32-characters-long-and-secure';
 process.env.NODE_ENV = 'test';
 
-import { jest, describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { jest, describe, it, expect, beforeAll, beforeEach } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 

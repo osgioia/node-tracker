@@ -1,4 +1,4 @@
-import redisClient from '../config/redis-client.js';
+import redisClient from '../utils/redis.js';
 import { logMessage } from '../utils/utils.js';
 
 const TOKEN_BLACKLIST_PREFIX = 'blacklist:';

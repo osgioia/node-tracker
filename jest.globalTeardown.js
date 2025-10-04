@@ -18,15 +18,15 @@ export default async () => {
       // Try Docker Compose v2 first
       execSync('docker compose -f docker-compose.test.yml down', { stdio: 'inherit' });
       console.log('✅ Docker containers stopped successfully');
-    } catch (composeErr) {
+    } catch (_composeErr) {
       try {
         execSync('docker-compose -f docker-compose.test.yml down', { stdio: 'inherit' });
         console.log('✅ Docker containers stopped with v1');
-      } catch (v1Err) {
+      } catch (_v1Err) {
         console.warn('⚠️  Failed to stop Docker containers');
       }
     }
-  } catch (dockerErr) {
+  } catch (_dockerErr) {
     console.warn('⚠️  Docker not available, skipping container cleanup');
   }
 

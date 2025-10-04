@@ -1,7 +1,8 @@
 import { db } from '../utils/db.server.js';
 import { logMessage } from '../utils/utils.js';
 import bcrypt from 'bcrypt';
-import redisClient from '../config/redis-client.js';
+import redisClient from '../utils/redis.js';
+import { RedisKeys } from '../utils/redis-keys.js';
 
 async function createUser(userData) {
   try {
@@ -45,7 +46,7 @@ async function createUser(userData) {
 
 async function getUserById(id) {
   try {
-    const cacheKey = `user:${id}`;
+    const cacheKey = RedisKeys.user.stats(id); // Updated to use RedisKeys
 
     const cachedUser = await redisClient.get(cacheKey);
     if (cachedUser) {
@@ -109,7 +110,7 @@ async function getUserById(id) {
     };
 
     const userToCache = { ...result, uploaded: result.uploaded.toString(), downloaded: result.downloaded.toString() };
-    await redisClient.setEx(cacheKey, 3600, JSON.stringify(userToCache));
+    await redisClient.setEx(cacheKey, 3600, JSON.stringify(userToCache)); // Updated TTL constant
     logMessage('info', `User ${id} stored in cache.`);
 
     return result;
@@ -206,7 +207,7 @@ async function updateUser(id, updateData) {
       }
     });
 
-    const cacheKey = `user:${id}`;
+    const cacheKey = RedisKeys.user.stats(id); // Updated to use RedisKeys
     await redisClient.del(cacheKey);
     logMessage('info', `Cache invalidated for user ${id}.`);
 
@@ -233,7 +234,7 @@ async function toggleUserBan(id, banned, reason = null) {
     const action = banned ? 'banned' : 'unbanned';
     logMessage('info', `User ${action}: ${updatedUser.username}${reason ? ` - Reason: ${reason}` : ''}`);
     
-    const cacheKey = `user:${id}`;
+    const cacheKey = RedisKeys.user.stats(id); // Updated to use RedisKeys
     await redisClient.del(cacheKey);
     logMessage('info', `Cache invalidated for user ${id} due to ban status change.`);
 

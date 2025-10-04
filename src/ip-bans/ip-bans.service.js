@@ -1,5 +1,6 @@
 import { db } from '../utils/db.server.js';
 import { logMessage } from '../utils/utils.js';
+import { RedisKeys } from '../utils/redis-keys.js';
 
 async function listAllIPBans(query = {}) {
   try {
@@ -35,6 +36,8 @@ async function listAllIPBans(query = {}) {
 
 async function createIPBan(data) {
   try {
+    const ipKey = RedisKeys.ban.ipCheck(data.fromIP);
+    await redisClient.del(ipKey);
     const ipBan = await db.IPBan.create({
       data
     });
@@ -84,6 +87,11 @@ async function updateIPBan(id, data) {
 
 async function deleteIPBan(id) {
   try {
+    const ipBan = await db.IPBan.findUnique({ where: { id: parseInt(id) } });
+    if (ipBan) {
+      const ipKey = RedisKeys.ban.ipCheck(ipBan.fromIP);
+      await redisClient.del(ipKey);
+    }
     await db.IPBan.delete({
       where: { id: parseInt(id) }
     });

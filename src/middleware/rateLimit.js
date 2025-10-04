@@ -1,6 +1,6 @@
 import rateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
-import redisClient from '../config/redis-client.js';
+import redisClient from '../utils/redis.js';
 import { logMessage } from '../utils/utils.js';
 
 export const apiRateLimiter = rateLimit({

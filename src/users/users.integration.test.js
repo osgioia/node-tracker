@@ -1,5 +1,5 @@
 import { db } from '../utils/db.server.js';
-import redisClient from '../config/redis-client.js';
+import redisClient from '../utils/redis.js';
 import { createUser, getUserById, updateUser } from './users.service.js';
 
 describe('Users Service (Integration)', () => {

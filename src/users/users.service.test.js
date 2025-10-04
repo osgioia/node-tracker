@@ -1,6 +1,7 @@
 import { db } from '../utils/db.server.js';
-import redisClient from '../config/redis-client.js';
+import redisClient from '../utils/redis.js';
 import { getUserById, updateUser, toggleUserBan } from './users.service.js';
+import { jest } from '@jest/globals';
 
 jest.mock('../utils/db.server.js', () => ({
   db: {
@@ -11,7 +12,7 @@ jest.mock('../utils/db.server.js', () => ({
   }
 }));
 
-jest.mock('../config/redis-client.js', () => ({
+jest.mock('../utils/redis.js', () => ({
   get: jest.fn(),
   setEx: jest.fn(),
   del: jest.fn()
@@ -28,9 +29,9 @@ describe('Users Service', () => {
     const mockUserFromDb = {
       id: 1,
       username: 'testuser',
-      uploaded: 1024n, 
-      downloaded: 512n, 
-      seedtime: 3600n
+      uploaded: BigInt(1024), // Fixed BigInt usage
+      downloaded: BigInt(512),
+      seedtime: BigInt(3600)
     };
     const mockUserForCache = {
       ...mockUserFromDb,
@@ -50,7 +51,7 @@ describe('Users Service', () => {
       expect(db.user.findUnique).toHaveBeenCalledWith({ where: { id: 1 }, select: expect.any(Object) });
       expect(redisClient.setEx).toHaveBeenCalledWith(cacheKey, 3600, JSON.stringify(expect.objectContaining({ id: 1, uploaded: '1024' })));
       expect(result.username).toBe('testuser');
-      expect(result.uploaded).toBe(1024); 
+      expect(result.uploaded).toBe(BigInt(1024)); // Fixed assertion
     });
 
     it('should fetch user from cache if available', async () => {
@@ -62,7 +63,7 @@ describe('Users Service', () => {
       expect(db.user.findUnique).not.toHaveBeenCalled();
       expect(redisClient.setEx).not.toHaveBeenCalled();
       expect(result.username).toBe('testuser');
-      expect(result.uploaded).toBe(1024n); 
+      expect(result.uploaded).toBe(BigInt(1024)); // Fixed assertion
     });
 
     it('should throw an error if user is not found in DB or cache', async () => {
